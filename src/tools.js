@@ -18,7 +18,7 @@ A.toolOpen = (el) => {
     <div class="kv"><span class="k">3. Como usar</span><ol class="tool-steps">${t.usar.map((u) => `<li>${u}</li>`).join("")}</ol></div>
     <div class="kv"><span class="k">4. Exemplo</span><p>${t.exemplo}</p></div>
     <div class="reflect"><span style="color:var(--amarelo-800)">${icon("star", 22)}</span><div><div class="rl">5. Desafio para experimentar</div><div class="rq">${t.desafio}</div></div></div>
-    <div class="note">${icon("info")}<span>Nenhuma estratégia funciona igual para todo mundo. Experimente, observe e ajuste do seu jeito.</span></div>
+    <div class="note">${icon("info")}<span>Nenhuma estratégia funciona da mesma forma para todas as pessoas. Experimente, observe e ajuste à sua maneira.</span></div>
     ${res ? `<div class="row"><button class="btn btn-primary" data-act="goRes" data-tab="${res}">Experimentar agora ${icon("arrowR", 18)}</button></div>` : ""}
   </div>`, { label: t.nome });
   $("#tool-grid").innerHTML = toolGrid(); afterProgress("ferramentas");
@@ -43,9 +43,9 @@ function addOnEnter(inputId, act) { const i = $("#" + inputId); i && i.addEventL
 
 /* Lista de tarefas */
 function todoHTML() {
-  return `<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h3>Lista de tarefas</h3><p class="muted" style="font-size:.9rem">Tire as tarefas da cabeça e coloque aqui. Marque quando terminar.</p></div>${S.todo.some((t) => t.done) ? `<button class="btn btn-ghost btn-sm" data-act="todoClear">${icon("trash", 16)} Limpar concluídas</button>` : ""}</div>
+  return `<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h3>Lista de tarefas</h3><p class="muted" style="font-size:.9rem">Registre aqui suas tarefas e marque cada uma ao concluir.</p></div>${S.todo.some((t) => t.done) ? `<button class="btn btn-ghost btn-sm" data-act="todoClear">${icon("trash", 16)} Limpar concluídas</button>` : ""}</div>
   <form class="add-row" onsubmit="event.preventDefault();A.todoAdd()"><label class="sr-only" for="todo-in">Nova tarefa</label><input id="todo-in" placeholder="Ex.: separar o material de inglês" maxlength="120" autocomplete="off"><button class="btn btn-primary" type="submit">${icon("plus", 18)} Adicionar</button></form>
-  <div class="todo-list">${S.todo.length ? S.todo.map((t) => `<div class="todo ${t.done ? "done" : ""}"><label><input type="checkbox" data-act="todoToggle" data-id="${t.id}" ${t.done ? "checked" : ""}><span>${esc(t.t)}</span></label><button class="btn btn-soft btn-icon btn-sm" data-act="todoDel" data-id="${t.id}" aria-label="Remover tarefa">${icon("x", 16)}</button></div>`).join("") : `<div class="empty">Nenhuma tarefa ainda. Que tal começar com uma coisa pequena para hoje?</div>`}</div>
+  <div class="todo-list">${S.todo.length ? S.todo.map((t) => `<div class="todo ${t.done ? "done" : ""}"><label><input type="checkbox" data-act="todoToggle" data-id="${t.id}" ${t.done ? "checked" : ""}><span>${esc(t.t)}</span></label><button class="btn btn-soft btn-icon btn-sm" data-act="todoDel" data-id="${t.id}" aria-label="Remover tarefa">${icon("x", 16)}</button></div>`).join("") : `<div class="empty">Nenhuma tarefa adicionada. Comece por algo pequeno para hoje.</div>`}</div>
   ${S.todo.length ? `<p class="muted" style="margin-top:10px;font-size:.88rem">${S.todo.filter((t) => t.done).length} de ${S.todo.length} concluídas</p>` : ""}`;
 }
 A.todoAdd = () => { const i = $("#todo-in"); const v = i.value.trim(); if (!v) return; S.todo.push({ id: uid(), t: v, done: false }); save(); renderRes(); $("#todo-in").focus(); };
@@ -62,11 +62,11 @@ function timerHTML() {
     <svg viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="114" fill="none" stroke="#F0EAFA" stroke-width="10"/><circle id="tm-ring" cx="120" cy="120" r="114" fill="none" stroke="#91D8C9" stroke-width="10" stroke-linecap="round" transform="rotate(-90 120 120)" stroke-dasharray="716.3" stroke-dashoffset="0"/>
     <g class="disc"><circle cx="120" cy="120" r="100" fill="#3B2860"/><circle cx="120" cy="120" r="88" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/><circle cx="120" cy="120" r="76" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/><circle cx="120" cy="120" r="64" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/><path d="M60 80a72 72 0 0 1 40-26" stroke="#fff" stroke-opacity=".25" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="120" cy="120" r="40" fill="#C6B2E8"/><polygon points="${starPts(120, 96, 9, 4)}" fill="#F2D47E"/><circle cx="120" cy="120" r="4" fill="#3B2860"/></g></svg>
     <div class="time"><span id="tm-time">${fmt(TM.left)}</span></div></div>
-    <div class="stack"><div><h3>Temporizador</h3><p class="muted" style="font-size:.92rem">Escolha um tempo que pareça possível. O disco gira enquanto o tempo corre e o anel mostra quanto falta.</p></div>
+    <div class="stack"><div><h3>Temporizador</h3><p class="muted" style="font-size:.92rem">Escolha uma duração viável. O disco gira enquanto o tempo passa, e o anel mostra quanto falta.</p></div>
       <div class="row" style="gap:8px">${presets.map(([m, l]) => `<button class="chip ${TM.total === m * 60 ? "on" : ""}" data-act="tmSet" data-m="${m}">${l}</button>`).join("")}<button class="chip agua ${TM.total === 300 && TM.label === "Pausa" ? "on" : ""}" data-act="tmPause">Pausa de 5 min</button></div>
       <div class="row" style="gap:8px"><button class="btn btn-soft btn-sm" data-act="tmAdj" data-d="-1" ${TM.running ? "disabled" : ""}>− 1 min</button><button class="btn btn-soft btn-sm" data-act="tmAdj" data-d="1" ${TM.running ? "disabled" : ""}>+ 1 min</button><span class="tag ${TM.label === "Pausa" ? "agua" : ""}">${TM.label === "Pausa" ? "Modo pausa" : "Modo foco"}</span></div>
       <div class="row"><button class="btn ${TM.running ? "btn-ghost" : "btn-primary"}" data-act="tmToggle">${TM.running ? icon("pause", 18) + " Pausar" : icon("play", 18) + (TM.left < TM.total && TM.left > 0 ? " Continuar" : " Iniciar")}</button><button class="btn btn-ghost" data-act="tmReset">${icon("refresh", 18)} Zerar</button></div>
-      <div id="tm-msg" aria-live="polite">${TM.ended ? `<div class="note agua">${starFill(18)}<span>${TM.label === "Pausa" ? "Fim da pausa! Hora de voltar com calma." : "Tempo concluído! Que tal uma pausa curta antes do próximo ciclo?"}</span></div>` : ""}</div>
+      <div id="tm-msg" aria-live="polite">${TM.ended ? `<div class="note agua">${starFill(18)}<span>${TM.label === "Pausa" ? "Fim da pausa. Retome a tarefa com calma." : "Tempo concluído. Faça uma pausa curta antes do próximo ciclo."}</span></div>` : ""}</div>
     </div></div>`;
 }
 function timerPaint() {
@@ -84,7 +84,7 @@ A.tmToggle = () => {
   tone(523, 0.1, "sine", 0.08);
   TM.iv = setInterval(() => {
     TM.left--; timerPaint();
-    if (TM.left <= 0) { stopTimer(); TM.left = 0; TM.ended = true; chime(); setTimeout(chime, 900); if ($("#vinyl")) renderRes(); else toast(TM.label === "Pausa" ? "Fim da pausa!" : "Tempo do temporizador concluído!"); }
+    if (TM.left <= 0) { stopTimer(); TM.left = 0; TM.ended = true; chime(); setTimeout(chime, 900); if ($("#vinyl")) renderRes(); else toast(TM.label === "Pausa" ? "Fim da pausa!" : "Tempo concluído."); }
   }, 1000);
   renderRes();
 };
@@ -92,12 +92,12 @@ A.tmToggle = () => {
 /* Planejador de pequenas etapas */
 function stepsHTML() {
   const P = S.plan; const done = P.steps.filter((s) => s.done).length;
-  return `<div class="steps-plan stack"><div><h3>Planejador de pequenas etapas</h3><p class="muted" style="font-size:.92rem">Escreva uma tarefa grande e quebre em passos pequenos e concretos. Cada passo concluído acende uma estrela.</p></div>
+  return `<div class="steps-plan stack"><div><h3>Planejador de pequenas etapas</h3><p class="muted" style="font-size:.92rem">Escreva uma tarefa grande e divida-a em passos pequenos e concretos. Cada passo concluído acende uma estrela.</p></div>
     <div><label for="goal-in" class="eyebrow" style="display:block;margin-bottom:6px">Minha tarefa grande</label><input id="goal-in" class="field" style="width:100%" placeholder="Ex.: apresentação de Ciências na sexta" value="${esc(P.goal)}" maxlength="120" data-input="goal"></div>
     <form class="add-row" onsubmit="event.preventDefault();A.stepAdd()"><label class="sr-only" for="step-in">Novo passo</label><input id="step-in" placeholder="Próximo passo pequeno (ex.: escolher o tema)" maxlength="120" autocomplete="off"><button class="btn btn-primary" type="submit">${icon("plus", 18)} Passo</button></form>
     ${P.steps.length ? `<div class="star-meter" aria-label="${done} de ${P.steps.length} passos concluídos">${P.steps.map((s) => `<span class="${s.done ? "on" : ""}">${starFill(24)}</span>`).join("")}</div>` : ""}
-    <div class="stack" style="gap:8px">${P.steps.length ? P.steps.map((s, i) => `<div class="plan-item" style="${s.done ? "background:var(--agua-100)" : ""}"><span class="pn" style="${s.done ? "background:var(--agua-600)" : ""}">${i + 1}</span><label class="grow" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" data-act="stepToggle" data-id="${s.id}" ${s.done ? "checked" : ""} style="width:20px;height:20px;accent-color:var(--agua-600)"><span style="${s.done ? "text-decoration:line-through;color:var(--muted)" : ""};overflow-wrap:anywhere">${esc(s.t)}</span></label><button class="mini" data-act="stepMove" data-i="${i}" data-d="-1" aria-label="Subir">${icon("up", 16)}</button><button class="mini" data-act="stepMove" data-i="${i}" data-d="1" aria-label="Descer">${icon("down", 16)}</button><button class="mini" data-act="stepDel" data-id="${s.id}" aria-label="Remover">${icon("x", 16)}</button></div>`).join("") : `<div class="empty">Dica: o primeiro passo deve ser tão pequeno que dê para fazer em poucos minutos.</div>`}</div>
-    ${P.steps.length && done === P.steps.length ? `<div class="note agua">${starFill(18)}<span>Todos os passos concluídos! Repare como uma tarefa grande virou uma sequência de coisas possíveis.</span></div>` : ""}
+    <div class="stack" style="gap:8px">${P.steps.length ? P.steps.map((s, i) => `<div class="plan-item" style="${s.done ? "background:var(--agua-100)" : ""}"><span class="pn" style="${s.done ? "background:var(--agua-600)" : ""}">${i + 1}</span><label class="grow" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" data-act="stepToggle" data-id="${s.id}" ${s.done ? "checked" : ""} style="width:20px;height:20px;accent-color:var(--agua-600)"><span style="${s.done ? "text-decoration:line-through;color:var(--muted)" : ""};overflow-wrap:anywhere">${esc(s.t)}</span></label><button class="mini" data-act="stepMove" data-i="${i}" data-d="-1" aria-label="Subir">${icon("up", 16)}</button><button class="mini" data-act="stepMove" data-i="${i}" data-d="1" aria-label="Descer">${icon("down", 16)}</button><button class="mini" data-act="stepDel" data-id="${s.id}" aria-label="Remover">${icon("x", 16)}</button></div>`).join("") : `<div class="empty">Dica: o primeiro passo deve ser pequeno o suficiente para ser feito em poucos minutos.</div>`}</div>
+    ${P.steps.length && done === P.steps.length ? `<div class="note agua">${starFill(18)}<span>Todos os passos foram concluídos. Observe como uma tarefa grande se transformou em uma sequência de ações possíveis.</span></div>` : ""}
     ${P.steps.length || P.goal ? `<div><button class="btn btn-ghost btn-sm" data-act="stepClear">${icon("trash", 16)} Começar um plano novo</button></div>` : ""}</div>`;
 }
 A.stepAdd = () => { const i = $("#step-in"); const v = i.value.trim(); if (!v) return; S.plan.steps.push({ id: uid(), t: v, done: false }); save(); renderRes(); $("#step-in").focus(); };
@@ -107,11 +107,11 @@ A.stepMove = (el) => { const i = +el.dataset.i, j = i + +el.dataset.d, a = S.pla
 A.stepClear = () => { S.plan = { goal: "", steps: [] }; save(); renderRes(); };
 
 /* Organizador visual (quadro) */
-const COLS = ["Para fazer", "Fazendo", "Feito!"];
+const COLS = ["A fazer", "Em andamento", "Concluído"];
 const BCOLORS = ["lilas", "agua", "coral", "amarelo", "azul"];
 let boardColor = "lilas";
 function boardHTML() {
-  return `<div class="stack"><div><h3>Organizador visual</h3><p class="muted" style="font-size:.92rem">Coloque tarefas no quadro e mova conforme avança. Use cores para separar por assunto (por exemplo: escola, casa, patins, música).</p></div>
+  return `<div class="stack"><div><h3>Organizador visual</h3><p class="muted" style="font-size:.92rem">Adicione tarefas ao quadro e mova-as conforme avança. Use cores para separar por assunto (por exemplo: escola, casa, patins, música).</p></div>
   <form class="add-row" onsubmit="event.preventDefault();A.boardAdd()" style="flex-wrap:wrap"><label class="sr-only" for="board-in">Nova tarefa no quadro</label><input id="board-in" placeholder="Ex.: estudar para a prova de História" maxlength="100" autocomplete="off"><div class="swatches" role="group" aria-label="Cor da tarefa">${BCOLORS.map((c) => `<button type="button" class="${boardColor === c ? "on" : ""}" data-act="boardColor" data-c="${c}" style="background:var(--${c === "lilas" ? "lilas" : c})" aria-label="Cor ${SYM_NOMES[c]}" aria-pressed="${boardColor === c}"></button>`).join("")}</div><button class="btn btn-primary" type="submit">${icon("plus", 18)} Adicionar</button></form>
   <div class="kanban">${COLS.map((name, ci) => { const items = S.board.filter((b) => b.col === ci); return `<div class="kcol c${ci}" data-col="${ci}"><h4>${name}<span class="tag">${items.length}</span></h4>${items.length ? items.map((b) => `<div class="kitem" draggable="true" data-id="${b.id}" style="border-left:6px solid var(--${b.cor === "lilas" ? "lilas" : b.cor})"><span>${esc(b.t)}</span><div class="kact">${ci > 0 ? `<button class="mini btn-soft btn-icon btn-sm btn" style="width:30px;height:30px" data-act="boardMove" data-id="${b.id}" data-d="-1" aria-label="Mover para ${COLS[ci - 1]}">${icon("left", 16)}</button>` : ""}${ci < 2 ? `<button class="btn btn-soft btn-icon btn-sm" style="width:30px;height:30px" data-act="boardMove" data-id="${b.id}" data-d="1" aria-label="Mover para ${COLS[ci + 1]}">${icon("right", 16)}</button>` : ""}<button class="btn btn-soft btn-icon btn-sm" style="width:30px;height:30px" data-act="boardDel" data-id="${b.id}" aria-label="Remover">${icon("x", 16)}</button></div></div>`).join("") : `<p class="muted" style="font-size:.85rem;text-align:center;padding:14px 0">${ci === 0 ? "Adicione uma tarefa" : "Arraste ou use as setas"}</p>`}</div>`; }).join("")}</div></div>`;
 }
@@ -130,10 +130,10 @@ function boardDnD() {
 
 VIEWS.ferramentas = {
   render() {
-    return `${secHead("ferramentas", "Minha caixa de ferramentas", "Estratégias práticas para os desafios do dia a dia. Escolha uma situação, abra as ferramentas e experimente as que combinam com você. Logo abaixo, há recursos para usar de verdade.")}
+    return `${secHead("ferramentas", "Minha caixa de ferramentas", "Estratégias práticas para os desafios do dia a dia. Escolha uma situação, abra as ferramentas e experimente as que combinam com você. Mais abaixo, há recursos interativos para colocá-las em prática.")}
     <div class="stack-lg">
-      <section><h3 style="margin-bottom:12px">Que situação você quer resolver?</h3><div class="sit-row" id="sit-row">${sitRow()}</div><div class="tool-grid" id="tool-grid">${toolGrid()}</div>
-      <p class="muted" style="margin-top:14px;font-size:.9rem">Abra pelo menos três ferramentas para ganhar a conquista. As que você já abriu ganham uma estrela.</p></section>
+      <section><h3 style="margin-bottom:12px">Com qual situação você quer lidar?</h3><div class="sit-row" id="sit-row">${sitRow()}</div><div class="tool-grid" id="tool-grid">${toolGrid()}</div>
+      <p class="muted" style="margin-top:14px;font-size:.9rem">Abra pelo menos três ferramentas para receber a conquista. As ferramentas já abertas ficam marcadas com uma estrela.</p></section>
       <section id="recursos" style="scroll-margin-top:80px">${sectionTitle("Recursos para usar agora", "toolbox")}
         <div class="res-tabs" id="res-tabs"></div><div class="res-box" id="res-box"></div>
         <p class="muted" style="margin-top:10px;font-size:.85rem">${icon("lock", 14)} O que você escreve aqui fica apenas neste navegador, durante esta sessão.</p>
@@ -173,12 +173,12 @@ A.manualClear = () => { S.manual = {}; save(); closeModal(); route(); toast("Res
 
 VIEWS.manual = {
   render() {
-    return `${secHead("manual", "Meu manual de funcionamento", "Todo equipamento importante vem com um manual. Este é o seu: um lugar para reunir o que você descobriu, o que faz bem e o que ajuda você. Escreva do seu jeito, com as suas palavras.")}
+    return `${secHead("manual", "Meu manual de funcionamento", "Todo equipamento importante vem com um manual. Este é o seu: um lugar para reunir o que você descobriu, o que faz bem e o que ajuda você. Escreva com as suas palavras.")}
     <div class="stack-lg">
       <div class="card" id="persona">${personaArea()}</div>
       <div class="man-grid">${MANUAL_QS.map((q, i) => `<div class="card man-q"><label for="ta-${q.id}"><span class="qn">${i + 1}</span>${q.q}</label><textarea id="ta-${q.id}" data-input="manual" data-id="${q.id}" placeholder="Escreva aqui..." maxlength="1200">${esc(S.manual[q.id] || "")}</textarea>${q.sugs.length ? `<div class="sugs"><span class="muted" style="font-size:.78rem;align-self:center">Ideias (opcional):</span>${q.sugs.map((s) => `<button type="button" data-act="manSug" data-id="${q.id}" data-v="${esc(s)}">+ ${s}</button>`).join("")}</div>` : ""}</div>`).join("")}</div>
       <div class="row" style="justify-content:space-between"><button class="btn btn-ghost" data-act="manualAskClear">${icon("trash", 18)} Apagar respostas</button><button class="btn btn-roxo" data-act="manualView" style="font-size:1.05rem;padding:15px 26px">${icon("book", 20)} Ver meu manual pronto</button></div>
-      <div class="note">${icon("lock")}<span>Suas respostas ficam apenas neste navegador, durante esta sessão. Ninguém além de quem está aqui consegue ver.</span></div>
+      <div class="note">${icon("lock")}<span>Suas respostas ficam salvas apenas neste navegador, durante esta sessão, e não são enviadas para nenhum servidor.</span></div>
     </div>
     ${stageFoot("manual")}`;
   },
@@ -214,7 +214,7 @@ function familiaBody(standalone) {
   <div class="stack-lg">
     <div class="note lav">${icon("heart")}<span>${FAMILIA.intro}</span></div>
     ${FAMILIA.secoes.map((s) => `<section class="fam-sec prose" id="${s.id}" style="max-width:none"><h2>${s.titulo}</h2><div class="stack" style="max-width:72ch">${s.html}</div></section>`).join("")}
-    <section class="fam-sec" id="f-praticas"><h2>Orientações práticas</h2><p class="muted" style="margin-bottom:16px">Sugestões para adaptar à realidade da família. Comece por uma ou duas mudanças pequenas.</p>
+    <section class="fam-sec" id="f-praticas"><h2>Orientações práticas</h2><p class="muted" style="margin-bottom:16px">Para começar, escolha uma ou duas mudanças pequenas.</p>
       <div class="grid g3">${FAMILIA.praticas.map((p) => `<div class="card flat stack" style="gap:10px"><div class="row" style="gap:10px"><span class="icon-blob b-lilas" style="width:42px;height:42px">${icon(p.icon, 20)}</span><h3 style="font-size:1.05rem">${p.titulo}</h3></div><ul class="ticks" style="font-size:.94rem">${p.itens.map((i) => `<li>${i}</li>`).join("")}</ul></div>`).join("")}</div></section>
     <section class="fam-sec" id="f-com"><h2>Comunicação no dia a dia</h2><p class="muted" style="margin-bottom:16px">Frases ditas no calor do momento podem soar como críticas à pessoa. Pequenas mudanças ajudam a manter a conversa no comportamento e na solução.</p>
       <div class="row" style="margin-bottom:10px;gap:20px"><span class="tag coral">Em vez de...</span><span class="tag agua">Experimente...</span></div>

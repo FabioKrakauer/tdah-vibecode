@@ -529,7 +529,7 @@ const STAGES = [
   { id: "desafios", n: 4, nome: "Desafio cerebral", curto: "Desafios", badge: "Estrategista", badgeMsg: "Experimentou desafios", icon: "spark", medal: "trophy", cor: "amarelo",
     resumo: "Cinco jogos para experimentar habilidades do cérebro." },
   { id: "ferramentas", n: 5, nome: "Minha caixa de ferramentas", curto: "Ferramentas", badge: "Criadora", badgeMsg: "Conheceu ferramentas para o dia a dia", icon: "toolbox", medal: "note", cor: "agua",
-    resumo: "Estratégias práticas e recursos para usar de verdade." },
+    resumo: "Estratégias práticas e recursos para aplicar no dia a dia." },
   { id: "manual", n: 6, nome: "Meu manual de funcionamento", curto: "Manual", badge: "Protagonista", badgeMsg: "Construiu seu manual pessoal", icon: "mic", medal: "mic", cor: "lilas",
     resumo: "Reúna suas descobertas em um manual só seu." },
 ];
@@ -537,36 +537,35 @@ const STAGES = [
 /* ---------------- ABA 1 — MEU CÉREBRO ---------------- */
 const BRAIN_INTRO = [
   "O cérebro é o órgão que coordena praticamente tudo o que você faz: perceber o mundo, sentir, lembrar, aprender, se movimentar, decidir e se relacionar com as pessoas.",
-  "Ele é formado por cerca de 86 bilhões de neurônios, células que conversam entre si o tempo todo. Essa conversa acontece por sinais elétricos dentro dos neurônios e por mensageiros químicos, os neurotransmissores, que passam de um neurônio para outro nas sinapses.",
-  "Nenhuma área trabalha sozinha. É como uma banda: cada integrante tem seu instrumento, mas a música só acontece quando todos tocam juntos, no tempo certo.",
+  "Ele é formado por cerca de 86 bilhões de neurônios, células que se comunicam constantemente. Essa comunicação acontece por sinais elétricos dentro dos neurônios e por mensageiros químicos, os neurotransmissores, que passam de um neurônio para outro nas sinapses.",
 ];
 
 const BRAIN_REGIONS = [
   { id: "frontal", nome: "Lobo frontal e córtex pré-frontal", apelido: "A direção do show", cor: "#B79BE0",
-    texto: "Fica logo atrás da testa. A parte da frente, o córtex pré-frontal, ajuda a escolher onde colocar a atenção, planejar, organizar, controlar impulsos, tomar decisões e ajustar o comportamento aos objetivos. É uma das últimas regiões a amadurecer: continua se desenvolvendo durante toda a adolescência e até o começo da vida adulta.",
+    texto: "Fica logo atrás da testa. A parte da frente, o córtex pré-frontal, ajuda a direcionar a atenção, planejar, organizar, controlar impulsos, tomar decisões e ajustar o comportamento aos objetivos. É uma das últimas regiões a amadurecer: seu desenvolvimento continua durante a adolescência e até o início da vida adulta.",
     fn: ["Atenção", "Planejamento", "Organização", "Controle dos impulsos", "Tomada de decisão"],
     exemplo: "Como a diretora de um show: decide o que entra no palco, em que ordem, e o que precisa esperar." },
   { id: "parietal", nome: "Lobo parietal", apelido: "O mapa do corpo", cor: "#91D8C9",
-    texto: "Junta informações do tato, da posição do corpo e do espaço ao seu redor. Também ajuda a direcionar a atenção para lugares e objetos e participa de cálculos e da noção de quantidade.",
+    texto: "Integra informações do tato, da posição do corpo e do espaço ao redor. Também ajuda a direcionar a atenção para lugares e objetos e participa de cálculos e da noção de quantidade.",
     fn: ["Tato", "Noção de espaço", "Atenção no espaço"],
-    exemplo: "Patinando, é ele que ajuda você a saber onde estão seus pés, os obstáculos e o espaço livre na pista." },
+    exemplo: "Ao patinar, é ele que ajuda você a perceber onde estão seus pés, os obstáculos e o espaço livre na pista." },
   { id: "temporal", nome: "Lobo temporal", apelido: "O estúdio de som", cor: "#A9C9E9",
-    texto: "Fica na lateral da cabeça, perto das orelhas. Processa os sons, ajuda a entender a linguagem, reconhecer vozes, rostos e músicas. Na parte de dentro ficam estruturas importantes para a memória.",
+    texto: "Localizado na lateral da cabeça, perto das orelhas, processa os sons e ajuda a compreender a linguagem e a reconhecer vozes, rostos e músicas. Na parte interna, ficam estruturas importantes para a memória.",
     fn: ["Audição", "Linguagem", "Reconhecer músicas e vozes", "Memória"],
-    exemplo: "Quando os primeiros segundos de uma música tocam e você já sabe qual é, o lobo temporal está trabalhando." },
+    exemplo: "Quando você reconhece uma música logo nos primeiros segundos, o lobo temporal está em ação." },
   { id: "occipital", nome: "Lobo occipital", apelido: "A tela de cinema", cor: "#E9A4AD",
-    texto: "Fica na parte de trás da cabeça e é especializado em visão: cores, formas, movimento e profundidade. Ele envia essas informações para outras áreas, que dão sentido ao que você vê.",
+    texto: "Localizado na parte de trás da cabeça, é especializado em visão: cores, formas, movimento e profundidade. Envia essas informações para outras áreas, que dão sentido ao que você vê.",
     fn: ["Visão", "Cores e formas", "Movimento"],
     exemplo: "Ver as luzes do palco mudando de cor e perceber a coreografia de quem está dançando." },
   { id: "cerebelo", nome: "Cerebelo", apelido: "O ritmo e o equilíbrio", cor: "#F2D47E",
-    texto: "Fica embaixo, na parte de trás. Coordena o equilíbrio, a postura, a precisão e o ritmo dos movimentos. Também participa da aprendizagem de movimentos e de algumas funções relacionadas ao tempo e à atenção.",
+    texto: "Situado abaixo da parte de trás do cérebro, coordena o equilíbrio, a postura, a precisão e o ritmo dos movimentos. Também participa da aprendizagem de movimentos e de algumas funções relacionadas ao tempo e à atenção.",
     fn: ["Equilíbrio", "Coordenação", "Ritmo", "Aprender movimentos"],
-    exemplo: "Aprender uma manobra nova no patins: no começo é difícil, depois o movimento fica mais automático." },
+    exemplo: "Aprender uma manobra nova no patins: no início, exige muita concentração; com a prática, o movimento se torna automático." },
 ];
 
 const BRAIN_DEEP = [
   { id: "amigdala", nome: "Amígdala (sistema límbico)", apelido: "O alarme das emoções", x: 175, y: 170, cor: "#E9A4AD",
-    texto: "Pequena estrutura em forma de amêndoa, na parte de dentro do cérebro. Avalia rapidamente se algo é importante ou ameaçador e participa de emoções como medo e raiva. Ela conversa o tempo todo com o córtex pré-frontal, que ajuda a pensar antes de reagir.",
+    texto: "Pequena estrutura em forma de amêndoa, na parte de dentro do cérebro. Avalia rapidamente se algo é importante ou ameaçador e participa de emoções como medo e raiva. Ela se comunica constantemente com o córtex pré-frontal, que ajuda a pensar antes de reagir.",
     fn: ["Emoções", "Sinal de alerta", "Regulação emocional (com o pré-frontal)"],
     exemplo: "Aquele frio na barriga segundos antes de subir no palco." },
   { id: "hipocampo", nome: "Hipocampo", apelido: "O arquivo de lembranças", x: 210, y: 158, cor: "#91D8C9",
@@ -576,7 +575,7 @@ const BRAIN_DEEP = [
   { id: "basais", nome: "Núcleos da base e sistema de recompensa", apelido: "O botão de play", x: 165, y: 120, cor: "#F2D47E",
     texto: "Grupo de estruturas profundas que participa da motivação, do início e da seleção de ações e da sensação de recompensa. A dopamina é um dos principais mensageiros químicos desse circuito: ela ajuda o cérebro a perceber o que vale a pena e a manter o esforço em direção a um objetivo.",
     fn: ["Motivação", "Recompensa", "Começar ações", "Hábitos"],
-    exemplo: "A vontade de continuar treinando uma música quando você sente que está ficando boa nela." },
+    exemplo: "A vontade de continuar ensaiando uma música quando você percebe que está progredindo." },
 ];
 
 const BRAIN_FLOW = [
@@ -584,31 +583,31 @@ const BRAIN_FLOW = [
     texto: "Olhos, ouvidos, pele e outros sentidos captam informações o tempo todo: sons, imagens, cheiros, toques. São muito mais informações do que conseguimos usar." },
   { id: "selecionar", nome: "Selecionar", icon: "spot", sub: "atenção",
     texto: "A atenção funciona como um holofote: ilumina o que é importante agora e deixa o resto na sombra. Ela pode ser puxada por algo novo ou chamativo, ou direcionada de propósito, quando você decide prestar atenção." },
-  { id: "segurar", nome: "Segurar", icon: "note", sub: "memória de trabalho",
-    texto: "A memória de trabalho segura a informação por alguns segundos enquanto você a usa, como guardar um número de telefone enquanto digita. Ela tem espaço limitado para todo mundo." },
+  { id: "segurar", nome: "Manter", icon: "note", sub: "memória de trabalho",
+    texto: "A memória de trabalho mantém a informação por alguns segundos enquanto você a utiliza, como guardar um número de telefone enquanto o digita. Sua capacidade é limitada em todas as pessoas." },
   { id: "decidir", nome: "Decidir", icon: "brain", sub: "funções executivas",
     texto: "O córtex pré-frontal compara a informação com seus objetivos, memórias e emoções, e ajuda a escolher o que fazer. Aqui entram planejamento, controle dos impulsos e flexibilidade." },
   { id: "agir", nome: "Agir", icon: "skate", sub: "movimento",
-    texto: "O cérebro envia comandos para o corpo. O cerebelo e os núcleos da base ajustam o movimento. Depois, o resultado vira nova informação, e o ciclo recomeça." },
+    texto: "O cérebro envia comandos para o corpo. O cerebelo e os núcleos da base ajustam o movimento. Depois, o resultado se torna uma nova informação, e o ciclo recomeça." },
 ];
 
 const BRAIN_CONCEPTS = [
-  { nome: "Atenção", texto: "Capacidade de direcionar, manter e mudar o foco. Envolve escolher o que importa, sustentar o foco por um tempo e trocar de foco quando necessário." },
-  { nome: "Memória", texto: "Existem vários tipos: a memória de trabalho (segura informações agora), a memória de longo prazo (guarda lembranças e conhecimentos) e a memória de procedimentos (como andar de patins)." },
+  { nome: "Atenção", texto: "Capacidade de escolher em que se concentrar, manter o foco pelo tempo necessário e mudá-lo quando a situação exige." },
+  { nome: "Memória", texto: "Existem vários tipos: a memória de trabalho (mantém informações enquanto são usadas), a memória de longo prazo (guarda lembranças e conhecimentos) e a memória de procedimentos (como andar de patins)." },
   { nome: "Motivação", texto: "O que dá energia e direção para agir. Depende do interesse, da recompensa esperada, das emoções e do sentido que a tarefa tem para você." },
   { nome: "Controle dos impulsos", texto: "Capacidade de frear uma ação automática para escolher uma resposta mais adequada à situação." },
   { nome: "Regulação emocional", texto: "Perceber o que está sentindo, entender o motivo e ajustar a intensidade da emoção e da reação. Não é deixar de sentir." },
   { nome: "Planejamento", texto: "Definir um objetivo e pensar nas etapas, na ordem e no tempo necessários para chegar lá." },
-  { nome: "Organização", texto: "Arrumar coisas, informações e tarefas de um jeito que facilite encontrar e usar depois." },
+  { nome: "Organização", texto: "Dispor objetos, informações e tarefas de modo que seja fácil encontrá-los e usá-los depois." },
 ];
 
-const EF_INTRO = "As funções executivas são um conjunto de habilidades mentais que ajudam a organizar o comportamento e alcançar objetivos: lembrar o que precisa ser feito, frear impulsos, mudar de estratégia, planejar, começar tarefas e regular emoções. Elas dependem muito do córtex pré-frontal e de suas conexões com outras áreas, e continuam se desenvolvendo durante toda a adolescência. Ou seja: estão em construção, para todo mundo.";
+const EF_INTRO = "As funções executivas são um conjunto de habilidades mentais que ajudam a organizar o comportamento e alcançar objetivos: lembrar o que precisa ser feito, frear impulsos, mudar de estratégia, planejar, começar tarefas e regular emoções. Elas dependem muito do córtex pré-frontal e de suas conexões com outras áreas, e continuam se desenvolvendo durante toda a adolescência, em todas as pessoas.";
 
 const EF_CARDS = [
   { id: "mt", titulo: "Memória de trabalho", apelido: "O bloco de notas da mente", icon: "note", cor: "lilas",
-    explicacao: "É a capacidade de segurar uma informação na mente por pouco tempo enquanto você a usa. Ela tem espaço limitado: quando entra muita coisa ao mesmo tempo, algo acaba escapando.",
+    explicacao: "É a capacidade de manter uma informação na mente por pouco tempo enquanto você a utiliza. Quando chegam muitas informações ao mesmo tempo, algumas acabam se perdendo.",
     cerebro: "Depende principalmente do córtex pré-frontal trabalhando junto com áreas do lobo parietal.",
-    exemplo: "A professora de patins mostra uma sequência de três movimentos e você precisa lembrar deles enquanto executa. Ou: você abre o livro para fazer o exercício 7 e, quando chega na página, já não lembra qual era o número.",
+    exemplo: "A professora de patins mostra uma sequência de três movimentos e você precisa lembrar deles enquanto executa. Ou: você abre o livro para fazer o exercício 7 e, ao chegar à página, já não lembra qual era o número.",
     pergunta: "Em que momentos você sente que seu “bloco de notas mental” fica cheio demais?" },
   { id: "ci", titulo: "Controle inibitório", apelido: "O botão de pausa", icon: "pause", cor: "coral",
     explicacao: "É a capacidade de frear uma resposta automática, esperar e escolher o que fazer. Também ajuda a ignorar distrações para continuar no que é importante.",
@@ -624,16 +623,16 @@ const EF_CARDS = [
     explicacao: "Planejar é definir um objetivo e pensar nas etapas para chegar lá. Organizar é arrumar materiais, informações e tarefas de forma que funcionem.",
     cerebro: "O córtex pré-frontal coordena esse processo, usando a memória e a noção de tempo.",
     exemplo: "Preparar uma apresentação: escolher o tema, dividir as partes, separar o material, ensaiar e chegar no horário.",
-    pergunta: "Quando você organiza algo de que gosta muito, como uma playlist ou um passeio, como você faz?" },
+    pergunta: "Quando você organiza algo de que gosta muito, como uma playlist ou um passeio, que passos você segue?" },
   { id: "ti", titulo: "Gerenciamento do tempo e iniciação de tarefas", apelido: "Dar o play", icon: "timer", cor: "amarelo",
     explicacao: "Envolve perceber o tempo passando, estimar quanto tempo algo vai levar e conseguir começar uma tarefa, mesmo quando ela não é tão interessante.",
     cerebro: "Participam o córtex pré-frontal, os núcleos da base (ligados à motivação e à dopamina) e o cerebelo, que ajuda na noção de tempo.",
-    exemplo: "“Só mais um vídeo” e, quando vê, passou uma hora. Ou: você sabe que precisa estudar, mas começar parece muito difícil.",
+    exemplo: "Assistir a “só mais um vídeo” e perceber que já se passou uma hora. Ou: saber que precisa estudar, mas sentir muita dificuldade para começar.",
     pergunta: "O que torna mais fácil, ou mais difícil, dar o primeiro passo em uma tarefa?" },
   { id: "ar", titulo: "Autorregulação", apelido: "O controle de volume", icon: "sliders", cor: "lilas",
     explicacao: "É a capacidade de perceber e ajustar emoções, energia e comportamento para que combinem com a situação e com seus objetivos. Sentir emoções intensas é humano; a autorregulação ajuda a decidir o que fazer com elas.",
     cerebro: "Depende da conversa entre o córtex pré-frontal e o sistema límbico, onde fica a amígdala.",
-    exemplo: "Você fica muito chateada com uma nota baixa, respira, se dá um tempo e depois decide o que fazer, em vez de desistir de tudo naquele momento.",
+    exemplo: "Você fica muito chateada com uma nota baixa, respira, espera um pouco e só depois decide o que fazer, em vez de desistir de tudo naquele momento.",
     pergunta: "O que ajuda você a “baixar o volume” quando uma emoção fica muito alta?" },
 ];
 
@@ -641,7 +640,7 @@ const EF_CARDS = [
 const TDAH_CHAPTERS = [
   { id: "oque", titulo: "O que é o TDAH",
     html: `<p>TDAH significa <strong>Transtorno do Déficit de Atenção e Hiperatividade</strong>. É um <strong>transtorno do neurodesenvolvimento</strong>: tem relação com a forma como o cérebro se desenvolve e funciona, e seus sinais aparecem desde a infância.</p>
-    <p>Ele se caracteriza por um padrão de <strong>desatenção</strong> e/ou <strong>hiperatividade e impulsividade</strong> que é persistente (dura bastante tempo), aparece em mais de um lugar (em casa, na escola, com amigos) e atrapalha o dia a dia de forma importante.</p>
+    <p>Ele se caracteriza por um padrão de <strong>desatenção</strong> e/ou <strong>hiperatividade e impulsividade</strong> que é persistente (dura um longo período), aparece em mais de um lugar (em casa, na escola, com amigos) e atrapalha o dia a dia de forma importante.</p>
     <p>É uma condição comum: estudos de vários países indicam que cerca de 5 em cada 100 crianças e adolescentes têm TDAH.</p>`,
     destaque: "O TDAH não é preguiça, falta de inteligência, falta de esforço ou culpa de alguém. Também não é algo que a pessoa escolhe." },
   { id: "atencao", titulo: "Atenção não é liga ou desliga",
@@ -651,7 +650,7 @@ const TDAH_CHAPTERS = [
     destaque: "Atenção é como o volume de uma mesa de som: no TDAH, o desafio é ajustar o volume certo para cada situação, e não a falta de som." },
   { id: "cerebro", titulo: "O que acontece no cérebro",
     html: `<p>Pesquisas mostram que, em média, pessoas com TDAH apresentam diferenças no funcionamento e no amadurecimento de redes cerebrais ligadas às funções executivas, à motivação e à recompensa. Essas redes envolvem o córtex pré-frontal, os núcleos da base e o cerebelo, entre outras áreas.</p>
-    <p>Dois mensageiros químicos têm papel importante nessas redes: a <strong>dopamina</strong>, ligada à motivação, à recompensa e ao início de ações, e a <strong>noradrenalina</strong>, ligada ao estado de alerta e à atenção. No TDAH, a forma como esses sistemas regulam a atenção e a motivação funciona de um jeito diferente.</p>
+    <p>Dois mensageiros químicos têm papel importante nessas redes: a <strong>dopamina</strong>, ligada à motivação, à recompensa e ao início de ações, e a <strong>noradrenalina</strong>, ligada ao estado de alerta e à atenção. No TDAH, a forma como esses sistemas regulam a atenção e a motivação funciona de forma diferente.</p>
     <p>A genética tem grande influência: o TDAH costuma aparecer em mais de uma pessoa da mesma família. Fatores do ambiente, como algumas condições durante a gestação e o parto, também podem contribuir. Não existe uma causa única.</p>`,
     destaque: "Essas diferenças são médias de grupos de pesquisa. Nenhum exame de imagem ou de sangue faz o diagnóstico de TDAH: ele é feito por profissionais, com base em uma avaliação clínica cuidadosa." },
   { id: "sinais", titulo: "Os três grupos de sinais",
@@ -660,12 +659,12 @@ const TDAH_CHAPTERS = [
   { id: "apresentacoes", titulo: "Jeitos diferentes de aparecer",
     html: `<p>Os manuais usados por profissionais de saúde (o DSM-5-TR e a CID-11) descrevem três formas principais de apresentação:</p>
     <ul class="ticks"><li><strong>Predominantemente desatenta:</strong> os sinais de desatenção são os mais marcantes.</li><li><strong>Predominantemente hiperativa-impulsiva:</strong> os sinais de agitação e impulsividade são os mais marcantes.</li><li><strong>Combinada:</strong> sinais dos dois grupos aparecem de forma importante.</li></ul>
-    <p>Essas apresentações podem mudar ao longo da vida. Na adolescência, por exemplo, a hiperatividade costuma ficar menos visível e mais interna, enquanto a desatenção e a desorganização podem se destacar, porque as exigências da escola e da rotina aumentam.</p>`,
-    destaque: "A hiperatividade pode ser mais evidente, como levantar muito ou mexer as mãos, ou mais interna, como uma inquietação por dentro ou pensamentos acelerados. Varia de pessoa para pessoa." },
+    <p>Essas apresentações podem mudar ao longo da vida. Na adolescência, por exemplo, a hiperatividade costuma ficar menos visível, enquanto a desatenção e a desorganização ganham destaque, porque as exigências da escola e da rotina aumentam.</p>`,
+    destaque: "A hiperatividade pode ser evidente, como levantar com frequência ou mexer as mãos, ou interna, como inquietação ou pensamentos acelerados. A forma varia de pessoa para pessoa." },
   { id: "unica", titulo: "Cada pessoa é única",
     html: `<p>Duas pessoas com TDAH podem ser muito diferentes entre si. A combinação de sinais, a intensidade, os interesses, as habilidades e o contexto de vida de cada uma mudam bastante a forma como o TDAH aparece.</p>
-    <p>Em meninas, por exemplo, a desatenção e a inquietação interna costumam ser mais frequentes do que a agitação visível. Muitas vezes elas se esforçam muito para compensar as dificuldades, e os sinais podem passar despercebidos por mais tempo. Isso não é uma regra: é uma tendência observada em pesquisas.</p>
-    <p>O TDAH é apenas uma parte de quem a pessoa é. Cada pessoa também tem seus interesses, talentos, gostos, valores e jeito de ser.</p>`,
+    <p>Em meninas, por exemplo, a desatenção e a inquietação interna costumam ser mais frequentes do que a agitação visível. Muitas vezes, elas fazem um grande esforço para compensar as dificuldades, e os sinais podem passar despercebidos por mais tempo. Isso não é uma regra: é uma tendência observada em pesquisas.</p>
+    <p>O TDAH é apenas uma parte da pessoa, que também tem interesses, talentos, gostos, valores e um jeito próprio de ser.</p>`,
     destaque: "Ter TDAH não define o que alguém pode ou não pode ser." },
   { id: "vida", titulo: "Na vida real",
     html: "", impactos: true,
@@ -676,34 +675,34 @@ const TDAH_TRIO = [
   { nome: "Desatenção", cor: "azul", icon: "spot",
     itens: ["Distrair-se com sons, pensamentos ou movimentos", "Perder detalhes ou cometer erros por descuido", "Dificuldade para manter o foco em tarefas longas", "Esquecer compromissos ou perder objetos", "Dificuldade para organizar tarefas e materiais"] },
   { nome: "Hiperatividade", cor: "agua", icon: "skate",
-    itens: ["Mexer as mãos ou os pés, levantar com frequência", "Sensação de inquietação por dentro", "Falar bastante ou pensamentos muito acelerados", "Dificuldade para ficar em atividades calmas", "Sentir-se “ligada no 220”"] },
+    itens: ["Mexer as mãos ou os pés, levantar com frequência", "Sensação de inquietação interna", "Falar muito ou ter pensamentos acelerados", "Dificuldade para permanecer em atividades calmas"] },
   { nome: "Impulsividade", cor: "coral", icon: "zap",
-    itens: ["Responder antes de a pergunta terminar", "Dificuldade para esperar a vez", "Interromper conversas", "Agir antes de pensar nas consequências", "Decidir as coisas muito rápido"] },
+    itens: ["Responder antes de a pergunta terminar", "Dificuldade para esperar a vez", "Interromper conversas", "Agir ou decidir sem pensar nas consequências"] },
 ];
 
 const TDAH_IMPACTOS = [
   { nome: "Escola", icon: "book", texto: "Começar e terminar tarefas, manter o foco em aulas longas, organizar materiais e prazos e estudar para provas podem exigir mais esforço." },
-  { nome: "Amizades", icon: "users", texto: "Interromper sem querer, perder partes de uma conversa ou reagir com intensidade às vezes gera mal-entendidos." },
-  { nome: "Família", icon: "home", texto: "Esquecimentos, atrasos e desorganização podem gerar conflitos, e todos podem precisar aprender novas formas de combinar as coisas." },
+  { nome: "Amizades", icon: "users", texto: "Interromper sem querer, perder partes de uma conversa ou reagir com intensidade pode gerar mal-entendidos." },
+  { nome: "Família", icon: "home", texto: "Esquecimentos, atrasos e desorganização podem gerar conflitos e exigir que a família encontre novas formas de se organizar." },
   { nome: "Emoções", icon: "heart", texto: "Frustração mais intensa e dificuldade para se acalmar são comuns. Ouvir críticas com frequência pode afetar a autoestima." },
 ];
 
 const TDAH_EQ = {
-  intro: "Para ver como a atenção depende da situação, compare duas cenas. Os canais mostram o quanto cada coisa está “em alta”:",
+  intro: "Para observar como a atenção varia conforme a situação, compare as cenas abaixo. Cada canal indica a intensidade de um elemento:",
   cenas: [
-    { id: "aula", nome: "Aula longa sobre um tema pouco interessante", canais: [3, 8, 7], texto: "O foco cai e outras coisas ganham volume: barulhos, pensamentos, vontade de se mexer. Manter a atenção exige muito mais esforço." },
-    { id: "musica", nome: "Ensaiando uma música favorita", canais: [9, 3, 4], texto: "O interesse ajuda o cérebro a manter o foco quase sem esforço. Às vezes, tanto que o tempo passa sem perceber." },
+    { id: "aula", nome: "Aula longa sobre um tema pouco interessante", canais: [3, 8, 7], texto: "O foco diminui e outros estímulos ganham volume: barulhos, pensamentos, vontade de se mexer. Manter a atenção exige muito mais esforço." },
+    { id: "musica", nome: "Ensaiando uma música favorita", canais: [9, 3, 4], texto: "O interesse ajuda o cérebro a manter o foco quase sem esforço. Às vezes, o tempo passa sem que se perceba." },
     { id: "prova", nome: "Prova com tempo marcado", canais: [7, 5, 6], texto: "A urgência pode ajudar a focar, mas também aumenta a tensão. Muitas pessoas rendem melhor sob prazo, e isso também tem custos." },
   ],
   canais: ["Foco na tarefa", "Distrações", "Inquietação"],
-  rodape: "Esse é um modelo para pensar, não uma medida. Ele mostra uma ideia central: no TDAH, a dificuldade está em regular a atenção de acordo com a situação.",
+  rodape: "Este é um modelo ilustrativo, não uma medida.",
 };
 
 const QUIZ = [
   { q: "Toda pessoa com TDAH é hiperativa.", r: "mito",
     e: "Muitas pessoas com TDAH não são agitadas. Na apresentação predominantemente desatenta, a hiperatividade pode quase não aparecer, ou aparecer de forma mais interna, como inquietação nos pensamentos." },
   { q: "Quem tem TDAH não consegue prestar atenção em nada.", r: "mito",
-    e: "A dificuldade está em regular a atenção: direcionar, manter e mudar o foco quando necessário. Em atividades interessantes, a pessoa pode ter muito foco." },
+    e: "A dificuldade está em regular a atenção. Em atividades interessantes, a pessoa pode manter o foco por bastante tempo." },
   { q: "TDAH é falta de disciplina ou de força de vontade.", r: "mito",
     e: "O TDAH é um transtorno do neurodesenvolvimento, com bases biológicas e forte influência genética. Esforço e regras sozinhos não resolvem: estratégias e apoio adequados fazem diferença." },
   { q: "Pessoas com TDAH podem ter a inteligência preservada.", r: "verdade",
@@ -715,7 +714,7 @@ const QUIZ = [
   { q: "Uma pessoa com TDAH pode se concentrar muito em uma atividade de que gosta.", r: "verdade",
     e: "Isso às vezes é chamado de hiperfoco. O interesse e a novidade ativam o sistema de motivação e ajudam a sustentar a atenção, às vezes a ponto de esquecer o resto." },
   { q: "Todas as pessoas com TDAH apresentam os mesmos sintomas.", r: "mito",
-    e: "Cada pessoa tem uma combinação própria de sinais, intensidade, contexto e habilidades. Duas pessoas com TDAH podem ser bem diferentes." },
+    e: "Cada pessoa tem uma combinação própria de sinais, intensidade, contexto e habilidades." },
   { q: "O TDAH pode aparecer de maneiras diferentes em meninas e meninos.", r: "verdade",
     e: "Em meninas, a desatenção e a inquietação interna costumam ser mais comuns que a agitação visível, e o diagnóstico às vezes demora mais. É uma tendência, não uma regra." },
   { q: "O TDAH desaparece automaticamente quando a pessoa cresce.", r: "mito",
@@ -735,7 +734,7 @@ const QUIZ = [
   { q: "Estratégias e apoio podem fazer diferença no dia a dia.", r: "verdade",
     e: "Psicoeducação, terapia, organização da rotina, apoio da família e da escola e, quando indicado por um médico, medicação, podem ajudar muito. O que funciona varia de pessoa para pessoa." },
   { q: "Pessoas com TDAH também têm muitas qualidades.", r: "verdade",
-    e: "Como qualquer pessoa, quem tem TDAH tem habilidades, interesses e talentos próprios. O TDAH é só uma parte de quem a pessoa é." },
+    e: "Como qualquer pessoa, quem tem TDAH tem habilidades, interesses e talentos próprios. O TDAH é apenas uma parte de quem a pessoa é." },
 ];
 
 /* ---------------- ABA 3 — ISSO ACONTECE COMIGO? ---------------- */
@@ -759,7 +758,7 @@ const CARDS = [
   { id: "c9", cat: "rel", sit: "Você interrompe alguém porque tem medo de esquecer o que queria falar.", extra: "Como as outras pessoas costumam reagir?" },
   { id: "c10", cat: "rel", sit: "Você responde antes de a outra pessoa terminar.", extra: "Em que tipo de conversa isso acontece mais?" },
   { id: "c11", cat: "rel", sit: "Você tem dificuldade para esperar sua vez.", extra: "O que você sente enquanto espera?" },
-  { id: "c12", cat: "emo", sit: "Você fica muito frustrada quando algo não acontece como imaginava.", extra: "Como você se sente quando isso acontece?" },
+  { id: "c12", cat: "emo", sit: "Você fica muito frustrada quando algo não acontece como imaginava.", extra: "O que você costuma fazer quando isso acontece?" },
   { id: "c13", cat: "emo", sit: "Você sente dificuldade para se acalmar depois de uma situação desagradável.", extra: "O que costuma ajudar você a se acalmar?" },
   { id: "c14", cat: "emo", sit: "Pequenas mudanças na rotina podem gerar bastante incômodo.", extra: "Que tipo de mudança incomoda mais? E qual incomoda menos?" },
   { id: "c15", cat: "int", sit: "Você consegue passar bastante tempo fazendo algo de que gosta.", extra: "Quais atividades prendem mais a sua atenção? O que elas têm em comum?" },
@@ -782,15 +781,15 @@ const RESPOSTAS = [
 const GAMES = [
   { id: "atencao", nome: "Holofote", hab: "Atenção", icon: "spot", cor: "amarelo",
     desc: "Encontre os elementos certos no meio de muitos outros.",
-    explica: "Você usou a atenção seletiva: escolher o que é importante e deixar o resto em segundo plano. Quanto mais parecidos os distratores, mais esforço o cérebro precisa fazer. Movimentos e coisas chamativas puxam a atenção automaticamente, por isso ambientes com menos distrações costumam ajudar.",
+    explica: "Você usou a atenção seletiva: escolher o que é importante e deixar o resto em segundo plano. Quanto mais parecidos os distratores, mais esforço o cérebro precisa fazer. Movimentos e estímulos chamativos atraem a atenção automaticamente; por isso, ambientes com menos distrações costumam ajudar.",
     pergunta: "O que mais tirou sua atenção nesse jogo? E no seu dia a dia, em quais lugares é mais fácil manter o holofote no que importa?" },
   { id: "memoria", nome: "Sequência musical", hab: "Memória de trabalho", icon: "note", cor: "lilas",
     desc: "Observe e repita sequências de sons e símbolos.",
-    explica: "Você usou a memória de trabalho: segurar informações por alguns segundos enquanto as usa. Ela tem espaço limitado para todo mundo. Estratégias como dar nomes, cantar a sequência ou agrupar os itens ajudam a guardar mais coisas, e escrever tira o peso da memória.",
+    explica: "Você usou a memória de trabalho: manter informações na mente por alguns segundos enquanto as utiliza. Estratégias como dar nomes, cantar a sequência ou agrupar os itens ajudam a guardar mais informações, e anotar alivia a memória.",
     pergunta: "Você usou alguma estratégia para lembrar? Em que situações do dia a dia vale a pena “tirar da cabeça e colocar no papel”?" },
   { id: "inibicao", nome: "Hora do aplauso", hab: "Controle inibitório", icon: "pause", cor: "coral",
     desc: "Aplauda no momento certo e segure quando não for a hora.",
-    explica: "Você usou o controle inibitório: frear uma resposta automática. Quando a gente repete um movimento várias vezes, ele fica no “piloto automático”, e segurar exige esforço extra. Ir mais devagar e lembrar a regra em voz baixa costumam ajudar.",
+    explica: "Você usou o controle inibitório: frear uma resposta automática. Quando um movimento é repetido muitas vezes, ele entra no “piloto automático”, e interrompê-lo exige esforço extra. Ir mais devagar e repetir a regra em voz baixa costumam ajudar.",
     pergunta: "Foi mais difícil aplaudir ou segurar o aplauso? Em que situações do dia a dia você precisa apertar o “pause”?" },
   { id: "planejamento", nome: "Rumo ao show", hab: "Planejamento", icon: "list", cor: "azul",
     desc: "Organize as etapas para chegar a um objetivo.",
@@ -854,29 +853,29 @@ const TOOLS = [
     como: "Tarefas grandes parecem pesadas e vagas. Quando são divididas em passos pequenos e concretos, o cérebro enxerga um caminho claro, e cada passo concluído dá uma sensação de progresso que ajuda a continuar.",
     usar: ["Escreva a tarefa grande no topo.", "Pergunte: qual é a primeira ação concreta, que leva poucos minutos?", "Continue listando passos pequenos até o fim.", "Marque cada passo quando terminar."],
     exemplo: "“Estudar para a prova de Ciências” vira: separar o caderno → reler a matéria do capítulo 3 → fazer um resumo de 5 linhas → responder 3 exercícios → conferir as respostas.",
-    desafio: "Escolha uma tarefa desta semana e divida em pelo menos 4 passos no Planejador de pequenas etapas, aqui embaixo." },
+    desafio: "Escolha uma tarefa desta semana e divida-a em pelo menos 4 passos no Planejador de pequenas etapas, disponível nesta página." },
   { id: "pomodoro", nome: "Técnica Pomodoro adaptada", icon: "timer", cor: "coral", sit: ["comecar", "distraio", "tempo"],
     situacao: "Quando é difícil manter o foco por muito tempo ou começar algo pouco interessante.",
-    como: "Você trabalha por um período curto e definido, faz uma pausa e repete. O tempo marcado ajuda a perceber o tempo passando e torna a tarefa mais possível. A versão original usa 25 minutos, mas o tempo pode e deve ser ajustado para você.",
-    usar: ["Escolha uma tarefa só.", "Defina um tempo de foco que pareça possível: pode ser 10 ou 15 minutos.", "Durante o tempo, foque só nela. Se surgir outra ideia, anote para depois.", "Faça uma pausa curta de 3 a 5 minutos, de preferência longe da tela.", "Depois de alguns ciclos, faça uma pausa maior."],
+    como: "Você trabalha por um período curto e definido, faz uma pausa e repete. O tempo marcado ajuda a perceber a passagem do tempo e torna a tarefa mais viável. A versão original usa 25 minutos, mas o tempo pode e deve ser ajustado para você.",
+    usar: ["Escolha uma tarefa só.", "Defina um tempo de foco viável, como 10 ou 15 minutos.", "Durante esse período, concentre-se apenas nela. Se surgir outra ideia, anote-a para depois.", "Faça uma pausa curta de 3 a 5 minutos, de preferência longe da tela.", "Depois de alguns ciclos, faça uma pausa maior."],
     exemplo: "15 minutos de exercícios de matemática → 5 minutos para alongar e beber água → mais 15 minutos.",
     desafio: "Use o temporizador desta página para fazer um ciclo de foco com o tempo que você escolher." },
   { id: "timer", nome: "Temporizadores visuais", icon: "clock", cor: "amarelo", sit: ["tempo", "comecar"],
     situacao: "Quando o tempo parece passar sem você perceber.",
     como: "O tempo é invisível. Ver o tempo diminuindo, em um relógio ou temporizador, ajuda o cérebro a perceber quanto tempo passou e quanto ainda falta.",
     usar: ["Antes de começar algo, estime quanto tempo vai levar.", "Coloque um temporizador visível.", "Compare o tempo estimado com o tempo real e ajuste as próximas estimativas."],
-    exemplo: "“Vou arrumar a mochila em 10 minutos.” Timer ligado na mesa, à vista.",
+    exemplo: "“Vou arrumar a mochila em 10 minutos.” Temporizador ligado sobre a mesa, à vista.",
     desafio: "Estime quanto tempo uma tarefa vai levar, cronometre e compare. Você estimou para mais ou para menos?" },
   { id: "listas", nome: "Listas visuais", icon: "list", cor: "agua", sit: ["esqueco", "organizar", "muitas"],
-    situacao: "Quando você esquece coisas ou tem muitas tarefas na cabeça.",
+    situacao: "Quando você esquece compromissos ou tem muitas tarefas para lembrar.",
     como: "A memória de trabalho tem pouco espaço. Colocar as tarefas em uma lista tira esse peso da mente e deixa tudo à vista, além de dar a satisfação de riscar o que já foi feito.",
     usar: ["Anote tudo o que precisa fazer em um só lugar.", "Use cores ou símbolos para o que é mais urgente.", "Deixe a lista visível: na porta, na mesa ou na tela inicial do celular.", "Risque o que já fez."],
     exemplo: "Lista de conferência na porta do quarto: estojo ✓ caderno ✓ garrafinha ✓ uniforme de educação física ✓.",
-    desafio: "Monte na Lista de tarefas desta página as coisas que você precisa fazer amanhã." },
+    desafio: "Registre na Lista de tarefas desta página o que você precisa fazer amanhã." },
   { id: "alarmes", nome: "Alarmes e lembretes", icon: "bell", cor: "azul", sit: ["esqueco", "tempo"],
     situacao: "Quando você esquece compromissos, remédios, horários ou combinados.",
-    como: "Alarmes funcionam como uma memória externa: avisam na hora certa, sem depender só da sua cabeça. Funcionam melhor quando dizem exatamente o que fazer.",
-    usar: ["Coloque o alarme com um nome claro: “Separar o material de inglês”, e não só “Lembrete”.", "Programe para o momento em que dá para agir.", "Se o alarme tocar e você não puder fazer na hora, adie para um horário certo, em vez de desligar."],
+    como: "Alarmes funcionam como uma memória externa: avisam na hora certa, sem depender apenas da sua lembrança. São mais eficazes quando indicam exatamente o que fazer.",
+    usar: ["Coloque o alarme com um nome claro: “Separar o material de inglês”, e não só “Lembrete”.", "Programe-o para o momento em que será possível agir.", "Se o alarme tocar e você não puder agir na hora, adie-o para um horário definido em vez de desligá-lo."],
     exemplo: "Domingo, 19h: “Conferir a agenda da semana e separar o material de segunda.”",
     desafio: "Crie um alarme com nome claro para algo importante desta semana." },
   { id: "ambiente", nome: "Organização do ambiente", icon: "desk", cor: "lilas", sit: ["distraio", "organizar"],
@@ -893,31 +892,31 @@ const TOOLS = [
     desafio: "Use o Organizador visual desta página para distribuir 3 tarefas da sua semana." },
   { id: "pausas", nome: "Pausas programadas", icon: "coffee", cor: "amarelo", sit: ["sobrecarga", "distraio"],
     situacao: "Quando o cansaço mental chega e você começa a se distrair mais.",
-    como: "O cérebro não foi feito para manter o foco sem parar. Pausas curtas e planejadas recuperam energia e evitam que a pausa vire uma fuga que dura horas.",
+    como: "O cérebro não foi feito para manter o foco sem parar. Pausas curtas e planejadas recuperam energia e evitam que a pausa se transforme em uma interrupção de horas.",
     usar: ["Defina antes quando será a pausa e quanto vai durar.", "Escolha pausas que descansem: movimentar o corpo, beber água, olhar pela janela, ouvir uma música.", "Use um alarme para avisar o fim da pausa."],
     exemplo: "A cada 20 minutos de estudo, 5 minutos para dançar uma música e voltar.",
     desafio: "No próximo estudo, programe uma pausa com começo e fim definidos." },
   { id: "auto", nome: "Autoinstruções: Pare, Pense, Escolha", icon: "pause", cor: "coral", sit: ["impulso", "frustrada"],
     situacao: "Quando você age ou fala rápido demais e depois se arrepende.",
-    como: "Falar consigo mesma, em voz baixa ou em pensamento, ajuda a criar um pequeno espaço entre o impulso e a ação. Nesse espaço, dá para escolher.",
+    como: "Falar consigo mesma, em voz baixa ou em pensamento, ajuda a criar um pequeno espaço entre o impulso e a ação. Nesse intervalo, é possível escolher.",
     usar: ["PARE: perceba o impulso e respire uma vez.", "PENSE: o que está acontecendo? Quais são as opções?", "ESCOLHA: qual opção combina com o que eu quero?", "Depois, observe como foi."],
-    exemplo: "Vontade de responder atravessado no grupo da turma → “Pare. Estou com raiva. Posso responder depois, mais calma.”",
+    exemplo: "Vontade de responder de forma ríspida no grupo da turma → “Pare. Estou com raiva. Posso responder depois, mais calma.”",
     desafio: "Crie uma frase curta para dizer a si mesma antes de agir, como “Calma, um passo de cada vez”." },
   { id: "problemas", nome: "Resolução de problemas", icon: "bulb", cor: "azul", sit: ["frustrada", "sobrecarga", "muitas"],
-    situacao: "Quando um problema parece não ter saída ou deixa você travada.",
+    situacao: "Quando um problema parece não ter saída ou você não sabe o que fazer.",
     como: "Um roteiro com passos ajuda a pensar com mais clareza, principalmente quando a emoção está alta. A ideia é sair do “não tem jeito” para algumas opções possíveis.",
     usar: ["Qual é exatamente o problema?", "Liste pelo menos três soluções possíveis, sem julgar ainda.", "Pense nos prós e contras de cada uma.", "Escolha uma e decida como colocar em prática.", "Depois, avalie: funcionou? Preciso tentar outra?"],
     exemplo: "Problema: esqueci o trabalho em casa. Opções: pedir para entregar amanhã, mandar por e-mail, pedir para alguém levar. Escolha: conversar com a professora no intervalo.",
     desafio: "Pense em um pequeno problema atual e liste três soluções possíveis." },
   { id: "respira", nome: "Respiração lenta", icon: "wind", cor: "agua", sit: ["frustrada", "sobrecarga", "impulso"],
     situacao: "Quando a emoção está muito intensa ou o corpo está agitado.",
-    como: "Respirar devagar, com a expiração mais longa, ajuda o corpo a sair do modo de alerta. Não resolve o problema, mas abaixa o volume para que você consiga pensar.",
+    como: "Respirar devagar, com a expiração mais longa, ajuda o corpo a sair do modo de alerta. Não resolve o problema, mas diminui a intensidade da emoção e ajuda a pensar com mais clareza.",
     usar: ["Inspire pelo nariz contando até 4.", "Segure por 2 segundos, se for confortável.", "Solte o ar pela boca contando até 6.", "Repita de 4 a 6 vezes."],
     exemplo: "Antes de uma apresentação, ou depois de uma discussão, nos bastidores.",
     desafio: "Experimente agora, junto com a psicóloga, quatro respirações lentas. O que mudou no corpo?" },
   { id: "termometro", nome: "Termômetro das emoções", icon: "thermo", cor: "coral", sit: ["frustrada", "sobrecarga"],
     situacao: "Quando é difícil perceber o que está sentindo até a emoção explodir.",
-    como: "Dar nome e intensidade à emoção ajuda o cérebro a regulá-la. Perceber o “aquecimento” cedo permite agir antes de chegar no máximo.",
+    como: "Dar nome e intensidade à emoção ajuda o cérebro a regulá-la. Perceber o “aquecimento” cedo permite agir antes que ela chegue ao máximo.",
     usar: ["Dê um nome ao que sente: frustração, raiva, tristeza, ansiedade.", "Dê uma nota de 0 a 10 para a intensidade.", "Descubra os sinais do corpo em cada nível.", "Combine uma estratégia para cada faixa: de 4 a 6, respirar; acima de 7, pausar e se afastar um pouco."],
     exemplo: "“Estou frustrada, nível 6. Minha mandíbula está tensa. Vou dar uma pausa de 5 minutos.”",
     desafio: "Pense em uma situação recente: que nome e que nota você daria para o que sentiu?" },
@@ -935,8 +934,8 @@ const TOOLS = [
     desafio: "No próximo estudo, deixe um estacionamento de ideias ao lado e conte quantas ideias foram estacionadas." },
   { id: "comeco", nome: "Começo mínimo", icon: "play", cor: "agua", sit: ["comecar"],
     situacao: "Quando começar parece a parte mais difícil.",
-    como: "Muitas vezes o mais difícil é dar o primeiro passo. Combinar só um começo muito pequeno diminui a resistência, e depois de começar costuma ficar mais fácil continuar.",
-    usar: ["Escolha uma ação de 2 minutos: abrir o caderno, escrever o título, ler o primeiro parágrafo.", "Faça só isso.", "Depois decida se continua. Muitas vezes, você vai querer continuar."],
+    como: "Combinar consigo mesma apenas um começo muito pequeno diminui a resistência. Depois de dar o primeiro passo, costuma ser mais fácil seguir em frente.",
+    usar: ["Escolha uma ação de 2 minutos: abrir o caderno, escrever o título, ler o primeiro parágrafo.", "Faça só isso.", "Depois, decida se quer continuar. Muitas vezes, a vontade de seguir aparece."],
     exemplo: "“Só vou abrir o arquivo do trabalho e escrever o título.”",
     desafio: "Escolha uma tarefa adiada e defina o começo mínimo dela." },
 ];
@@ -956,15 +955,15 @@ const MANUAL_QS = [
 
 /* ---------------- ABA 7 — GUIA PARA A FAMÍLIA ---------------- */
 const FAMILIA = {
-  intro: "Este guia foi preparado para apoiar a família no processo de compreensão do TDAH. Ele reúne informações baseadas em evidências e orientações práticas para o dia a dia. Ele não substitui as conversas com os profissionais que acompanham sua filha, e cada orientação deve ser adaptada à realidade da família.",
+  intro: "Este guia foi preparado para apoiar a família no processo de compreensão do TDAH. Reúne informações baseadas em evidências e orientações práticas para o dia a dia, mas não substitui as conversas com os profissionais que acompanham sua filha, e cada orientação deve ser adaptada à realidade da família.",
   secoes: [
     { id: "f-comeco", titulo: "Para começar", html: `<p>Compreender o TDAH <strong>não significa retirar responsabilidades</strong>. Significa entender por que algumas tarefas exigem mais esforço e oferecer o tipo de apoio que ajuda a desenvolver habilidades e autonomia.</p><p>Também é importante lembrar que nem todo comportamento se explica pelo TDAH. Adolescentes passam por mudanças próprias da idade, têm personalidade, preferências e emoções que fazem parte de quem são. E a família não é a causa do TDAH: ela é parte importante da rede de apoio.</p>` },
     { id: "f-oque", titulo: "O que é o TDAH", html: `<p>O Transtorno do Déficit de Atenção e Hiperatividade é um transtorno do neurodesenvolvimento caracterizado por um padrão persistente de desatenção e/ou hiperatividade-impulsividade, presente em mais de um contexto e com impacto no funcionamento. Atinge cerca de 5% das crianças e adolescentes no mundo.</p><p>Tem forte componente genético e está associado a diferenças no funcionamento de redes cerebrais envolvidas nas funções executivas, na motivação e na recompensa, com participação dos sistemas de dopamina e noradrenalina. O diagnóstico é clínico, feito por profissionais habilitados, a partir de entrevistas, observações e informações de diferentes contextos.</p>` },
     { id: "f-adol", titulo: "O TDAH na adolescência", html: `<p>Na adolescência, as exigências mudam: mais matérias, mais professores, prazos mais longos, mais vida social e mais expectativa de autonomia. Ao mesmo tempo, as funções executivas ainda estão em pleno desenvolvimento.</p><ul class="ticks"><li>A hiperatividade costuma ficar menos visível e mais interna, como inquietação ou mente acelerada.</li><li>Desatenção, desorganização e dificuldade com prazos tendem a ganhar destaque.</li><li>As emoções podem ser mais intensas, e a autoestima fica mais sensível a críticas e comparações.</li><li>Em meninas, os sinais podem ser mais discretos e acompanhados de grande esforço para compensar, o que pode gerar cansaço e ansiedade.</li></ul>` },
     { id: "f-fe", titulo: "As funções executivas", html: `<p>As funções executivas são habilidades que permitem planejar, organizar, iniciar e concluir tarefas, controlar impulsos, manter informações na mente e ajustar emoções e comportamentos aos objetivos. As principais são: memória de trabalho, controle inibitório, flexibilidade cognitiva, planejamento e organização, gerenciamento do tempo e autorregulação.</p><p>No TDAH, essas habilidades costumam precisar de mais apoio externo, e por mais tempo, do que em outros adolescentes da mesma idade. Isso não quer dizer incapacidade: quer dizer que estrutura, previsibilidade e ferramentas fazem muita diferença.</p>` },
-    { id: "f-org", titulo: "Organização, planejamento e memória de trabalho", html: `<p>Na prática, isso pode aparecer como esquecer materiais, perder prazos, começar várias coisas e não terminar, subestimar o tempo das tarefas ou se perder em instruções longas.</p><p>O que costuma ajudar é <strong>levar a informação para fora da cabeça</strong>: quadros, listas, agendas, alarmes, lugares fixos para objetos e rotinas previsíveis. A memória externa compensa a sobrecarga da memória de trabalho.</p>` },
-    { id: "f-emo", titulo: "Regulação emocional", html: `<p>Muitos adolescentes com TDAH sentem emoções com mais intensidade e têm mais dificuldade para voltar à calma. A frustração pode surgir rápido, principalmente diante de mudanças inesperadas, críticas ou tarefas difíceis.</p><p>Nesses momentos, discutir ou dar sermão costuma piorar. Ajuda mais <strong>nomear a emoção, oferecer uma pausa e retomar a conversa depois</strong>, quando todos estiverem mais calmos. Adultos que mostram como regulam as próprias emoções também ensinam pelo exemplo.</p>` },
-    { id: "f-auto", titulo: "Autoestima e autoconfiança", html: `<p>Crianças e adolescentes com TDAH frequentemente ouvem mais correções e críticas do que elogios. Com o tempo, isso pode virar uma ideia de que “eu sou o problema”. Fortalecer a autoestima é parte essencial do cuidado.</p><ul class="ticks"><li>Reconheça esforços, não só resultados.</li><li>Valorize interesses e talentos, como música, patins e criatividade.</li><li>Separe a pessoa do comportamento: “essa atitude não foi legal” é diferente de “você é…”.</li><li>Garanta momentos de convivência que não sejam sobre tarefas ou cobranças.</li></ul>` },
+    { id: "f-org", titulo: "Organização, planejamento e memória de trabalho", html: `<p>Na prática, isso pode aparecer como esquecer materiais, perder prazos, começar várias coisas e não terminar, subestimar o tempo das tarefas ou se perder em instruções longas.</p><p>O que costuma ajudar é <strong>registrar as informações fora da memória</strong>: quadros, listas, agendas, alarmes, lugares fixos para objetos e rotinas previsíveis. A memória externa compensa a sobrecarga da memória de trabalho.</p>` },
+    { id: "f-emo", titulo: "Regulação emocional", html: `<p>Muitos adolescentes com TDAH sentem emoções com mais intensidade e têm mais dificuldade para voltar à calma. A frustração pode surgir rápido, principalmente diante de mudanças inesperadas, críticas ou tarefas difíceis.</p><p>Nesses momentos, discussões e longas repreensões costumam piorar a situação. Ajuda mais <strong>nomear a emoção, oferecer uma pausa e retomar a conversa depois</strong>, quando todos estiverem mais calmos. Adultos que mostram como regulam as próprias emoções também ensinam pelo exemplo.</p>` },
+    { id: "f-auto", titulo: "Autoestima e autoconfiança", html: `<p>Crianças e adolescentes com TDAH frequentemente ouvem mais correções e críticas do que elogios. Com o tempo, isso pode virar uma ideia de que “eu sou o problema”. Fortalecer a autoestima é parte essencial do cuidado.</p><ul class="ticks"><li>Reconheça esforços, não só resultados.</li><li>Valorize interesses e talentos, como música, patins e criatividade.</li><li>Separe a pessoa do comportamento: “essa atitude não foi adequada” é diferente de “você é…”.</li><li>Garanta momentos de convivência que não sejam sobre tarefas ou cobranças.</li></ul>` },
     { id: "f-escola", titulo: "Vida escolar", html: `<p>Uma parceria próxima com a escola costuma ser muito útil. Vale compartilhar, com o consentimento da adolescente, o que ajuda e o que atrapalha, e combinar estratégias como instruções por escrito, divisão de trabalhos longos em etapas com prazos intermediários, lugar na sala com menos distrações e confirmação de tarefas na agenda.</p><p>No Brasil, a Lei nº 14.254/2021 prevê o acompanhamento integral de estudantes com TDAH, dislexia ou outros transtornos de aprendizagem na educação básica.</p>` },
     { id: "f-familia", titulo: "Relações familiares", html: `<p>O TDAH pode trazer tensão para a rotina: atrasos, esquecimentos e combinados não cumpridos geram cansaço para todos. É comum que a relação fique centrada em cobranças. Buscar momentos leves e prazerosos juntos ajuda a proteger o vínculo, que é o principal fator de apoio.</p><p>Cuidar de quem cuida também importa: pais e responsáveis cansados têm mais dificuldade para manter a calma. Pedir ajuda, dividir tarefas e ter espaço para si faz parte do processo.</p>` },
     { id: "f-autonomia", titulo: "Autonomia e desenvolvimento", html: `<p>A autonomia se constrói aos poucos. Uma forma útil de pensar é em três degraus:</p><ul class="ticks"><li><strong>Fazer junto:</strong> o adulto mostra e faz com a adolescente.</li><li><strong>Acompanhar de perto:</strong> a adolescente faz e o adulto confere.</li><li><strong>Acompanhar de longe:</strong> a adolescente faz sozinha, com combinados de verificação.</li></ul><p>Retirar o apoio de uma vez costuma não funcionar. Retirar aos poucos, conforme as habilidades aparecem, sim.</p>` },
@@ -973,12 +972,12 @@ const FAMILIA = {
     { titulo: "Estabelecer rotinas", icon: "calendar", itens: ["Horários previsíveis para acordar, estudar, descansar e dormir.", "Rotinas visíveis: um quadro na cozinha ou no quarto.", "Construa a rotina junto com a adolescente, e não só para ela."] },
     { titulo: "Oferecer instruções claras", icon: "chat", itens: ["Faça contato visual e garanta que ela está ouvindo antes de pedir.", "Uma instrução por vez, curta e específica.", "Peça que ela repita com as próprias palavras ou anote."] },
     { titulo: "Dividir tarefas", icon: "stairs", itens: ["Transforme “arruma o quarto” em passos concretos.", "Combine prazos intermediários para trabalhos longos.", "Comemore etapas concluídas, não só o final."] },
-    { titulo: "Incentivar a autonomia", icon: "route", itens: ["Pergunte “o que você acha que ajudaria?” antes de oferecer a solução.", "Deixe que ela escolha entre opções.", "Retire o apoio gradualmente, conforme ela vai conseguindo."] },
+    { titulo: "Incentivar a autonomia", icon: "route", itens: ["Pergunte “o que você acha que ajudaria?” antes de oferecer a solução.", "Deixe que ela escolha entre opções.", "Combine com ela quais tarefas já pode assumir sozinha."] },
     { titulo: "Estabelecer limites", icon: "shield", itens: ["Poucas regras, claras e combinadas com antecedência.", "Consequências previsíveis, proporcionais e ditas com calma.", "Evite decidir castigos no calor da emoção."] },
-    { titulo: "Reforçar comportamentos positivos", icon: "star", itens: ["Elogie de forma específica: “você começou a tarefa sozinha, isso foi ótimo”.", "Perceba esforços pequenos, inclusive os que costumam passar despercebidos.", "Procure fazer mais comentários positivos do que correções."] },
+    { titulo: "Reforçar comportamentos positivos", icon: "star", itens: ["Elogie de forma específica: “você começou a tarefa sozinha, isso foi ótimo”.", "Ofereça o reconhecimento logo após o comportamento, sempre que possível.", "Procure fazer mais comentários positivos do que correções."] },
     { titulo: "Lidar com esquecimentos e desorganização", icon: "bell", itens: ["Trate o esquecimento como um problema a resolver juntos, não como falta de caráter.", "Crie memórias externas: listas na porta, alarmes, lugar fixo para as coisas.", "Combine uma revisão rápida da mochila e da agenda em um horário fixo."] },
-    { titulo: "Evitar críticas excessivas, comparações e rótulos", icon: "heart", itens: ["Evite frases com “sempre” e “nunca”.", "Não compare com irmãos, primos ou colegas.", "Fale sobre o comportamento, não sobre a pessoa."] },
-    { titulo: "Reconhecer avanços", icon: "trophy", itens: ["Compare a adolescente com ela mesma, não com os outros.", "Registre conquistas, mesmo pequenas.", "Lembre-a de progressos passados quando ela estiver desanimada."] },
+    { titulo: "Evitar críticas excessivas, comparações e rótulos", icon: "heart", itens: ["Evite frases com “sempre” e “nunca”.", "Não compare com irmãos, primos ou colegas.", "Substitua rótulos como “bagunceira” ou “desligada” pela descrição do que aconteceu."] },
+    { titulo: "Reconhecer avanços", icon: "trophy", itens: ["Valorize o progresso em relação ao ponto de partida dela.", "Registre conquistas, mesmo pequenas.", "Lembre-a de progressos passados quando ela estiver desanimada."] },
   ],
   comunicacao: [
     ["Você nunca presta atenção!", "Preciso te pedir uma coisa importante. Pode olhar para mim um instante?"],
@@ -986,9 +985,9 @@ const FAMILIA = {
     ["Você é muito desorganizada.", "Essa mochila está difícil de organizar. Quer montar uma lista de conferência comigo?"],
     ["Sua prima consegue, por que você não?", "Cada pessoa tem seu ritmo. O que ajudaria você nessa tarefa?"],
     ["Você só quer saber do celular, é preguiça.", "Percebi que está difícil começar. Qual seria um primeiro passo bem pequeno?"],
-    ["Você fez isso de propósito!", "Parece que aconteceu rápido demais. Vamos pensar juntas no que dá para fazer agora?"],
-    ["Para de drama!", "Estou vendo que você ficou muito chateada. Quando estiver mais calma, a gente conversa."],
-    ["Arruma esse quarto agora!", "Primeiro, as roupas no cesto. Depois a gente vê a escrivaninha."],
+    ["Você fez isso de propósito!", "Parece que aconteceu rápido demais. Vamos pensar juntas no que podemos fazer agora?"],
+    ["Para de drama!", "Estou vendo que você ficou muito chateada. Quando estiver mais calma, conversamos."],
+    ["Arruma esse quarto agora!", "Primeiro, as roupas no cesto. Depois, cuidamos da escrivaninha."],
     ["Esqueceu de novo?!", "Esqueceu, acontece. O que pode te lembrar da próxima vez: alarme ou bilhete na porta?"],
   ],
   fecho: "Procure os profissionais que acompanham sua filha sempre que tiver dúvidas, perceber sofrimento emocional intenso, mudanças importantes de humor, sono ou comportamento, ou quando os conflitos em casa estiverem difíceis de manejar. Apoio para a família também é parte do cuidado.",
@@ -1048,7 +1047,7 @@ const GUIA_ETAPAS = {
     perguntas: ["Qual dessas situações aparece mais na sua semana?", "Qual ferramenta parece mais com você?", "O que poderia atrapalhar você de usar essa ferramenta? Como resolver?"],
     aprofundar: ["Planejar um experimento comportamental para a semana, com previsão e avaliação.", "Antecipar barreiras e planos B."],
     intervencoes: ["Treinar as ferramentas na sessão: ciclo de foco com o temporizador, divisão de uma tarefa real em etapas.", "Utilizar os recursos interativos como tarefa colaborativa."],
-    manejo: ["Escolha poucas ferramentas por vez, no máximo uma ou duas por semana.", "Reforce que nem toda estratégia funciona para todo mundo: experimentar faz parte."],
+    manejo: ["Escolha poucas ferramentas por vez, no máximo uma ou duas por semana.", "Reforce que nem toda estratégia funciona para todas as pessoas: experimentar faz parte do processo."],
     adaptacoes: ["Envolver a família na implementação de lembretes e rotinas, com o consentimento da adolescente.", "Personalizar nomes das ferramentas com referências de música ou patins."] },
   manual: { nome: "Meu manual de funcionamento",
     objetivos: ["Consolidar aprendizagens e integrar dificuldades e potencialidades.", "Fortalecer autoeficácia, autonomia e autodefesa (pedir ajuda).", "Produzir um material que possa ser revisitado."],
@@ -1381,7 +1380,7 @@ A.askReset = () => {
 A.doReset = () => {
   const title = S.title; stopAllGames(); stopTimer(true);
   S = DEFAULT_STATE(); S.title = title; save(); badgeQueue = [];
-  closeModal(); location.hash = "#inicio"; route(); toast("Jornada reiniciada. Tudo pronto para começar de novo.");
+  closeModal(); location.hash = "#inicio"; route(); toast("Jornada reiniciada.");
 };
 
 /* ---------- Roteador ---------- */
@@ -1408,7 +1407,7 @@ function secHead(id, title, lead) {
 function stageFoot(id) {
   const st = STAGES.find((s) => s.id === id); const i = STAGES.indexOf(st); const next = STAGES[i + 1]; const done = !!S.done[id];
   const nextBtn = next ? `<a class="btn btn-primary" href="#${next.id}">Próxima: ${next.nome} ${icon("arrowR", 18)}</a>` : `<a class="btn btn-primary" href="#${allDone() ? "final" : "inicio"}">${allDone() ? "Ver encerramento" : "Ver meu percurso"} ${icon("arrowR", 18)}</a>`;
-  return `<section class="stage-foot no-print" id="foot-${id}"><div><h3>${done ? "Etapa concluída!" : "Terminou de explorar esta etapa?"}</h3><p class="muted">${done ? `A estrela <b>${st.badge}</b> já brilha no seu percurso.` : `Ao concluir, você ganha a conquista <b>${st.badge}</b>. Pode voltar aqui quando quiser.`}</p></div>
+  return `<section class="stage-foot no-print" id="foot-${id}"><div><h3>${done ? "Etapa concluída!" : "Terminou de explorar esta etapa?"}</h3><p class="muted">${done ? `A estrela <b>${st.badge}</b> já brilha no seu percurso.` : `Ao concluir, você recebe a conquista <b>${st.badge}</b> e pode voltar a esta etapa quando quiser.`}</p></div>
   <div class="row">${done ? "" : `<button class="btn btn-roxo" data-act="completeStage" data-id="${id}">${starFill(16)} Concluir esta etapa</button>`}${nextBtn}</div></section>`;
 }
 A.completeStage = (el) => { completeStage(el.dataset.id); refreshStageChrome(el.dataset.id); };
@@ -1487,7 +1486,7 @@ VIEWS.inicio = {
 
     <section class="stack" style="margin-top:36px" id="percurso">
       <div class="row" style="justify-content:space-between"><div><span class="eyebrow">${icon("skate", 16)} Seu percurso</span><h2 style="margin-top:6px">Uma pista com seis paradas</h2></div><span class="tag ${n ? "amarelo" : ""}">${starFill(13)} ${n} de ${STAGES.length} estrelas</span></div>
-      <p class="muted prose">Cada etapa é uma parada na pista. Você pode ir na ordem ou escolher por onde começar. A cada etapa concluída, uma estrela se acende e você ganha uma conquista.</p>
+      <p class="muted prose">Cada etapa é uma parada na pista. Você pode seguir a ordem ou escolher por onde começar. A cada etapa concluída, uma estrela se acende e você recebe uma conquista.</p>
       <div class="track">${trackSVG()}<div class="track-legend">${STAGES.map((s) => `<a href="#${s.id}" class="${S.done[s.id] ? "done" : ""}">${s.curto}<small>${S.done[s.id] ? s.badge : "Etapa " + s.n}</small></a>`).join("")}</div></div>
     </section>
 
@@ -1498,7 +1497,7 @@ VIEWS.inicio = {
     <section class="stack" style="margin-top:40px">
       ${sectionTitle("Suas conquistas", "trophy")}
       <div class="badges-row">${STAGES.map((s) => `<div class="bdg ${S.done[s.id] ? "" : "off"}">${medalSVG(s, !!S.done[s.id], 64)}<b>${s.badge}</b><small>${s.badgeMsg}</small></div>`).join("")}</div>
-      <p class="muted" style="font-size:.9rem">As conquistas valorizam a sua exploração e curiosidade. Aqui não existem notas, acertos ou pontuações.</p>
+      <p class="muted" style="font-size:.9rem">As conquistas valorizam a exploração e a curiosidade. Aqui não há notas, acertos ou pontuações.</p>
     </section>`;
   },
   mount() { positionSkater(); },
@@ -1554,7 +1553,7 @@ function brainSVG() {
 }
 function regionPanel() {
   const all = BRAIN_REGIONS.concat(BRAIN_DEEP); const r = all.find((x) => x.id === S.brainSel);
-  if (!r) return `<div class="card region-panel" style="justify-content:center"><span class="icon-blob b-lilas">${icon("brain", 26)}</span><h3>Toque em uma região do cérebro</h3><p class="muted">As cores mostram as grandes regiões, os <b>lobos</b>. Os pontos pulsantes mostram estruturas que ficam na parte de dentro do cérebro. Cada uma tem um papel, mas todas trabalham juntas.</p><div class="brain-legend">${all.map((x) => `<button class="chip" data-act="brainSel" data-id="${x.id}"><span style="width:10px;height:10px;border-radius:50%;background:${x.cor}"></span>${x.nome.split(" (")[0].replace("Núcleos da base e sistema de recompensa", "Núcleos da base")}</button>`).join("")}</div></div>`;
+  if (!r) return `<div class="card region-panel" style="justify-content:center"><span class="icon-blob b-lilas">${icon("brain", 26)}</span><h3>Toque em uma região do cérebro</h3><p class="muted">As cores indicam as grandes regiões, chamadas <b>lobos</b>. Os pontos pulsantes indicam estruturas localizadas na parte interna do cérebro.</p><div class="brain-legend">${all.map((x) => `<button class="chip" data-act="brainSel" data-id="${x.id}"><span style="width:10px;height:10px;border-radius:50%;background:${x.cor}"></span>${x.nome.split(" (")[0].replace("Núcleos da base e sistema de recompensa", "Núcleos da base")}</button>`).join("")}</div></div>`;
   return `<div class="card region-panel" aria-live="polite"><div class="row" style="gap:12px;align-items:flex-start;flex-wrap:nowrap"><span class="icon-blob" style="background:${r.cor}33;color:var(--roxo-900)"><span style="width:20px;height:20px;border-radius:50%;background:${r.cor}"></span></span><div><span class="hand">${r.apelido}</span><h3 style="margin-top:2px">${r.nome}</h3></div></div>
     <p>${r.texto}</p>
     <div class="rp-fn">${r.fn.map((f) => `<span class="tag agua">${f}</span>`).join("")}</div>
@@ -1600,11 +1599,11 @@ A.efNext = (el) => { $("#modal-root").innerHTML = ""; A.efOpen(el); };
 
 VIEWS.cerebro = {
   render() {
-    return `${secHead("cerebro", "Meu cérebro", "Antes de falar de TDAH, vale conhecer o lugar onde tudo acontece. Explore o mapa, siga o caminho da informação e descubra as habilidades que ajudam você a alcançar seus objetivos.")}
+    return `${secHead("cerebro", "Meu cérebro", "Antes de falar sobre o TDAH, é importante conhecer o órgão onde tudo acontece. Explore o mapa, acompanhe o caminho da informação e descubra as habilidades que ajudam você a alcançar seus objetivos.")}
     <div class="stack-lg">
       <section class="grid g2" style="align-items:stretch">
         <div class="card stack"><span class="eyebrow">${icon("brain", 16)} O que é o cérebro?</span>${BRAIN_INTRO.map((p) => `<p>${p}</p>`).join("")}</div>
-        <div class="panel stack" style="background:linear-gradient(140deg,var(--lilas-100),var(--agua-100))"><span class="hand" style="font-size:1.7rem">Uma banda afinada</span><p>Pense em um show: tem quem canta, quem toca guitarra, quem cuida das luzes e quem controla o som. Se alguém entra fora do tempo, todo mundo sente. O cérebro funciona parecido: as regiões precisam se comunicar e se coordenar.</p><div class="row" style="gap:6px">${["Neurônios", "Sinapses", "Neurotransmissores", "Redes"].map((t) => `<span class="tag">${t}</span>`).join("")}</div></div>
+        <div class="panel stack" style="background:linear-gradient(140deg,var(--lilas-100),var(--agua-100))"><span class="hand" style="font-size:1.7rem">Uma banda afinada</span><p>Em um show, há quem cante, quem toque guitarra, quem cuide das luzes e quem controle o som. Se alguém entra fora do tempo, todos percebem. O cérebro funciona de forma parecida: nenhuma região trabalha sozinha, e todas precisam se comunicar e se coordenar.</p><div class="row" style="gap:6px">${["Neurônios", "Sinapses", "Neurotransmissores", "Redes"].map((t) => `<span class="tag">${t}</span>`).join("")}</div></div>
       </section>
 
       <section>
@@ -1626,7 +1625,7 @@ VIEWS.cerebro = {
 
       <section>
         ${sectionTitle("As funções executivas", "sliders")}
-        <div class="grid g2" style="margin-bottom:18px;align-items:center"><p class="prose">${EF_INTRO}</p><div class="note amarelo">${icon("star")}<span>Abra os <b>seis cards</b> abaixo. Cada um mostra uma habilidade, como ela aparece no dia a dia e uma pergunta para pensar.</span></div></div>
+        <div class="grid g2" style="margin-bottom:18px;align-items:center"><p class="prose">${EF_INTRO}</p><div class="note amarelo">${icon("star")}<span>Abra os <b>seis cards</b> abaixo. Cada um apresenta uma habilidade, um exemplo do dia a dia e uma pergunta para reflexão.</span></div></div>
         <div class="ef-grid" id="ef-grid">${efGrid()}</div>
       </section>
     </div>
@@ -1667,14 +1666,14 @@ function quizBody() {
   const total = QUIZ.length, answered = Object.keys(S.quiz.ans).length;
   const dots = `<div class="q-dots" role="tablist" aria-label="Afirmações">${QUIZ.map((q, i) => `<button class="${i === S.quiz.idx ? "cur" : S.quiz.ans[i] ? "ans" : ""}" data-act="quizGo" data-i="${i}" aria-label="Afirmação ${i + 1}">${i + 1}</button>`).join("")}</div>`;
   if (S.quiz.idx >= total) {
-    return `${dots}<div class="q-card"><div class="badge-medal" style="width:90px;height:90px">${medalSVG(STAGES[1], true, 90)}</div><h2 style="margin-top:12px">Você explorou as ${total} afirmações!</h2><p class="muted" style="max-width:46ch;margin:10px auto 18px">O objetivo aqui nunca foi acertar: foi descobrir e conversar. Mitos sobre o TDAH são muito comuns, e conhecer as informações certas ajuda a se entender melhor.</p>${reflectBox("Qual dessas afirmações mais surpreendeu você? Alguma você já tinha ouvido de alguém?")}<div class="row" style="justify-content:center;margin-top:18px"><button class="btn btn-ghost" data-act="quizRestart">${icon("refresh", 18)} Explorar de novo</button></div></div>`;
+    return `${dots}<div class="q-card"><div class="badge-medal" style="width:90px;height:90px">${medalSVG(STAGES[1], true, 90)}</div><h2 style="margin-top:12px">Você explorou as ${total} afirmações!</h2><p class="muted" style="max-width:46ch;margin:10px auto 18px">Mitos sobre o TDAH são muito comuns. Conhecer informações corretas ajuda você a compreender melhor a si mesma.</p>${reflectBox("Qual dessas afirmações mais surpreendeu você? Alguma você já tinha ouvido de alguém?")}<div class="row" style="justify-content:center;margin-top:18px"><button class="btn btn-ghost" data-act="quizRestart">${icon("refresh", 18)} Recomeçar o quiz</button></div></div>`;
   }
   const q = QUIZ[S.quiz.idx], a = S.quiz.ans[S.quiz.idx];
   let fb = "";
   if (a) {
     const hit = a === q.r;
-    const verdict = q.r === "mito" ? "É um mito" : "É verdade";
-    const head = hit ? `Isso mesmo! ${verdict}.` : q.r === "mito" ? "Essa confunde muita gente: é um mito." : "Na verdade, isso é verdade.";
+    const verdict = q.r === "mito" ? "esta afirmação é um mito" : "esta afirmação é verdadeira";
+    const head = hit ? `Correto: ${verdict}.` : q.r === "mito" ? "Esta afirmação é um mito, embora seja uma ideia comum." : "Esta afirmação é verdadeira.";
     fb = `<div class="q-feedback"><div class="q-verdict ${q.r}">${q.r === "mito" ? icon("x", 22, 2.4) : icon("check", 22, 2.4)} ${head}</div><p>${q.e}</p></div>`;
   }
   return `${dots}<div class="q-card"><span class="tag">Afirmação ${S.quiz.idx + 1} de ${total}</span><p class="q-text">“${q.q}”</p>
@@ -1694,7 +1693,7 @@ A.quizRestart = () => { S.quiz = { idx: 0, ans: {} }; save(); renderQuiz(); };
 
 VIEWS.tdah = {
   render() {
-    return `${secHead("tdah", "Desvendando o TDAH", "O que a ciência sabe sobre o TDAH, explicado sem complicação e sem mitos. Leia os capítulos no seu ritmo e depois teste o que descobriu no quiz.")}
+    return `${secHead("tdah", "Desvendando o TDAH", "Informações científicas sobre o TDAH, apresentadas de forma clara. Leia os capítulos no seu ritmo e, depois, explore o quiz de mito ou verdade.")}
     <div class="stack-lg">
       <section class="chapters"><nav class="chapter-nav" id="chap-nav" aria-label="Capítulos">${chapterNav()}</nav><div id="chap-body">${chapterBody()}</div></section>
       <section>
@@ -1704,7 +1703,7 @@ VIEWS.tdah = {
       </section>
       <section id="quiz" style="scroll-margin-top:80px">
         ${sectionTitle("Quiz: mito ou verdade?", "search")}
-        <p class="muted prose" style="margin-bottom:18px">Leia cada afirmação e escolha se é mito ou verdade. Depois de responder, aparece uma explicação. Não vale nota: é para descobrir e conversar.</p>
+        <p class="muted prose" style="margin-bottom:18px">Leia cada afirmação e indique se é mito ou verdade. Após cada resposta, aparece uma explicação. Não há nota: o objetivo é aprender e conversar.</p>
         <div class="quiz" id="quiz-body">${quizBody()}</div>
       </section>
     </div>
@@ -1727,7 +1726,7 @@ function deckBody() {
     <p class="pc-sit">${c.sit}</p>
     <p class="muted">Isso acontece com você?</p>
     <div class="resp-grid" role="group" aria-label="Respostas">${RESPOSTAS.map((r) => `<button class="resp ${a === r.id ? "picked" : ""}" data-act="cardAns" data-v="${r.id}" aria-pressed="${a === r.id}"><span class="rdot" style="background:${r.cor}"></span>${r.nome}</button>`).join("")}</div>
-    ${resp ? `<div class="follow stack">${reflectBox(resp.follow[0], "Para conversar")}${resp.follow[1] ? reflectBox(resp.follow[1], "E também") : ""}${reflectBox(c.extra, "Para ir mais fundo")}</div>` : ""}
+    ${resp ? `<div class="follow stack">${reflectBox(resp.follow[0], "Para conversar")}${resp.follow[1] ? reflectBox(resp.follow[1], "Outra pergunta") : ""}${reflectBox(c.extra, "Para aprofundar")}</div>` : ""}
   </div>
   <div class="deck-nav"><button class="btn btn-ghost" data-act="cardStep" data-d="-1" ${S.cards.idx === 0 ? "disabled" : ""}>${icon("arrowL", 18)} Anterior</button><span class="deck-count">${Object.keys(S.cards.ans).length} de ${CARDS.length} cartas exploradas</span><button class="btn ${a ? "btn-primary" : "btn-ghost"}" data-act="cardStep" data-d="1" ${S.cards.idx >= list.length - 1 ? "disabled" : ""}>Próxima ${icon("arrowR", 18)}</button></div>`;
 }
@@ -1739,11 +1738,11 @@ A.cardCat = (el) => { S.cards.cat = el.dataset.c; S.cards.idx = 0; deckDir = 1; 
 
 VIEWS.comigo = {
   render() {
-    return `${secHead("comigo", "Isso acontece comigo?", "Cada carta traz uma situação do dia a dia. Leia, pense se ela tem a ver com você e escolha uma resposta. Depois, aparece uma pergunta para conversar.")}
+    return `${secHead("comigo", "Isso acontece comigo?", "Cada carta apresenta uma situação do dia a dia. Leia, reflita se ela se aplica a você e escolha uma resposta. Em seguida, aparece uma pergunta para conversar.")}
     <div class="stack">
       <div class="grid g2">
         <div class="note lav">${icon("heart")}<span>Não existem respostas certas ou erradas. Todas as situações podem acontecer com qualquer pessoa, em algum momento.</span></div>
-        <div class="note">${icon("info")}<span>As cartas não dão pontuação nem diagnóstico. Uma situação isolada não confirma nenhum sintoma: elas servem para você se conhecer melhor e conversar.</span></div>
+        <div class="note">${icon("info")}<span>As cartas não geram pontuação nem diagnóstico, e uma situação isolada não confirma nenhum sintoma. Elas servem para você se conhecer melhor.</span></div>
       </div>
       <div class="deck-wrap" style="margin-top:14px"><div class="cat-row" id="cat-row">${catRow()}</div><div class="deck" id="deck">${deckBody()}</div></div>
     </div>
@@ -1759,11 +1758,11 @@ VIEWS.final = {
     const fim = allDone();
     return `<section class="final stack">
       <div class="final-art">${heroArt("final")}</div>
-      ${fim ? `<span class="eyebrow" style="justify-content:center">${starFill(14)} Jornada concluída</span><h1>Que percurso!</h1>
+      ${fim ? `<span class="eyebrow" style="justify-content:center">${starFill(14)} Encerramento</span><h1>Jornada concluída</h1>
       <p class="big">Você descobriu novas maneiras de entender seu cérebro, reconheceu algumas das suas habilidades e conheceu ferramentas que podem ajudar no seu dia a dia.</p>
       <p class="big">Lembre-se: cada pessoa tem seu próprio ritmo, suas habilidades e seus desafios. Conhecer melhor a si mesma é uma maneira de descobrir novos caminhos.</p>
       <p class="hand" style="font-size:1.8rem;margin-top:6px">Seu mundo, seu ritmo, sua mente.</p>`
-      : `<span class="eyebrow" style="justify-content:center">${icon("skate", 16)} Encerramento</span><h1>Ainda tem pista pela frente</h1><p class="big">Você já tem ${doneCount()} de ${STAGES.length} estrelas. Quando concluir todas as etapas, esta tela de encerramento estará esperando por você.</p>`}
+      : `<span class="eyebrow" style="justify-content:center">${icon("skate", 16)} Encerramento</span><h1>Ainda há etapas pela frente</h1><p class="big">Você já conquistou ${doneCount()} de ${STAGES.length} estrelas. Ao concluir todas as etapas, a mensagem de encerramento será exibida aqui.</p>`}
       <div class="badges-row" style="margin-top:18px;text-align:left">${STAGES.map((s) => `<div class="bdg ${S.done[s.id] ? "" : "off"}">${medalSVG(s, !!S.done[s.id], 64)}<b>${s.badge}</b><small>${s.badgeMsg}</small></div>`).join("")}</div>
       <div class="row" style="justify-content:center;margin-top:20px"><a class="btn btn-primary" href="#resumo">${icon("book", 18)} Ver meu manual</a><a class="btn btn-ghost" href="#inicio">${icon("home", 18)} Voltar ao início</a></div>
     </section>`;
@@ -1824,7 +1823,7 @@ function finishGame(id) {
   <div class="game-end"><div class="row" style="gap:10px"><span class="tag agua">${icon("check", 14, 2.4)} Desafio experimentado</span></div>
   <div class="kv"><span class="k">A habilidade por trás do jogo</span><p>${g.explica}</p></div>
   ${reflectBox(g.pergunta, "Pergunta para reflexão")}
-  <div class="note">${icon("info")}<span>Este jogo é uma experiência educativa. Ele não mede atenção, memória ou inteligência, e o desempenho em um jogo não diz quem você é.</span></div>
+  <div class="note">${icon("info")}<span>O desempenho em um jogo não define quem você é.</span></div>
   <div class="row"><button class="btn btn-primary" data-act="gameOpen" data-id="${g.id}">${icon("refresh", 18)} Jogar de novo</button><button class="btn btn-ghost" data-act="scrollTo" data-target="games-top">Escolher outro desafio</button></div></div>`;
   $("#games-grid").innerHTML = gamesGrid();
   afterProgress("desafios");
@@ -1849,7 +1848,7 @@ function attRound() {
   const g = GAMES[0]; const tName = ["estrelas amarelas", "notas musicais verde-água", "patins roxos"][G.att.round];
   gameArea().innerHTML = `${gameHeader(g)}
   <div class="row" style="justify-content:space-between;margin-bottom:14px"><p class="game-instr">Rodada ${G.att.round + 1} de ${ATT_ROUNDS.length}: encontre todos os <span class="target-pill">${sym(R.target[0], R.target[1])} ${tName}</span></p><span class="gstatus" id="att-status" aria-live="polite">Encontrados: 0 de ${R.n}</span></div>
-  ${R.distract ? `<p class="muted" style="font-size:.9rem;margin-bottom:10px">Atenção: nesta rodada, algumas coisas vão passar flutuando pela tela. Tente manter o foco no seu alvo.</p>` : ""}
+  ${R.distract ? `<p class="muted" style="font-size:.9rem;margin-bottom:10px">Atenção: nesta rodada, alguns elementos vão atravessar a tela. Procure manter o foco no alvo.</p>` : ""}
   <div class="att-grid" id="att-grid" style="grid-template-columns:repeat(${R.cols},minmax(0,1fr))">${cells.map((c, i) => `<button class="att-cell" data-act="attCell" data-i="${i}" aria-label="${SHAPE_NOMES[c.s]} ${SYM_NOMES[c.c]}">${sym(c.s, c.c)}</button>`).join("")}${R.distract ? `<div class="distract-layer" id="distract"></div>` : ""}</div>
   <div id="att-next" style="margin-top:16px;text-align:center"></div>`;
   if (R.distract) attDistract();
@@ -1869,7 +1868,7 @@ A.attCell = (el) => {
     if (G.att.found === G.att.n) {
       chime(); G.timers.forEach(clearTimeout); G.timers = [];
       const last = G.att.round === ATT_ROUNDS.length - 1;
-      $("#att-next").innerHTML = `<div class="note agua" style="justify-content:center;margin-bottom:12px">${starFill(18)}<span>Você encontrou todos! ${last ? "Essa era a última rodada." : "A próxima rodada é um pouco mais desafiadora."}</span></div>${last ? `<button class="btn btn-primary" data-act="gameEnd">Ver o que esse jogo mostra ${icon("arrowR", 18)}</button>` : `<button class="btn btn-primary" data-act="attNext">Próxima rodada ${icon("arrowR", 18)}</button>`}`;
+      $("#att-next").innerHTML = `<div class="note agua" style="justify-content:center;margin-bottom:12px">${starFill(18)}<span>Você encontrou todos os alvos. ${last ? "Esta era a última rodada." : "A próxima rodada é um pouco mais desafiadora."}</span></div>${last ? `<button class="btn btn-primary" data-act="gameEnd">Ver a habilidade envolvida ${icon("arrowR", 18)}</button>` : `<button class="btn btn-primary" data-act="attNext">Próxima rodada ${icon("arrowR", 18)}</button>`}`;
     }
   } else { el.classList.remove("nope"); void el.offsetWidth; el.classList.add("nope"); softNo(); }
 };
@@ -1887,7 +1886,7 @@ function memStart() {
   gameArea().innerHTML = `${gameHeader(GAMES[1])}
   <p class="game-instr" style="text-align:center">Observe a sequência de luzes e sons. Depois, toque nos símbolos na mesma ordem. A cada acerto, a sequência ganha mais um elemento.</p>
   <div class="simon" id="simon">${PADS.map((p, i) => `<button class="pad" data-act="memPad" data-i="${i}" style="background:${p.bg};color:${SYM_COLORS[p.c]}" aria-label="${SHAPE_NOMES[p.s]}" disabled>${sym(p.s, p.c)}</button>`).join("")}</div>
-  <p id="mem-status" class="gstatus" style="text-align:center;min-height:1.6em" aria-live="polite">Pronta? Aperte começar.</p>
+  <p id="mem-status" class="gstatus" style="text-align:center;min-height:1.6em" aria-live="polite">Quando estiver pronta, toque em Começar.</p>
   <div id="mem-ctrl" class="row" style="justify-content:center;margin-top:8px"><button class="btn btn-primary" data-act="memGo">${icon("play", 18)} Começar</button></div>
   <p class="muted" style="text-align:center;font-size:.88rem;margin-top:14px">Dica: experimente dar nomes, cantar a sequência ou imaginar uma coreografia.</p>`;
 }
@@ -1909,7 +1908,7 @@ A.memPad = (el) => {
     G.mem.pos++;
     if (G.mem.pos === G.mem.seq.length) {
       G.mem.phase = "watch"; memSetPads(false);
-      $("#mem-status").textContent = pick(["Isso! Lá vem uma sequência maior.", "Mandou bem! Mais um elemento.", "Boa! Prepare-se."]);
+      $("#mem-status").textContent = pick(["Correto! A próxima sequência terá mais um elemento.", "Muito bem! A sequência vai aumentar.", "Correto! Prepare-se para a próxima."]);
       G.mem.seq.push(Math.floor(Math.random() * 4)); gLater(memPlay, 1300);
     }
   } else {
@@ -1924,7 +1923,7 @@ A.memRetry = () => memPlay();
 const INH_PHASES = [
   { regra: "Toque em <b>Aplaudir</b> (ou aperte a barra de espaço) quando aparecer o <b>microfone</b>. Quando aparecer a placa de <b>silêncio</b>, segure o aplauso.", n: 20,
     gen: () => (Math.random() < 0.7 ? { k: "mic", go: true } : { k: "shh", go: false }) },
-  { regra: "Agora a regra ficou mais difícil: aplauda <b>só</b> quando o microfone aparecer <b>com o holofote aceso</b>. Microfone no escuro ou placa de silêncio: segure.", n: 20,
+  { regra: "Nova regra, um pouco mais difícil: aplauda <b>só</b> quando o microfone aparecer <b>com o holofote aceso</b>. Microfone no escuro ou placa de silêncio: segure.", n: 20,
     gen: () => { const r = Math.random(); return r < 0.5 ? { k: "mic", spot: true, go: true } : r < 0.8 ? { k: "mic", spot: false, go: false } : { k: "shh", spot: Math.random() < 0.5, go: false }; } },
 ];
 const SHH_SVG = `<svg viewBox="0 0 120 120" width="120" height="120" aria-label="Placa de silêncio" role="img"><rect x="10" y="22" width="100" height="62" rx="16" fill="#E9A4AD" stroke="#fff" stroke-width="4"/><text x="60" y="62" text-anchor="middle" font-family="Outfit, sans-serif" font-weight="700" font-size="19" fill="#5E1F29">SILÊNCIO</text><rect x="54" y="84" width="12" height="30" rx="4" fill="#fff" opacity=".85"/></svg>`;
@@ -1952,7 +1951,7 @@ function inhNext() {
   if (G.inh.t >= G.inh.trials.length) {
     G.running = false;
     if (G.inh.phase < INH_PHASES.length - 1) {
-      gameArea().querySelector(".stage-box").insertAdjacentHTML("afterend", `<div class="stack" style="align-items:center;text-align:center"><div class="note agua">${starFill(18)}<span>Parte ${G.inh.phase + 1} concluída! Pronta para uma regra nova?</span></div><button class="btn btn-primary" data-act="inhPhase2">Próxima parte ${icon("arrowR", 18)}</button></div>`);
+      gameArea().querySelector(".stage-box").insertAdjacentHTML("afterend", `<div class="stack" style="align-items:center;text-align:center"><div class="note agua">${starFill(18)}<span>Parte ${G.inh.phase + 1} concluída. Na próxima parte, a regra muda.</span></div><button class="btn btn-primary" data-act="inhPhase2">Próxima parte ${icon("arrowR", 18)}</button></div>`);
       gameArea().querySelector(".clap-btn").parentElement.remove();
     } else finishGame("inibicao");
     return;
@@ -1965,8 +1964,8 @@ function inhNext() {
 A.inhClap = () => {
   if (!G.running || !G.inh || G.inh.t < 0) return; const tr = G.inh.trials[G.inh.t]; if (!tr || tr.clapped || !$("#inh-stim").innerHTML) return;
   tr.clapped = true; const fl = $("#inh-flash");
-  if (tr.go) { tone(880, 0.1, "triangle", 0.12); tone(1175, 0.12, "triangle", 0.1, 0.06); fl.textContent = pick(["Aplausos!", "Isso!", "No tempo certo!"]); }
-  else { softNo(); fl.textContent = "Ops, era hora de segurar. Tudo bem, segue o show!"; }
+  if (tr.go) { tone(880, 0.1, "triangle", 0.12); tone(1175, 0.12, "triangle", 0.1, 0.06); fl.textContent = pick(["Correto!", "Muito bem!", "No tempo certo!"]); }
+  else { softNo(); fl.textContent = "Este era o momento de segurar o aplauso. Continue."; }
 };
 A.inhPhase2 = () => { G.inh.phase = 1; inhIntro(); };
 
@@ -1997,11 +1996,11 @@ A.planCheck = () => {
   plan.forEach((id) => { const s = sc.steps.find((x) => x.id === id); s.dep.forEach((d) => { if (pos[d] > pos[id]) issues.push([id, d]); }); });
   G.plan.bad = [...new Set(issues.map((x) => x[0]))];
   if (!issues.length) {
-    G.plan.fb = `<div class="note agua">${starFill(18)}<span><b>Seu plano funciona!</b> Cada etapa vem depois daquilo de que ela precisa. Repare que algumas etapas poderiam estar em outra ordem e o plano continuaria funcionando: quase sempre existe mais de um bom caminho.</span></div><div class="row" style="margin-top:12px"><button class="btn btn-roxo" data-act="gameEnd">Ver o que esse jogo mostra ${icon("arrowR", 18)}</button></div>`;
+    G.plan.fb = `<div class="note agua">${starFill(18)}<span><b>Seu plano funciona.</b> Cada etapa aparece depois das etapas de que depende.</span></div><div class="row" style="margin-top:12px"><button class="btn btn-roxo" data-act="gameEnd">Ver a habilidade envolvida ${icon("arrowR", 18)}</button></div>`;
     chime(); planRender(); S.games.planejamento = true; save(); $("#games-grid").innerHTML = gamesGrid(); afterProgress("desafios");
   } else {
     const nm = (id) => sc.steps.find((x) => x.id === id).t;
-    G.plan.fb = `<div class="note amarelo">${icon("bulb")}<span>Quase lá! Algumas etapas precisam de outras antes delas:<ul style="margin:6px 0 0;padding-left:18px">${issues.map(([a, b]) => `<li>“${nm(a)}” precisa vir depois de “${nm(b)}”.</li>`).join("")}</ul>Use as setas para reorganizar e confira de novo.</span></div>`;
+    G.plan.fb = `<div class="note amarelo">${icon("bulb")}<span>Algumas etapas dependem de outras que precisam vir antes:<ul style="margin:6px 0 0;padding-left:18px">${issues.map(([a, b]) => `<li>“${nm(a)}” precisa vir depois de “${nm(b)}”.</li>`).join("")}</ul>Use as setas para reorganizar o plano e confira novamente.</span></div>`;
     softNo(); planRender();
   }
 };
@@ -2042,7 +2041,7 @@ A.flexPick = (el) => {
   if (G.flex.lock) return; const P = FLEX_PHASES[G.flex.phase]; const card = G.flex.card;
   const rule = P.regra === "misto" ? card.rule : P.regra; const right = rule === "cor" ? card.ci : card.si; const i = +el.dataset.i;
   G.flex.lock = true;
-  if (i === right) { el.classList.add("good"); tone(698, 0.14, "sine", 0.12); $("#flex-fb").textContent = pick(["Isso!", "Boa!", "Certinho!"]); }
+  if (i === right) { el.classList.add("good"); tone(698, 0.14, "sine", 0.12); $("#flex-fb").textContent = pick(["Correto!", "Muito bem!", "Certo!"]); }
   else { el.classList.add("bad"); $$(".bin")[right].classList.add("good"); softNo(); $("#flex-fb").textContent = `Pela regra de agora (${rule === "cor" ? "cor" : "forma"}), ela vai na pilha destacada.`; }
   gLater(() => {
     G.flex.lock = false; G.flex.k++;
@@ -2053,9 +2052,9 @@ A.flexPick = (el) => {
 
 VIEWS.desafios = {
   render() {
-    return `${secHead("desafios", "Desafio cerebral", "Cinco jogos para experimentar, na prática, algumas habilidades do cérebro. Escolha um desafio, jogue no seu ritmo e, no final, descubra qual habilidade estava em ação.")}
+    return `${secHead("desafios", "Desafio cerebral", "Cinco jogos para experimentar, na prática, habilidades do cérebro. Escolha um desafio, jogue no seu ritmo e, ao final, descubra qual habilidade foi utilizada.")}
     <div class="stack" id="games-top" style="scroll-margin-top:80px">
-      <div class="note">${icon("info")}<span>Estes jogos são experiências educativas. Eles <b>não medem</b> atenção, memória, inteligência ou funções executivas, e não existe ranking ou comparação. Experimente pelo menos <b>três</b> para ganhar a conquista.</span></div>
+      <div class="note">${icon("info")}<span>Estes jogos são experiências educativas: <b>não medem</b> atenção, memória, inteligência ou funções executivas, e não há ranking nem comparação. Experimente pelo menos <b>três</b> para receber a conquista.</span></div>
       <div class="games-grid" id="games-grid">${gamesGrid()}</div>
       <section class="game-area" id="game-area" ${S.curGame ? "" : "hidden"} style="scroll-margin-top:80px"></section>
     </div>
@@ -2083,7 +2082,7 @@ A.toolOpen = (el) => {
     <div class="kv"><span class="k">3. Como usar</span><ol class="tool-steps">${t.usar.map((u) => `<li>${u}</li>`).join("")}</ol></div>
     <div class="kv"><span class="k">4. Exemplo</span><p>${t.exemplo}</p></div>
     <div class="reflect"><span style="color:var(--amarelo-800)">${icon("star", 22)}</span><div><div class="rl">5. Desafio para experimentar</div><div class="rq">${t.desafio}</div></div></div>
-    <div class="note">${icon("info")}<span>Nenhuma estratégia funciona igual para todo mundo. Experimente, observe e ajuste do seu jeito.</span></div>
+    <div class="note">${icon("info")}<span>Nenhuma estratégia funciona da mesma forma para todas as pessoas. Experimente, observe e ajuste à sua maneira.</span></div>
     ${res ? `<div class="row"><button class="btn btn-primary" data-act="goRes" data-tab="${res}">Experimentar agora ${icon("arrowR", 18)}</button></div>` : ""}
   </div>`, { label: t.nome });
   $("#tool-grid").innerHTML = toolGrid(); afterProgress("ferramentas");
@@ -2108,9 +2107,9 @@ function addOnEnter(inputId, act) { const i = $("#" + inputId); i && i.addEventL
 
 /* Lista de tarefas */
 function todoHTML() {
-  return `<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h3>Lista de tarefas</h3><p class="muted" style="font-size:.9rem">Tire as tarefas da cabeça e coloque aqui. Marque quando terminar.</p></div>${S.todo.some((t) => t.done) ? `<button class="btn btn-ghost btn-sm" data-act="todoClear">${icon("trash", 16)} Limpar concluídas</button>` : ""}</div>
+  return `<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h3>Lista de tarefas</h3><p class="muted" style="font-size:.9rem">Registre aqui suas tarefas e marque cada uma ao concluir.</p></div>${S.todo.some((t) => t.done) ? `<button class="btn btn-ghost btn-sm" data-act="todoClear">${icon("trash", 16)} Limpar concluídas</button>` : ""}</div>
   <form class="add-row" onsubmit="event.preventDefault();A.todoAdd()"><label class="sr-only" for="todo-in">Nova tarefa</label><input id="todo-in" placeholder="Ex.: separar o material de inglês" maxlength="120" autocomplete="off"><button class="btn btn-primary" type="submit">${icon("plus", 18)} Adicionar</button></form>
-  <div class="todo-list">${S.todo.length ? S.todo.map((t) => `<div class="todo ${t.done ? "done" : ""}"><label><input type="checkbox" data-act="todoToggle" data-id="${t.id}" ${t.done ? "checked" : ""}><span>${esc(t.t)}</span></label><button class="btn btn-soft btn-icon btn-sm" data-act="todoDel" data-id="${t.id}" aria-label="Remover tarefa">${icon("x", 16)}</button></div>`).join("") : `<div class="empty">Nenhuma tarefa ainda. Que tal começar com uma coisa pequena para hoje?</div>`}</div>
+  <div class="todo-list">${S.todo.length ? S.todo.map((t) => `<div class="todo ${t.done ? "done" : ""}"><label><input type="checkbox" data-act="todoToggle" data-id="${t.id}" ${t.done ? "checked" : ""}><span>${esc(t.t)}</span></label><button class="btn btn-soft btn-icon btn-sm" data-act="todoDel" data-id="${t.id}" aria-label="Remover tarefa">${icon("x", 16)}</button></div>`).join("") : `<div class="empty">Nenhuma tarefa adicionada. Comece por algo pequeno para hoje.</div>`}</div>
   ${S.todo.length ? `<p class="muted" style="margin-top:10px;font-size:.88rem">${S.todo.filter((t) => t.done).length} de ${S.todo.length} concluídas</p>` : ""}`;
 }
 A.todoAdd = () => { const i = $("#todo-in"); const v = i.value.trim(); if (!v) return; S.todo.push({ id: uid(), t: v, done: false }); save(); renderRes(); $("#todo-in").focus(); };
@@ -2127,11 +2126,11 @@ function timerHTML() {
     <svg viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="114" fill="none" stroke="#F0EAFA" stroke-width="10"/><circle id="tm-ring" cx="120" cy="120" r="114" fill="none" stroke="#91D8C9" stroke-width="10" stroke-linecap="round" transform="rotate(-90 120 120)" stroke-dasharray="716.3" stroke-dashoffset="0"/>
     <g class="disc"><circle cx="120" cy="120" r="100" fill="#3B2860"/><circle cx="120" cy="120" r="88" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/><circle cx="120" cy="120" r="76" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/><circle cx="120" cy="120" r="64" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/><path d="M60 80a72 72 0 0 1 40-26" stroke="#fff" stroke-opacity=".25" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="120" cy="120" r="40" fill="#C6B2E8"/><polygon points="${starPts(120, 96, 9, 4)}" fill="#F2D47E"/><circle cx="120" cy="120" r="4" fill="#3B2860"/></g></svg>
     <div class="time"><span id="tm-time">${fmt(TM.left)}</span></div></div>
-    <div class="stack"><div><h3>Temporizador</h3><p class="muted" style="font-size:.92rem">Escolha um tempo que pareça possível. O disco gira enquanto o tempo corre e o anel mostra quanto falta.</p></div>
+    <div class="stack"><div><h3>Temporizador</h3><p class="muted" style="font-size:.92rem">Escolha uma duração viável. O disco gira enquanto o tempo passa, e o anel mostra quanto falta.</p></div>
       <div class="row" style="gap:8px">${presets.map(([m, l]) => `<button class="chip ${TM.total === m * 60 ? "on" : ""}" data-act="tmSet" data-m="${m}">${l}</button>`).join("")}<button class="chip agua ${TM.total === 300 && TM.label === "Pausa" ? "on" : ""}" data-act="tmPause">Pausa de 5 min</button></div>
       <div class="row" style="gap:8px"><button class="btn btn-soft btn-sm" data-act="tmAdj" data-d="-1" ${TM.running ? "disabled" : ""}>− 1 min</button><button class="btn btn-soft btn-sm" data-act="tmAdj" data-d="1" ${TM.running ? "disabled" : ""}>+ 1 min</button><span class="tag ${TM.label === "Pausa" ? "agua" : ""}">${TM.label === "Pausa" ? "Modo pausa" : "Modo foco"}</span></div>
       <div class="row"><button class="btn ${TM.running ? "btn-ghost" : "btn-primary"}" data-act="tmToggle">${TM.running ? icon("pause", 18) + " Pausar" : icon("play", 18) + (TM.left < TM.total && TM.left > 0 ? " Continuar" : " Iniciar")}</button><button class="btn btn-ghost" data-act="tmReset">${icon("refresh", 18)} Zerar</button></div>
-      <div id="tm-msg" aria-live="polite">${TM.ended ? `<div class="note agua">${starFill(18)}<span>${TM.label === "Pausa" ? "Fim da pausa! Hora de voltar com calma." : "Tempo concluído! Que tal uma pausa curta antes do próximo ciclo?"}</span></div>` : ""}</div>
+      <div id="tm-msg" aria-live="polite">${TM.ended ? `<div class="note agua">${starFill(18)}<span>${TM.label === "Pausa" ? "Fim da pausa. Retome a tarefa com calma." : "Tempo concluído. Faça uma pausa curta antes do próximo ciclo."}</span></div>` : ""}</div>
     </div></div>`;
 }
 function timerPaint() {
@@ -2149,7 +2148,7 @@ A.tmToggle = () => {
   tone(523, 0.1, "sine", 0.08);
   TM.iv = setInterval(() => {
     TM.left--; timerPaint();
-    if (TM.left <= 0) { stopTimer(); TM.left = 0; TM.ended = true; chime(); setTimeout(chime, 900); if ($("#vinyl")) renderRes(); else toast(TM.label === "Pausa" ? "Fim da pausa!" : "Tempo do temporizador concluído!"); }
+    if (TM.left <= 0) { stopTimer(); TM.left = 0; TM.ended = true; chime(); setTimeout(chime, 900); if ($("#vinyl")) renderRes(); else toast(TM.label === "Pausa" ? "Fim da pausa!" : "Tempo concluído."); }
   }, 1000);
   renderRes();
 };
@@ -2157,12 +2156,12 @@ A.tmToggle = () => {
 /* Planejador de pequenas etapas */
 function stepsHTML() {
   const P = S.plan; const done = P.steps.filter((s) => s.done).length;
-  return `<div class="steps-plan stack"><div><h3>Planejador de pequenas etapas</h3><p class="muted" style="font-size:.92rem">Escreva uma tarefa grande e quebre em passos pequenos e concretos. Cada passo concluído acende uma estrela.</p></div>
+  return `<div class="steps-plan stack"><div><h3>Planejador de pequenas etapas</h3><p class="muted" style="font-size:.92rem">Escreva uma tarefa grande e divida-a em passos pequenos e concretos. Cada passo concluído acende uma estrela.</p></div>
     <div><label for="goal-in" class="eyebrow" style="display:block;margin-bottom:6px">Minha tarefa grande</label><input id="goal-in" class="field" style="width:100%" placeholder="Ex.: apresentação de Ciências na sexta" value="${esc(P.goal)}" maxlength="120" data-input="goal"></div>
     <form class="add-row" onsubmit="event.preventDefault();A.stepAdd()"><label class="sr-only" for="step-in">Novo passo</label><input id="step-in" placeholder="Próximo passo pequeno (ex.: escolher o tema)" maxlength="120" autocomplete="off"><button class="btn btn-primary" type="submit">${icon("plus", 18)} Passo</button></form>
     ${P.steps.length ? `<div class="star-meter" aria-label="${done} de ${P.steps.length} passos concluídos">${P.steps.map((s) => `<span class="${s.done ? "on" : ""}">${starFill(24)}</span>`).join("")}</div>` : ""}
-    <div class="stack" style="gap:8px">${P.steps.length ? P.steps.map((s, i) => `<div class="plan-item" style="${s.done ? "background:var(--agua-100)" : ""}"><span class="pn" style="${s.done ? "background:var(--agua-600)" : ""}">${i + 1}</span><label class="grow" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" data-act="stepToggle" data-id="${s.id}" ${s.done ? "checked" : ""} style="width:20px;height:20px;accent-color:var(--agua-600)"><span style="${s.done ? "text-decoration:line-through;color:var(--muted)" : ""};overflow-wrap:anywhere">${esc(s.t)}</span></label><button class="mini" data-act="stepMove" data-i="${i}" data-d="-1" aria-label="Subir">${icon("up", 16)}</button><button class="mini" data-act="stepMove" data-i="${i}" data-d="1" aria-label="Descer">${icon("down", 16)}</button><button class="mini" data-act="stepDel" data-id="${s.id}" aria-label="Remover">${icon("x", 16)}</button></div>`).join("") : `<div class="empty">Dica: o primeiro passo deve ser tão pequeno que dê para fazer em poucos minutos.</div>`}</div>
-    ${P.steps.length && done === P.steps.length ? `<div class="note agua">${starFill(18)}<span>Todos os passos concluídos! Repare como uma tarefa grande virou uma sequência de coisas possíveis.</span></div>` : ""}
+    <div class="stack" style="gap:8px">${P.steps.length ? P.steps.map((s, i) => `<div class="plan-item" style="${s.done ? "background:var(--agua-100)" : ""}"><span class="pn" style="${s.done ? "background:var(--agua-600)" : ""}">${i + 1}</span><label class="grow" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" data-act="stepToggle" data-id="${s.id}" ${s.done ? "checked" : ""} style="width:20px;height:20px;accent-color:var(--agua-600)"><span style="${s.done ? "text-decoration:line-through;color:var(--muted)" : ""};overflow-wrap:anywhere">${esc(s.t)}</span></label><button class="mini" data-act="stepMove" data-i="${i}" data-d="-1" aria-label="Subir">${icon("up", 16)}</button><button class="mini" data-act="stepMove" data-i="${i}" data-d="1" aria-label="Descer">${icon("down", 16)}</button><button class="mini" data-act="stepDel" data-id="${s.id}" aria-label="Remover">${icon("x", 16)}</button></div>`).join("") : `<div class="empty">Dica: o primeiro passo deve ser pequeno o suficiente para ser feito em poucos minutos.</div>`}</div>
+    ${P.steps.length && done === P.steps.length ? `<div class="note agua">${starFill(18)}<span>Todos os passos foram concluídos. Observe como uma tarefa grande se transformou em uma sequência de ações possíveis.</span></div>` : ""}
     ${P.steps.length || P.goal ? `<div><button class="btn btn-ghost btn-sm" data-act="stepClear">${icon("trash", 16)} Começar um plano novo</button></div>` : ""}</div>`;
 }
 A.stepAdd = () => { const i = $("#step-in"); const v = i.value.trim(); if (!v) return; S.plan.steps.push({ id: uid(), t: v, done: false }); save(); renderRes(); $("#step-in").focus(); };
@@ -2172,11 +2171,11 @@ A.stepMove = (el) => { const i = +el.dataset.i, j = i + +el.dataset.d, a = S.pla
 A.stepClear = () => { S.plan = { goal: "", steps: [] }; save(); renderRes(); };
 
 /* Organizador visual (quadro) */
-const COLS = ["Para fazer", "Fazendo", "Feito!"];
+const COLS = ["A fazer", "Em andamento", "Concluído"];
 const BCOLORS = ["lilas", "agua", "coral", "amarelo", "azul"];
 let boardColor = "lilas";
 function boardHTML() {
-  return `<div class="stack"><div><h3>Organizador visual</h3><p class="muted" style="font-size:.92rem">Coloque tarefas no quadro e mova conforme avança. Use cores para separar por assunto (por exemplo: escola, casa, patins, música).</p></div>
+  return `<div class="stack"><div><h3>Organizador visual</h3><p class="muted" style="font-size:.92rem">Adicione tarefas ao quadro e mova-as conforme avança. Use cores para separar por assunto (por exemplo: escola, casa, patins, música).</p></div>
   <form class="add-row" onsubmit="event.preventDefault();A.boardAdd()" style="flex-wrap:wrap"><label class="sr-only" for="board-in">Nova tarefa no quadro</label><input id="board-in" placeholder="Ex.: estudar para a prova de História" maxlength="100" autocomplete="off"><div class="swatches" role="group" aria-label="Cor da tarefa">${BCOLORS.map((c) => `<button type="button" class="${boardColor === c ? "on" : ""}" data-act="boardColor" data-c="${c}" style="background:var(--${c === "lilas" ? "lilas" : c})" aria-label="Cor ${SYM_NOMES[c]}" aria-pressed="${boardColor === c}"></button>`).join("")}</div><button class="btn btn-primary" type="submit">${icon("plus", 18)} Adicionar</button></form>
   <div class="kanban">${COLS.map((name, ci) => { const items = S.board.filter((b) => b.col === ci); return `<div class="kcol c${ci}" data-col="${ci}"><h4>${name}<span class="tag">${items.length}</span></h4>${items.length ? items.map((b) => `<div class="kitem" draggable="true" data-id="${b.id}" style="border-left:6px solid var(--${b.cor === "lilas" ? "lilas" : b.cor})"><span>${esc(b.t)}</span><div class="kact">${ci > 0 ? `<button class="mini btn-soft btn-icon btn-sm btn" style="width:30px;height:30px" data-act="boardMove" data-id="${b.id}" data-d="-1" aria-label="Mover para ${COLS[ci - 1]}">${icon("left", 16)}</button>` : ""}${ci < 2 ? `<button class="btn btn-soft btn-icon btn-sm" style="width:30px;height:30px" data-act="boardMove" data-id="${b.id}" data-d="1" aria-label="Mover para ${COLS[ci + 1]}">${icon("right", 16)}</button>` : ""}<button class="btn btn-soft btn-icon btn-sm" style="width:30px;height:30px" data-act="boardDel" data-id="${b.id}" aria-label="Remover">${icon("x", 16)}</button></div></div>`).join("") : `<p class="muted" style="font-size:.85rem;text-align:center;padding:14px 0">${ci === 0 ? "Adicione uma tarefa" : "Arraste ou use as setas"}</p>`}</div>`; }).join("")}</div></div>`;
 }
@@ -2195,10 +2194,10 @@ function boardDnD() {
 
 VIEWS.ferramentas = {
   render() {
-    return `${secHead("ferramentas", "Minha caixa de ferramentas", "Estratégias práticas para os desafios do dia a dia. Escolha uma situação, abra as ferramentas e experimente as que combinam com você. Logo abaixo, há recursos para usar de verdade.")}
+    return `${secHead("ferramentas", "Minha caixa de ferramentas", "Estratégias práticas para os desafios do dia a dia. Escolha uma situação, abra as ferramentas e experimente as que combinam com você. Mais abaixo, há recursos interativos para colocá-las em prática.")}
     <div class="stack-lg">
-      <section><h3 style="margin-bottom:12px">Que situação você quer resolver?</h3><div class="sit-row" id="sit-row">${sitRow()}</div><div class="tool-grid" id="tool-grid">${toolGrid()}</div>
-      <p class="muted" style="margin-top:14px;font-size:.9rem">Abra pelo menos três ferramentas para ganhar a conquista. As que você já abriu ganham uma estrela.</p></section>
+      <section><h3 style="margin-bottom:12px">Com qual situação você quer lidar?</h3><div class="sit-row" id="sit-row">${sitRow()}</div><div class="tool-grid" id="tool-grid">${toolGrid()}</div>
+      <p class="muted" style="margin-top:14px;font-size:.9rem">Abra pelo menos três ferramentas para receber a conquista. As ferramentas já abertas ficam marcadas com uma estrela.</p></section>
       <section id="recursos" style="scroll-margin-top:80px">${sectionTitle("Recursos para usar agora", "toolbox")}
         <div class="res-tabs" id="res-tabs"></div><div class="res-box" id="res-box"></div>
         <p class="muted" style="margin-top:10px;font-size:.85rem">${icon("lock", 14)} O que você escreve aqui fica apenas neste navegador, durante esta sessão.</p>
@@ -2238,12 +2237,12 @@ A.manualClear = () => { S.manual = {}; save(); closeModal(); route(); toast("Res
 
 VIEWS.manual = {
   render() {
-    return `${secHead("manual", "Meu manual de funcionamento", "Todo equipamento importante vem com um manual. Este é o seu: um lugar para reunir o que você descobriu, o que faz bem e o que ajuda você. Escreva do seu jeito, com as suas palavras.")}
+    return `${secHead("manual", "Meu manual de funcionamento", "Todo equipamento importante vem com um manual. Este é o seu: um lugar para reunir o que você descobriu, o que faz bem e o que ajuda você. Escreva com as suas palavras.")}
     <div class="stack-lg">
       <div class="card" id="persona">${personaArea()}</div>
       <div class="man-grid">${MANUAL_QS.map((q, i) => `<div class="card man-q"><label for="ta-${q.id}"><span class="qn">${i + 1}</span>${q.q}</label><textarea id="ta-${q.id}" data-input="manual" data-id="${q.id}" placeholder="Escreva aqui..." maxlength="1200">${esc(S.manual[q.id] || "")}</textarea>${q.sugs.length ? `<div class="sugs"><span class="muted" style="font-size:.78rem;align-self:center">Ideias (opcional):</span>${q.sugs.map((s) => `<button type="button" data-act="manSug" data-id="${q.id}" data-v="${esc(s)}">+ ${s}</button>`).join("")}</div>` : ""}</div>`).join("")}</div>
       <div class="row" style="justify-content:space-between"><button class="btn btn-ghost" data-act="manualAskClear">${icon("trash", 18)} Apagar respostas</button><button class="btn btn-roxo" data-act="manualView" style="font-size:1.05rem;padding:15px 26px">${icon("book", 20)} Ver meu manual pronto</button></div>
-      <div class="note">${icon("lock")}<span>Suas respostas ficam apenas neste navegador, durante esta sessão. Ninguém além de quem está aqui consegue ver.</span></div>
+      <div class="note">${icon("lock")}<span>Suas respostas ficam salvas apenas neste navegador, durante esta sessão, e não são enviadas para nenhum servidor.</span></div>
     </div>
     ${stageFoot("manual")}`;
   },
@@ -2279,7 +2278,7 @@ function familiaBody(standalone) {
   <div class="stack-lg">
     <div class="note lav">${icon("heart")}<span>${FAMILIA.intro}</span></div>
     ${FAMILIA.secoes.map((s) => `<section class="fam-sec prose" id="${s.id}" style="max-width:none"><h2>${s.titulo}</h2><div class="stack" style="max-width:72ch">${s.html}</div></section>`).join("")}
-    <section class="fam-sec" id="f-praticas"><h2>Orientações práticas</h2><p class="muted" style="margin-bottom:16px">Sugestões para adaptar à realidade da família. Comece por uma ou duas mudanças pequenas.</p>
+    <section class="fam-sec" id="f-praticas"><h2>Orientações práticas</h2><p class="muted" style="margin-bottom:16px">Para começar, escolha uma ou duas mudanças pequenas.</p>
       <div class="grid g3">${FAMILIA.praticas.map((p) => `<div class="card flat stack" style="gap:10px"><div class="row" style="gap:10px"><span class="icon-blob b-lilas" style="width:42px;height:42px">${icon(p.icon, 20)}</span><h3 style="font-size:1.05rem">${p.titulo}</h3></div><ul class="ticks" style="font-size:.94rem">${p.itens.map((i) => `<li>${i}</li>`).join("")}</ul></div>`).join("")}</div></section>
     <section class="fam-sec" id="f-com"><h2>Comunicação no dia a dia</h2><p class="muted" style="margin-bottom:16px">Frases ditas no calor do momento podem soar como críticas à pessoa. Pequenas mudanças ajudam a manter a conversa no comportamento e na solução.</p>
       <div class="row" style="margin-bottom:10px;gap:20px"><span class="tag coral">Em vez de...</span><span class="tag agua">Experimente...</span></div>

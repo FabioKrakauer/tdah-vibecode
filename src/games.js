@@ -29,7 +29,7 @@ function finishGame(id) {
   <div class="game-end"><div class="row" style="gap:10px"><span class="tag agua">${icon("check", 14, 2.4)} Desafio experimentado</span></div>
   <div class="kv"><span class="k">A habilidade por trás do jogo</span><p>${g.explica}</p></div>
   ${reflectBox(g.pergunta, "Pergunta para reflexão")}
-  <div class="note">${icon("info")}<span>Este jogo é uma experiência educativa. Ele não mede atenção, memória ou inteligência, e o desempenho em um jogo não diz quem você é.</span></div>
+  <div class="note">${icon("info")}<span>O desempenho em um jogo não define quem você é.</span></div>
   <div class="row"><button class="btn btn-primary" data-act="gameOpen" data-id="${g.id}">${icon("refresh", 18)} Jogar de novo</button><button class="btn btn-ghost" data-act="scrollTo" data-target="games-top">Escolher outro desafio</button></div></div>`;
   $("#games-grid").innerHTML = gamesGrid();
   afterProgress("desafios");
@@ -54,7 +54,7 @@ function attRound() {
   const g = GAMES[0]; const tName = ["estrelas amarelas", "notas musicais verde-água", "patins roxos"][G.att.round];
   gameArea().innerHTML = `${gameHeader(g)}
   <div class="row" style="justify-content:space-between;margin-bottom:14px"><p class="game-instr">Rodada ${G.att.round + 1} de ${ATT_ROUNDS.length}: encontre todos os <span class="target-pill">${sym(R.target[0], R.target[1])} ${tName}</span></p><span class="gstatus" id="att-status" aria-live="polite">Encontrados: 0 de ${R.n}</span></div>
-  ${R.distract ? `<p class="muted" style="font-size:.9rem;margin-bottom:10px">Atenção: nesta rodada, algumas coisas vão passar flutuando pela tela. Tente manter o foco no seu alvo.</p>` : ""}
+  ${R.distract ? `<p class="muted" style="font-size:.9rem;margin-bottom:10px">Atenção: nesta rodada, alguns elementos vão atravessar a tela. Procure manter o foco no alvo.</p>` : ""}
   <div class="att-grid" id="att-grid" style="grid-template-columns:repeat(${R.cols},minmax(0,1fr))">${cells.map((c, i) => `<button class="att-cell" data-act="attCell" data-i="${i}" aria-label="${SHAPE_NOMES[c.s]} ${SYM_NOMES[c.c]}">${sym(c.s, c.c)}</button>`).join("")}${R.distract ? `<div class="distract-layer" id="distract"></div>` : ""}</div>
   <div id="att-next" style="margin-top:16px;text-align:center"></div>`;
   if (R.distract) attDistract();
@@ -74,7 +74,7 @@ A.attCell = (el) => {
     if (G.att.found === G.att.n) {
       chime(); G.timers.forEach(clearTimeout); G.timers = [];
       const last = G.att.round === ATT_ROUNDS.length - 1;
-      $("#att-next").innerHTML = `<div class="note agua" style="justify-content:center;margin-bottom:12px">${starFill(18)}<span>Você encontrou todos! ${last ? "Essa era a última rodada." : "A próxima rodada é um pouco mais desafiadora."}</span></div>${last ? `<button class="btn btn-primary" data-act="gameEnd">Ver o que esse jogo mostra ${icon("arrowR", 18)}</button>` : `<button class="btn btn-primary" data-act="attNext">Próxima rodada ${icon("arrowR", 18)}</button>`}`;
+      $("#att-next").innerHTML = `<div class="note agua" style="justify-content:center;margin-bottom:12px">${starFill(18)}<span>Você encontrou todos os alvos. ${last ? "Esta era a última rodada." : "A próxima rodada é um pouco mais desafiadora."}</span></div>${last ? `<button class="btn btn-primary" data-act="gameEnd">Ver a habilidade envolvida ${icon("arrowR", 18)}</button>` : `<button class="btn btn-primary" data-act="attNext">Próxima rodada ${icon("arrowR", 18)}</button>`}`;
     }
   } else { el.classList.remove("nope"); void el.offsetWidth; el.classList.add("nope"); softNo(); }
 };
@@ -92,7 +92,7 @@ function memStart() {
   gameArea().innerHTML = `${gameHeader(GAMES[1])}
   <p class="game-instr" style="text-align:center">Observe a sequência de luzes e sons. Depois, toque nos símbolos na mesma ordem. A cada acerto, a sequência ganha mais um elemento.</p>
   <div class="simon" id="simon">${PADS.map((p, i) => `<button class="pad" data-act="memPad" data-i="${i}" style="background:${p.bg};color:${SYM_COLORS[p.c]}" aria-label="${SHAPE_NOMES[p.s]}" disabled>${sym(p.s, p.c)}</button>`).join("")}</div>
-  <p id="mem-status" class="gstatus" style="text-align:center;min-height:1.6em" aria-live="polite">Pronta? Aperte começar.</p>
+  <p id="mem-status" class="gstatus" style="text-align:center;min-height:1.6em" aria-live="polite">Quando estiver pronta, toque em Começar.</p>
   <div id="mem-ctrl" class="row" style="justify-content:center;margin-top:8px"><button class="btn btn-primary" data-act="memGo">${icon("play", 18)} Começar</button></div>
   <p class="muted" style="text-align:center;font-size:.88rem;margin-top:14px">Dica: experimente dar nomes, cantar a sequência ou imaginar uma coreografia.</p>`;
 }
@@ -114,7 +114,7 @@ A.memPad = (el) => {
     G.mem.pos++;
     if (G.mem.pos === G.mem.seq.length) {
       G.mem.phase = "watch"; memSetPads(false);
-      $("#mem-status").textContent = pick(["Isso! Lá vem uma sequência maior.", "Mandou bem! Mais um elemento.", "Boa! Prepare-se."]);
+      $("#mem-status").textContent = pick(["Correto! A próxima sequência terá mais um elemento.", "Muito bem! A sequência vai aumentar.", "Correto! Prepare-se para a próxima."]);
       G.mem.seq.push(Math.floor(Math.random() * 4)); gLater(memPlay, 1300);
     }
   } else {
@@ -129,7 +129,7 @@ A.memRetry = () => memPlay();
 const INH_PHASES = [
   { regra: "Toque em <b>Aplaudir</b> (ou aperte a barra de espaço) quando aparecer o <b>microfone</b>. Quando aparecer a placa de <b>silêncio</b>, segure o aplauso.", n: 20,
     gen: () => (Math.random() < 0.7 ? { k: "mic", go: true } : { k: "shh", go: false }) },
-  { regra: "Agora a regra ficou mais difícil: aplauda <b>só</b> quando o microfone aparecer <b>com o holofote aceso</b>. Microfone no escuro ou placa de silêncio: segure.", n: 20,
+  { regra: "Nova regra, um pouco mais difícil: aplauda <b>só</b> quando o microfone aparecer <b>com o holofote aceso</b>. Microfone no escuro ou placa de silêncio: segure.", n: 20,
     gen: () => { const r = Math.random(); return r < 0.5 ? { k: "mic", spot: true, go: true } : r < 0.8 ? { k: "mic", spot: false, go: false } : { k: "shh", spot: Math.random() < 0.5, go: false }; } },
 ];
 const SHH_SVG = `<svg viewBox="0 0 120 120" width="120" height="120" aria-label="Placa de silêncio" role="img"><rect x="10" y="22" width="100" height="62" rx="16" fill="#E9A4AD" stroke="#fff" stroke-width="4"/><text x="60" y="62" text-anchor="middle" font-family="Outfit, sans-serif" font-weight="700" font-size="19" fill="#5E1F29">SILÊNCIO</text><rect x="54" y="84" width="12" height="30" rx="4" fill="#fff" opacity=".85"/></svg>`;
@@ -157,7 +157,7 @@ function inhNext() {
   if (G.inh.t >= G.inh.trials.length) {
     G.running = false;
     if (G.inh.phase < INH_PHASES.length - 1) {
-      gameArea().querySelector(".stage-box").insertAdjacentHTML("afterend", `<div class="stack" style="align-items:center;text-align:center"><div class="note agua">${starFill(18)}<span>Parte ${G.inh.phase + 1} concluída! Pronta para uma regra nova?</span></div><button class="btn btn-primary" data-act="inhPhase2">Próxima parte ${icon("arrowR", 18)}</button></div>`);
+      gameArea().querySelector(".stage-box").insertAdjacentHTML("afterend", `<div class="stack" style="align-items:center;text-align:center"><div class="note agua">${starFill(18)}<span>Parte ${G.inh.phase + 1} concluída. Na próxima parte, a regra muda.</span></div><button class="btn btn-primary" data-act="inhPhase2">Próxima parte ${icon("arrowR", 18)}</button></div>`);
       gameArea().querySelector(".clap-btn").parentElement.remove();
     } else finishGame("inibicao");
     return;
@@ -170,8 +170,8 @@ function inhNext() {
 A.inhClap = () => {
   if (!G.running || !G.inh || G.inh.t < 0) return; const tr = G.inh.trials[G.inh.t]; if (!tr || tr.clapped || !$("#inh-stim").innerHTML) return;
   tr.clapped = true; const fl = $("#inh-flash");
-  if (tr.go) { tone(880, 0.1, "triangle", 0.12); tone(1175, 0.12, "triangle", 0.1, 0.06); fl.textContent = pick(["Aplausos!", "Isso!", "No tempo certo!"]); }
-  else { softNo(); fl.textContent = "Ops, era hora de segurar. Tudo bem, segue o show!"; }
+  if (tr.go) { tone(880, 0.1, "triangle", 0.12); tone(1175, 0.12, "triangle", 0.1, 0.06); fl.textContent = pick(["Correto!", "Muito bem!", "No tempo certo!"]); }
+  else { softNo(); fl.textContent = "Este era o momento de segurar o aplauso. Continue."; }
 };
 A.inhPhase2 = () => { G.inh.phase = 1; inhIntro(); };
 
@@ -202,11 +202,11 @@ A.planCheck = () => {
   plan.forEach((id) => { const s = sc.steps.find((x) => x.id === id); s.dep.forEach((d) => { if (pos[d] > pos[id]) issues.push([id, d]); }); });
   G.plan.bad = [...new Set(issues.map((x) => x[0]))];
   if (!issues.length) {
-    G.plan.fb = `<div class="note agua">${starFill(18)}<span><b>Seu plano funciona!</b> Cada etapa vem depois daquilo de que ela precisa. Repare que algumas etapas poderiam estar em outra ordem e o plano continuaria funcionando: quase sempre existe mais de um bom caminho.</span></div><div class="row" style="margin-top:12px"><button class="btn btn-roxo" data-act="gameEnd">Ver o que esse jogo mostra ${icon("arrowR", 18)}</button></div>`;
+    G.plan.fb = `<div class="note agua">${starFill(18)}<span><b>Seu plano funciona.</b> Cada etapa aparece depois das etapas de que depende.</span></div><div class="row" style="margin-top:12px"><button class="btn btn-roxo" data-act="gameEnd">Ver a habilidade envolvida ${icon("arrowR", 18)}</button></div>`;
     chime(); planRender(); S.games.planejamento = true; save(); $("#games-grid").innerHTML = gamesGrid(); afterProgress("desafios");
   } else {
     const nm = (id) => sc.steps.find((x) => x.id === id).t;
-    G.plan.fb = `<div class="note amarelo">${icon("bulb")}<span>Quase lá! Algumas etapas precisam de outras antes delas:<ul style="margin:6px 0 0;padding-left:18px">${issues.map(([a, b]) => `<li>“${nm(a)}” precisa vir depois de “${nm(b)}”.</li>`).join("")}</ul>Use as setas para reorganizar e confira de novo.</span></div>`;
+    G.plan.fb = `<div class="note amarelo">${icon("bulb")}<span>Algumas etapas dependem de outras que precisam vir antes:<ul style="margin:6px 0 0;padding-left:18px">${issues.map(([a, b]) => `<li>“${nm(a)}” precisa vir depois de “${nm(b)}”.</li>`).join("")}</ul>Use as setas para reorganizar o plano e confira novamente.</span></div>`;
     softNo(); planRender();
   }
 };
@@ -247,7 +247,7 @@ A.flexPick = (el) => {
   if (G.flex.lock) return; const P = FLEX_PHASES[G.flex.phase]; const card = G.flex.card;
   const rule = P.regra === "misto" ? card.rule : P.regra; const right = rule === "cor" ? card.ci : card.si; const i = +el.dataset.i;
   G.flex.lock = true;
-  if (i === right) { el.classList.add("good"); tone(698, 0.14, "sine", 0.12); $("#flex-fb").textContent = pick(["Isso!", "Boa!", "Certinho!"]); }
+  if (i === right) { el.classList.add("good"); tone(698, 0.14, "sine", 0.12); $("#flex-fb").textContent = pick(["Correto!", "Muito bem!", "Certo!"]); }
   else { el.classList.add("bad"); $$(".bin")[right].classList.add("good"); softNo(); $("#flex-fb").textContent = `Pela regra de agora (${rule === "cor" ? "cor" : "forma"}), ela vai na pilha destacada.`; }
   gLater(() => {
     G.flex.lock = false; G.flex.k++;
@@ -258,9 +258,9 @@ A.flexPick = (el) => {
 
 VIEWS.desafios = {
   render() {
-    return `${secHead("desafios", "Desafio cerebral", "Cinco jogos para experimentar, na prática, algumas habilidades do cérebro. Escolha um desafio, jogue no seu ritmo e, no final, descubra qual habilidade estava em ação.")}
+    return `${secHead("desafios", "Desafio cerebral", "Cinco jogos para experimentar, na prática, habilidades do cérebro. Escolha um desafio, jogue no seu ritmo e, ao final, descubra qual habilidade foi utilizada.")}
     <div class="stack" id="games-top" style="scroll-margin-top:80px">
-      <div class="note">${icon("info")}<span>Estes jogos são experiências educativas. Eles <b>não medem</b> atenção, memória, inteligência ou funções executivas, e não existe ranking ou comparação. Experimente pelo menos <b>três</b> para ganhar a conquista.</span></div>
+      <div class="note">${icon("info")}<span>Estes jogos são experiências educativas: <b>não medem</b> atenção, memória, inteligência ou funções executivas, e não há ranking nem comparação. Experimente pelo menos <b>três</b> para receber a conquista.</span></div>
       <div class="games-grid" id="games-grid">${gamesGrid()}</div>
       <section class="game-area" id="game-area" ${S.curGame ? "" : "hidden"} style="scroll-margin-top:80px"></section>
     </div>

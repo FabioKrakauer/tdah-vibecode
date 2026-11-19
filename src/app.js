@@ -277,7 +277,7 @@ A.askReset = () => {
 A.doReset = () => {
   const title = S.title; stopAllGames(); stopTimer(true);
   S = DEFAULT_STATE(); S.title = title; save(); badgeQueue = [];
-  closeModal(); location.hash = "#inicio"; route(); toast("Jornada reiniciada. Tudo pronto para começar de novo.");
+  closeModal(); location.hash = "#inicio"; route(); toast("Jornada reiniciada.");
 };
 
 /* ---------- Roteador ---------- */
@@ -304,7 +304,7 @@ function secHead(id, title, lead) {
 function stageFoot(id) {
   const st = STAGES.find((s) => s.id === id); const i = STAGES.indexOf(st); const next = STAGES[i + 1]; const done = !!S.done[id];
   const nextBtn = next ? `<a class="btn btn-primary" href="#${next.id}">Próxima: ${next.nome} ${icon("arrowR", 18)}</a>` : `<a class="btn btn-primary" href="#${allDone() ? "final" : "inicio"}">${allDone() ? "Ver encerramento" : "Ver meu percurso"} ${icon("arrowR", 18)}</a>`;
-  return `<section class="stage-foot no-print" id="foot-${id}"><div><h3>${done ? "Etapa concluída!" : "Terminou de explorar esta etapa?"}</h3><p class="muted">${done ? `A estrela <b>${st.badge}</b> já brilha no seu percurso.` : `Ao concluir, você ganha a conquista <b>${st.badge}</b>. Pode voltar aqui quando quiser.`}</p></div>
+  return `<section class="stage-foot no-print" id="foot-${id}"><div><h3>${done ? "Etapa concluída!" : "Terminou de explorar esta etapa?"}</h3><p class="muted">${done ? `A estrela <b>${st.badge}</b> já brilha no seu percurso.` : `Ao concluir, você recebe a conquista <b>${st.badge}</b> e pode voltar a esta etapa quando quiser.`}</p></div>
   <div class="row">${done ? "" : `<button class="btn btn-roxo" data-act="completeStage" data-id="${id}">${starFill(16)} Concluir esta etapa</button>`}${nextBtn}</div></section>`;
 }
 A.completeStage = (el) => { completeStage(el.dataset.id); refreshStageChrome(el.dataset.id); };
@@ -383,7 +383,7 @@ VIEWS.inicio = {
 
     <section class="stack" style="margin-top:36px" id="percurso">
       <div class="row" style="justify-content:space-between"><div><span class="eyebrow">${icon("skate", 16)} Seu percurso</span><h2 style="margin-top:6px">Uma pista com seis paradas</h2></div><span class="tag ${n ? "amarelo" : ""}">${starFill(13)} ${n} de ${STAGES.length} estrelas</span></div>
-      <p class="muted prose">Cada etapa é uma parada na pista. Você pode ir na ordem ou escolher por onde começar. A cada etapa concluída, uma estrela se acende e você ganha uma conquista.</p>
+      <p class="muted prose">Cada etapa é uma parada na pista. Você pode seguir a ordem ou escolher por onde começar. A cada etapa concluída, uma estrela se acende e você recebe uma conquista.</p>
       <div class="track">${trackSVG()}<div class="track-legend">${STAGES.map((s) => `<a href="#${s.id}" class="${S.done[s.id] ? "done" : ""}">${s.curto}<small>${S.done[s.id] ? s.badge : "Etapa " + s.n}</small></a>`).join("")}</div></div>
     </section>
 
@@ -394,7 +394,7 @@ VIEWS.inicio = {
     <section class="stack" style="margin-top:40px">
       ${sectionTitle("Suas conquistas", "trophy")}
       <div class="badges-row">${STAGES.map((s) => `<div class="bdg ${S.done[s.id] ? "" : "off"}">${medalSVG(s, !!S.done[s.id], 64)}<b>${s.badge}</b><small>${s.badgeMsg}</small></div>`).join("")}</div>
-      <p class="muted" style="font-size:.9rem">As conquistas valorizam a sua exploração e curiosidade. Aqui não existem notas, acertos ou pontuações.</p>
+      <p class="muted" style="font-size:.9rem">As conquistas valorizam a exploração e a curiosidade. Aqui não há notas, acertos ou pontuações.</p>
     </section>`;
   },
   mount() { positionSkater(); },
@@ -450,7 +450,7 @@ function brainSVG() {
 }
 function regionPanel() {
   const all = BRAIN_REGIONS.concat(BRAIN_DEEP); const r = all.find((x) => x.id === S.brainSel);
-  if (!r) return `<div class="card region-panel" style="justify-content:center"><span class="icon-blob b-lilas">${icon("brain", 26)}</span><h3>Toque em uma região do cérebro</h3><p class="muted">As cores mostram as grandes regiões, os <b>lobos</b>. Os pontos pulsantes mostram estruturas que ficam na parte de dentro do cérebro. Cada uma tem um papel, mas todas trabalham juntas.</p><div class="brain-legend">${all.map((x) => `<button class="chip" data-act="brainSel" data-id="${x.id}"><span style="width:10px;height:10px;border-radius:50%;background:${x.cor}"></span>${x.nome.split(" (")[0].replace("Núcleos da base e sistema de recompensa", "Núcleos da base")}</button>`).join("")}</div></div>`;
+  if (!r) return `<div class="card region-panel" style="justify-content:center"><span class="icon-blob b-lilas">${icon("brain", 26)}</span><h3>Toque em uma região do cérebro</h3><p class="muted">As cores indicam as grandes regiões, chamadas <b>lobos</b>. Os pontos pulsantes indicam estruturas localizadas na parte interna do cérebro.</p><div class="brain-legend">${all.map((x) => `<button class="chip" data-act="brainSel" data-id="${x.id}"><span style="width:10px;height:10px;border-radius:50%;background:${x.cor}"></span>${x.nome.split(" (")[0].replace("Núcleos da base e sistema de recompensa", "Núcleos da base")}</button>`).join("")}</div></div>`;
   return `<div class="card region-panel" aria-live="polite"><div class="row" style="gap:12px;align-items:flex-start;flex-wrap:nowrap"><span class="icon-blob" style="background:${r.cor}33;color:var(--roxo-900)"><span style="width:20px;height:20px;border-radius:50%;background:${r.cor}"></span></span><div><span class="hand">${r.apelido}</span><h3 style="margin-top:2px">${r.nome}</h3></div></div>
     <p>${r.texto}</p>
     <div class="rp-fn">${r.fn.map((f) => `<span class="tag agua">${f}</span>`).join("")}</div>
@@ -496,11 +496,11 @@ A.efNext = (el) => { $("#modal-root").innerHTML = ""; A.efOpen(el); };
 
 VIEWS.cerebro = {
   render() {
-    return `${secHead("cerebro", "Meu cérebro", "Antes de falar de TDAH, vale conhecer o lugar onde tudo acontece. Explore o mapa, siga o caminho da informação e descubra as habilidades que ajudam você a alcançar seus objetivos.")}
+    return `${secHead("cerebro", "Meu cérebro", "Antes de falar sobre o TDAH, é importante conhecer o órgão onde tudo acontece. Explore o mapa, acompanhe o caminho da informação e descubra as habilidades que ajudam você a alcançar seus objetivos.")}
     <div class="stack-lg">
       <section class="grid g2" style="align-items:stretch">
         <div class="card stack"><span class="eyebrow">${icon("brain", 16)} O que é o cérebro?</span>${BRAIN_INTRO.map((p) => `<p>${p}</p>`).join("")}</div>
-        <div class="panel stack" style="background:linear-gradient(140deg,var(--lilas-100),var(--agua-100))"><span class="hand" style="font-size:1.7rem">Uma banda afinada</span><p>Pense em um show: tem quem canta, quem toca guitarra, quem cuida das luzes e quem controla o som. Se alguém entra fora do tempo, todo mundo sente. O cérebro funciona parecido: as regiões precisam se comunicar e se coordenar.</p><div class="row" style="gap:6px">${["Neurônios", "Sinapses", "Neurotransmissores", "Redes"].map((t) => `<span class="tag">${t}</span>`).join("")}</div></div>
+        <div class="panel stack" style="background:linear-gradient(140deg,var(--lilas-100),var(--agua-100))"><span class="hand" style="font-size:1.7rem">Uma banda afinada</span><p>Em um show, há quem cante, quem toque guitarra, quem cuide das luzes e quem controle o som. Se alguém entra fora do tempo, todos percebem. O cérebro funciona de forma parecida: nenhuma região trabalha sozinha, e todas precisam se comunicar e se coordenar.</p><div class="row" style="gap:6px">${["Neurônios", "Sinapses", "Neurotransmissores", "Redes"].map((t) => `<span class="tag">${t}</span>`).join("")}</div></div>
       </section>
 
       <section>
@@ -522,7 +522,7 @@ VIEWS.cerebro = {
 
       <section>
         ${sectionTitle("As funções executivas", "sliders")}
-        <div class="grid g2" style="margin-bottom:18px;align-items:center"><p class="prose">${EF_INTRO}</p><div class="note amarelo">${icon("star")}<span>Abra os <b>seis cards</b> abaixo. Cada um mostra uma habilidade, como ela aparece no dia a dia e uma pergunta para pensar.</span></div></div>
+        <div class="grid g2" style="margin-bottom:18px;align-items:center"><p class="prose">${EF_INTRO}</p><div class="note amarelo">${icon("star")}<span>Abra os <b>seis cards</b> abaixo. Cada um apresenta uma habilidade, um exemplo do dia a dia e uma pergunta para reflexão.</span></div></div>
         <div class="ef-grid" id="ef-grid">${efGrid()}</div>
       </section>
     </div>
@@ -563,14 +563,14 @@ function quizBody() {
   const total = QUIZ.length, answered = Object.keys(S.quiz.ans).length;
   const dots = `<div class="q-dots" role="tablist" aria-label="Afirmações">${QUIZ.map((q, i) => `<button class="${i === S.quiz.idx ? "cur" : S.quiz.ans[i] ? "ans" : ""}" data-act="quizGo" data-i="${i}" aria-label="Afirmação ${i + 1}">${i + 1}</button>`).join("")}</div>`;
   if (S.quiz.idx >= total) {
-    return `${dots}<div class="q-card"><div class="badge-medal" style="width:90px;height:90px">${medalSVG(STAGES[1], true, 90)}</div><h2 style="margin-top:12px">Você explorou as ${total} afirmações!</h2><p class="muted" style="max-width:46ch;margin:10px auto 18px">O objetivo aqui nunca foi acertar: foi descobrir e conversar. Mitos sobre o TDAH são muito comuns, e conhecer as informações certas ajuda a se entender melhor.</p>${reflectBox("Qual dessas afirmações mais surpreendeu você? Alguma você já tinha ouvido de alguém?")}<div class="row" style="justify-content:center;margin-top:18px"><button class="btn btn-ghost" data-act="quizRestart">${icon("refresh", 18)} Explorar de novo</button></div></div>`;
+    return `${dots}<div class="q-card"><div class="badge-medal" style="width:90px;height:90px">${medalSVG(STAGES[1], true, 90)}</div><h2 style="margin-top:12px">Você explorou as ${total} afirmações!</h2><p class="muted" style="max-width:46ch;margin:10px auto 18px">Mitos sobre o TDAH são muito comuns. Conhecer informações corretas ajuda você a compreender melhor a si mesma.</p>${reflectBox("Qual dessas afirmações mais surpreendeu você? Alguma você já tinha ouvido de alguém?")}<div class="row" style="justify-content:center;margin-top:18px"><button class="btn btn-ghost" data-act="quizRestart">${icon("refresh", 18)} Recomeçar o quiz</button></div></div>`;
   }
   const q = QUIZ[S.quiz.idx], a = S.quiz.ans[S.quiz.idx];
   let fb = "";
   if (a) {
     const hit = a === q.r;
-    const verdict = q.r === "mito" ? "É um mito" : "É verdade";
-    const head = hit ? `Isso mesmo! ${verdict}.` : q.r === "mito" ? "Essa confunde muita gente: é um mito." : "Na verdade, isso é verdade.";
+    const verdict = q.r === "mito" ? "esta afirmação é um mito" : "esta afirmação é verdadeira";
+    const head = hit ? `Correto: ${verdict}.` : q.r === "mito" ? "Esta afirmação é um mito, embora seja uma ideia comum." : "Esta afirmação é verdadeira.";
     fb = `<div class="q-feedback"><div class="q-verdict ${q.r}">${q.r === "mito" ? icon("x", 22, 2.4) : icon("check", 22, 2.4)} ${head}</div><p>${q.e}</p></div>`;
   }
   return `${dots}<div class="q-card"><span class="tag">Afirmação ${S.quiz.idx + 1} de ${total}</span><p class="q-text">“${q.q}”</p>
@@ -590,7 +590,7 @@ A.quizRestart = () => { S.quiz = { idx: 0, ans: {} }; save(); renderQuiz(); };
 
 VIEWS.tdah = {
   render() {
-    return `${secHead("tdah", "Desvendando o TDAH", "O que a ciência sabe sobre o TDAH, explicado sem complicação e sem mitos. Leia os capítulos no seu ritmo e depois teste o que descobriu no quiz.")}
+    return `${secHead("tdah", "Desvendando o TDAH", "Informações científicas sobre o TDAH, apresentadas de forma clara. Leia os capítulos no seu ritmo e, depois, explore o quiz de mito ou verdade.")}
     <div class="stack-lg">
       <section class="chapters"><nav class="chapter-nav" id="chap-nav" aria-label="Capítulos">${chapterNav()}</nav><div id="chap-body">${chapterBody()}</div></section>
       <section>
@@ -600,7 +600,7 @@ VIEWS.tdah = {
       </section>
       <section id="quiz" style="scroll-margin-top:80px">
         ${sectionTitle("Quiz: mito ou verdade?", "search")}
-        <p class="muted prose" style="margin-bottom:18px">Leia cada afirmação e escolha se é mito ou verdade. Depois de responder, aparece uma explicação. Não vale nota: é para descobrir e conversar.</p>
+        <p class="muted prose" style="margin-bottom:18px">Leia cada afirmação e indique se é mito ou verdade. Após cada resposta, aparece uma explicação. Não há nota: o objetivo é aprender e conversar.</p>
         <div class="quiz" id="quiz-body">${quizBody()}</div>
       </section>
     </div>
@@ -623,7 +623,7 @@ function deckBody() {
     <p class="pc-sit">${c.sit}</p>
     <p class="muted">Isso acontece com você?</p>
     <div class="resp-grid" role="group" aria-label="Respostas">${RESPOSTAS.map((r) => `<button class="resp ${a === r.id ? "picked" : ""}" data-act="cardAns" data-v="${r.id}" aria-pressed="${a === r.id}"><span class="rdot" style="background:${r.cor}"></span>${r.nome}</button>`).join("")}</div>
-    ${resp ? `<div class="follow stack">${reflectBox(resp.follow[0], "Para conversar")}${resp.follow[1] ? reflectBox(resp.follow[1], "E também") : ""}${reflectBox(c.extra, "Para ir mais fundo")}</div>` : ""}
+    ${resp ? `<div class="follow stack">${reflectBox(resp.follow[0], "Para conversar")}${resp.follow[1] ? reflectBox(resp.follow[1], "Outra pergunta") : ""}${reflectBox(c.extra, "Para aprofundar")}</div>` : ""}
   </div>
   <div class="deck-nav"><button class="btn btn-ghost" data-act="cardStep" data-d="-1" ${S.cards.idx === 0 ? "disabled" : ""}>${icon("arrowL", 18)} Anterior</button><span class="deck-count">${Object.keys(S.cards.ans).length} de ${CARDS.length} cartas exploradas</span><button class="btn ${a ? "btn-primary" : "btn-ghost"}" data-act="cardStep" data-d="1" ${S.cards.idx >= list.length - 1 ? "disabled" : ""}>Próxima ${icon("arrowR", 18)}</button></div>`;
 }
@@ -635,11 +635,11 @@ A.cardCat = (el) => { S.cards.cat = el.dataset.c; S.cards.idx = 0; deckDir = 1; 
 
 VIEWS.comigo = {
   render() {
-    return `${secHead("comigo", "Isso acontece comigo?", "Cada carta traz uma situação do dia a dia. Leia, pense se ela tem a ver com você e escolha uma resposta. Depois, aparece uma pergunta para conversar.")}
+    return `${secHead("comigo", "Isso acontece comigo?", "Cada carta apresenta uma situação do dia a dia. Leia, reflita se ela se aplica a você e escolha uma resposta. Em seguida, aparece uma pergunta para conversar.")}
     <div class="stack">
       <div class="grid g2">
         <div class="note lav">${icon("heart")}<span>Não existem respostas certas ou erradas. Todas as situações podem acontecer com qualquer pessoa, em algum momento.</span></div>
-        <div class="note">${icon("info")}<span>As cartas não dão pontuação nem diagnóstico. Uma situação isolada não confirma nenhum sintoma: elas servem para você se conhecer melhor e conversar.</span></div>
+        <div class="note">${icon("info")}<span>As cartas não geram pontuação nem diagnóstico, e uma situação isolada não confirma nenhum sintoma. Elas servem para você se conhecer melhor.</span></div>
       </div>
       <div class="deck-wrap" style="margin-top:14px"><div class="cat-row" id="cat-row">${catRow()}</div><div class="deck" id="deck">${deckBody()}</div></div>
     </div>
@@ -655,11 +655,11 @@ VIEWS.final = {
     const fim = allDone();
     return `<section class="final stack">
       <div class="final-art">${heroArt("final")}</div>
-      ${fim ? `<span class="eyebrow" style="justify-content:center">${starFill(14)} Jornada concluída</span><h1>Que percurso!</h1>
+      ${fim ? `<span class="eyebrow" style="justify-content:center">${starFill(14)} Encerramento</span><h1>Jornada concluída</h1>
       <p class="big">Você descobriu novas maneiras de entender seu cérebro, reconheceu algumas das suas habilidades e conheceu ferramentas que podem ajudar no seu dia a dia.</p>
       <p class="big">Lembre-se: cada pessoa tem seu próprio ritmo, suas habilidades e seus desafios. Conhecer melhor a si mesma é uma maneira de descobrir novos caminhos.</p>
       <p class="hand" style="font-size:1.8rem;margin-top:6px">Seu mundo, seu ritmo, sua mente.</p>`
-      : `<span class="eyebrow" style="justify-content:center">${icon("skate", 16)} Encerramento</span><h1>Ainda tem pista pela frente</h1><p class="big">Você já tem ${doneCount()} de ${STAGES.length} estrelas. Quando concluir todas as etapas, esta tela de encerramento estará esperando por você.</p>`}
+      : `<span class="eyebrow" style="justify-content:center">${icon("skate", 16)} Encerramento</span><h1>Ainda há etapas pela frente</h1><p class="big">Você já conquistou ${doneCount()} de ${STAGES.length} estrelas. Ao concluir todas as etapas, a mensagem de encerramento será exibida aqui.</p>`}
       <div class="badges-row" style="margin-top:18px;text-align:left">${STAGES.map((s) => `<div class="bdg ${S.done[s.id] ? "" : "off"}">${medalSVG(s, !!S.done[s.id], 64)}<b>${s.badge}</b><small>${s.badgeMsg}</small></div>`).join("")}</div>
       <div class="row" style="justify-content:center;margin-top:20px"><a class="btn btn-primary" href="#resumo">${icon("book", 18)} Ver meu manual</a><a class="btn btn-ghost" href="#inicio">${icon("home", 18)} Voltar ao início</a></div>
     </section>`;
