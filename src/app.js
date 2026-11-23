@@ -1,5 +1,5 @@
 /* =========================================================
-   NÚCLEO — utilidades, estado, ícones, navegação, progresso
+   NÚCLEO — utilidades, estado, ícones, navegação, missões
    ========================================================= */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -7,32 +7,31 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const uid = () => Math.random().toString(36).slice(2, 9);
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const A = {}; // ações (event delegation)
+const pad2 = (n) => String(n).padStart(2, "0");
+const A = {};
 const FRAMED = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
 
 /* ---------- Estado (apenas nesta aba do navegador) ---------- */
-const STORE_KEY = "psicoed-tdah-sessao-v1";
-const DEFAULT_STATE = () => ({
-  title: TITULO_PADRAO, done: {}, brainSel: null, efSeen: {}, flowIdx: 0, concept: null,
-  chapter: 0, chaptersRead: {}, eqScene: "aula", quiz: { idx: 0, ans: {} },
-  cards: { idx: 0, cat: "all", ans: {} }, games: {}, curGame: null,
-  toolSit: "all", toolsSeen: {}, resTab: "todo", todo: [], plan: { goal: "", steps: [] }, board: [],
-  manual: {}, persona: { icon: "mic", cor: "roxo" }, manualDone: false, sound: true, guiaTab: "inicio",
-});
+const STORE_KEY = "psicoed-tdah-v2";
+const DEFAULT_STATE = () => ({ title: TITULO_PADRAO, m: {}, sound: true, guiaTab: "bastidores", todo: [], plan: { goal: "", steps: [] }, board: [], persona: { icon: "mic", cor: "roxo" } });
 let S = load();
-function load() {
-  try { const raw = sessionStorage.getItem(STORE_KEY); if (raw) return Object.assign(DEFAULT_STATE(), JSON.parse(raw)); } catch (e) {}
-  return DEFAULT_STATE();
-}
+function load() { try { const r = sessionStorage.getItem(STORE_KEY); if (r) return Object.assign(DEFAULT_STATE(), JSON.parse(r)); } catch (e) {} return DEFAULT_STATE(); }
 function save() { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) {} }
+function M(id) { if (!S.m[id]) S.m[id] = { step: 0, seen: { 0: true }, done: false, at: null, nota: "", d: {} }; return S.m[id]; }
+const D = (id) => M(id).d;
+const missionOf = (id) => MISSIONS.find((x) => x.id === id);
+const MDATA = () => ({ bastidores: M1, grupo: M2, comigo: M3, laboratorio: M4, semana: M5, emocoes: M6, estrategias: M7, rider: M8 });
+const doneCount = () => MISSIONS.filter((x) => S.m[x.id] && S.m[x.id].done).length;
+const allDone = () => doneCount() === MISSIONS.length;
+const started = (id) => !!(S.m[id] && !S.m[id].done && Object.keys(S.m[id].seen || {}).length > 1);
 
 /* ---------- Ícones ---------- */
 const ICONS = {
-  brain: '<path d="M9.5 3.5a3 3 0 0 0-3 2.6A3 3 0 0 0 4 9.5a3 3 0 0 0 .6 4.6A3 3 0 0 0 7 18.5a2.8 2.8 0 0 0 5 1V5.2a2 2 0 0 0-2.5-1.7z"/><path d="M14.5 3.5a3 3 0 0 1 3 2.6A3 3 0 0 1 20 9.5a3 3 0 0 1-.6 4.6 3 3 0 0 1-2.4 4.4 2.8 2.8 0 0 1-5 1"/><path d="M8 9.5h2M14 12.5h2M8 14h1.5"/>',
+  brain: '<path d="M9.5 3.5a3 3 0 0 0-3 2.6A3 3 0 0 0 4 9.5a3 3 0 0 0 .6 4.6A3 3 0 0 0 7 18.5a2.8 2.8 0 0 0 5 1V5.2a2 2 0 0 0-2.5-1.7z"/><path d="M14.5 3.5a3 3 0 0 1 3 2.6A3 3 0 0 1 20 9.5a3 3 0 0 1-.6 4.6 3 3 0 0 1-2.4 4.4 2.8 2.8 0 0 1-5 1"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/>',
   cards: '<rect x="3.5" y="6" width="11" height="15" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V18"/>',
-  spark: '<path d="M11 3c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7z"/><path d="M19 15.5c.2 1.2.8 1.8 2 2-1.2.2-1.8.8-2 2-.2-1.2-.8-1.8-2-2 1.2-.2 1.8-.8 2-2z"/>',
-  toolbox: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8.5 8V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V8M3 13h18M10 13v2h4v-2"/>',
+  spark: '<path d="M12 3c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7z"/>',
+  toolbox: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8.5 8V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V8M3 13h18"/>',
   mic: '<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
   star: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/>',
   eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
@@ -52,8 +51,7 @@ const ICONS = {
   timer: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V10M9.5 2.5h5M12 2.5V6"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
   sliders: '<path d="M6 3v6M6 13v8M12 3v10M12 17v4M18 3v3M18 10v11"/><circle cx="6" cy="11" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="18" cy="8" r="2"/>',
-  skate: '<path d="M5 3.5h5v8l6 .5a4 4 0 0 1 4 4V17H5z"/><path d="M10 7H8M10 9.5H8"/><circle cx="8" cy="20" r="1.8"/><circle cx="17" cy="20" r="1.8"/>',
-  zap: '<path d="M13 2.5 4.5 13.5H12l-1 8 8.5-11H12z"/>',
+  skate: '<path d="M5 3.5h5v8l6 .5a4 4 0 0 1 4 4V17H5z"/><circle cx="8" cy="20" r="1.8"/><circle cx="17" cy="20" r="1.8"/>',
   stairs: '<path d="M3 20h5v-5h5v-5h5V5h3"/>',
   bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/>',
   desk: '<path d="M3 10h18M5 10v10M19 10v10M14 10v5h5M8 10V6h5v4"/>',
@@ -61,7 +59,6 @@ const ICONS = {
   coffee: '<path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M8 3.5V6M12 3.5V6"/>',
   bulb: '<path d="M9 17.5h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V17h5v-1.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
   wind: '<path d="M3 8h10.5A2.5 2.5 0 1 0 11 5.5M3 12h15.5a2.5 2.5 0 1 1-2.5 2.5M3 16h8"/>',
-  thermo: '<path d="M14 14.8V4.5a2 2 0 0 0-4 0v10.3a4 4 0 1 0 4 0z"/><path d="M12 11v6"/>',
   route: '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H16a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h7.5"/>',
   parking: '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M9.5 17V7H13a3 3 0 0 1 0 6H9.5"/>',
   play: '<path d="M7 4.5v15l12-7.5z"/>',
@@ -80,172 +77,89 @@ const ICONS = {
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5v.5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   trash: '<path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/>',
-  up: '<path d="m6 15 6-6 6 6"/>',
-  down: '<path d="m6 9 6 6 6-6"/>',
-  left: '<path d="m15 6-6 6 6 6"/>',
-  right: '<path d="m9 6 6 6-6 6"/>',
+  up: '<path d="m6 15 6-6 6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', left: '<path d="m15 6-6 6 6 6"/>', right: '<path d="m9 6 6 6-6 6"/>',
   volume: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
   mute: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>',
   flag: '<path d="M5 21V4M5 4.5h11l-2 4 2 4H5"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  ticket: '<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M15 6v12" stroke-dasharray="2 2"/>',
+  bag: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
 };
-function icon(name, size = 20, sw = 1.8) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
-}
-function starFill(size = 16) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 2.5 2.9 6 6.6.9-4.8 4.5 1.2 6.6L12 17.3l-5.9 3.2 1.2-6.6-4.8-4.5 6.6-.9z"/></svg>`;
-}
-function starPts(cx, cy, R, r, n = 5, rot = -90) {
-  const p = [];
-  for (let i = 0; i < n * 2; i++) { const a = ((rot + (i * 180) / n) * Math.PI) / 180; const rad = i % 2 ? r : R; p.push((cx + rad * Math.cos(a)).toFixed(1) + "," + (cy + rad * Math.sin(a)).toFixed(1)); }
-  return p.join(" ");
-}
+function icon(name, size = 20, sw = 1.8) { return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`; }
+function starPts(cx, cy, R, r, n = 5, rot = -90) { const p = []; for (let i = 0; i < n * 2; i++) { const a = ((rot + (i * 180) / n) * Math.PI) / 180; const rad = i % 2 ? r : R; p.push((cx + rad * Math.cos(a)).toFixed(1) + "," + (cy + rad * Math.sin(a)).toFixed(1)); } return p.join(" "); }
+const sparkPath = (cx, cy, r) => { const k = r * 0.14; return `M${cx} ${cy - r}C${cx + k} ${cy - k} ${cx + k} ${cy - k} ${cx + r} ${cy}C${cx + k} ${cy + k} ${cx + k} ${cy + k} ${cx} ${cy + r}C${cx - k} ${cy + k} ${cx - k} ${cy + k} ${cx - r} ${cy}C${cx - k} ${cy - k} ${cx - k} ${cy - k} ${cx} ${cy - r}Z`; };
 
-/* Símbolos coloridos usados nos jogos e na identidade */
+/* Símbolos dos jogos (geométricos, sem enfeites) */
 const SYM_COLORS = { roxo: "#7656A8", lilas: "#B79BE0", agua: "#4FBFA8", coral: "#E3828F", amarelo: "#EDBF45", azul: "#78A9DA" };
 const SYM_NOMES = { roxo: "roxo", lilas: "lilás", agua: "verde-água", coral: "coral", amarelo: "amarelo", azul: "azul" };
 const SHAPE_NOMES = { star: "estrela", note: "nota musical", mic: "microfone", skate: "patins" };
-const SHAPE_PLURAL = { star: "estrelas", note: "notas musicais", mic: "microfones", skate: "patins" };
-function sym(shape, color, label) {
-  const c = SYM_COLORS[color] || color;
-  const t = label ? `<title>${esc(label)}</title>` : "";
-  let body = "";
-  if (shape === "star") body = `<polygon points="${starPts(20, 21, 18, 8)}" fill="${c}" stroke="rgba(39,31,59,.18)" stroke-width="1" stroke-linejoin="round"/>`;
-  else if (shape === "note") body = `<g fill="${c}"><ellipse cx="13.5" cy="29.5" rx="7" ry="5.2" transform="rotate(-22 13.5 29.5)"/><rect x="18.4" y="5" width="3.4" height="25" rx="1.7"/><path d="M20 5c4.5 1 10 3.5 10 10-2.4-3.3-5.6-4.5-10-4.5z"/></g>`;
-  else if (shape === "mic") body = `<g><path d="M14 21.5h12l-3 13.5a3 3 0 0 1-6 0z" fill="#3B2860"/><circle cx="20" cy="13" r="10" fill="${c}"/><path d="M12 10.5h16M11 14.5h18M15.5 5.5v15M20 3v20M24.5 5.5v15" stroke="#fff" stroke-opacity=".38" stroke-width="1.3"/><rect x="13.5" y="21" width="13" height="3.2" rx="1.6" fill="${c}"/></g>`;
-  else if (shape === "skate") body = `<g><path d="M8 5h11v14l7.5 1.2a5 5 0 0 1 4.5 5V28H8z" fill="${c}"/><path d="M8 9.5h11" stroke="#fff" stroke-opacity=".55" stroke-width="2"/><rect x="6" y="28" width="28" height="3.4" rx="1.7" fill="#3B2860"/><circle cx="12.5" cy="34.5" r="3.6" fill="#3B2860"/><circle cx="27.5" cy="34.5" r="3.6" fill="#3B2860"/><circle cx="12.5" cy="34.5" r="1.3" fill="#fff"/><circle cx="27.5" cy="34.5" r="1.3" fill="#fff"/></g>`;
-  return `<svg viewBox="0 0 40 40" aria-hidden="${label ? "false" : "true"}" ${label ? 'role="img"' : ""}>${t}${body}</svg>`;
+function sym(shape, color) {
+  const c = SYM_COLORS[color] || color; let b = "";
+  if (shape === "star") b = `<polygon points="${starPts(20, 21, 18, 8)}" fill="${c}"/>`;
+  else if (shape === "note") b = `<g fill="${c}"><ellipse cx="13.5" cy="29.5" rx="7" ry="5.2" transform="rotate(-22 13.5 29.5)"/><rect x="18.4" y="5" width="3.4" height="25" rx="1.7"/><path d="M20 5c4.5 1 10 3.5 10 10-2.4-3.3-5.6-4.5-10-4.5z"/></g>`;
+  else if (shape === "mic") b = `<path d="M14.5 21.5h11l-3 13a2.5 2.5 0 0 1-5 0z" fill="#211936"/><circle cx="20" cy="12.5" r="10" fill="${c}"/>`;
+  else if (shape === "skate") b = `<path d="M8 5h11v14l7.5 1.2a5 5 0 0 1 4.5 5V28H8z" fill="${c}"/><rect x="6" y="28" width="28" height="3.4" rx="1.7" fill="#211936"/><circle cx="12.5" cy="34.5" r="3.6" fill="#211936"/><circle cx="27.5" cy="34.5" r="3.6" fill="#211936"/>`;
+  return `<svg viewBox="0 0 40 40" aria-hidden="true">${b}</svg>`;
 }
 
-/* Medalhas de conquista */
-const MEDAL_COLORS = { lilas: ["#7656A8", "#9E83CE"], azul: ["#4F7FB3", "#8FB6DE"], coral: ["#C0606C", "#E9A4AD"], amarelo: ["#B98E1E", "#F2D47E"], agua: ["#2E8F7B", "#91D8C9"] };
-function medalSVG(st, on = true, size = 64) {
-  const [c1, c2] = on ? MEDAL_COLORS[st.cor] || MEDAL_COLORS.lilas : ["#B9B2C8", "#DDD8E6"];
-  const id = "mg" + st.id + (on ? 1 : 0) + size;
-  const ic = ICONS[st.medal] || ICONS.star;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c2}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs>
-    <path d="M22 44 16 61l7-3 4 6 5-16z" fill="${on ? "#E9A4AD" : "#D6D0E0"}"/><path d="M42 44l6 17-7-3-4 6-5-16z" fill="${on ? "#91D8C9" : "#D6D0E0"}"/>
-    <circle cx="32" cy="28" r="24" fill="url(#${id})"/><circle cx="32" cy="28" r="19.5" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.5" stroke-dasharray="2 3"/>
-    <g transform="translate(20 16)" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</g>
-    ${on ? `<polygon points="${starPts(52, 9, 5, 2.2)}" fill="#F2D47E"/>` : ""}</svg>`;
-}
-
-/* ---------- Áudio (sons suaves dos jogos e do temporizador) ---------- */
+/* ---------- Áudio ---------- */
 let AC = null;
-function tone(freq = 440, dur = 0.25, type = "sine", vol = 0.18, when = 0) {
+function tone(freq = 440, dur = 0.25, type = "sine", vol = 0.16, when = 0) {
   if (!S.sound) return;
   try {
-    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    if (AC.state === "suspended") AC.resume();
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume();
     const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain();
-    o.type = type; o.frequency.value = freq; g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.type = type; o.frequency.value = freq; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur + 0.05);
   } catch (e) {}
 }
-const chime = () => { tone(523, 0.3, "sine", 0.16); tone(659, 0.3, "sine", 0.16, 0.12); tone(784, 0.5, "sine", 0.16, 0.24); };
-const softNo = () => tone(220, 0.22, "triangle", 0.1);
+const chime = () => { tone(523, 0.3, "sine", 0.14); tone(659, 0.3, "sine", 0.14, 0.1); tone(784, 0.45, "sine", 0.14, 0.2); };
+const softNo = () => tone(220, 0.2, "triangle", 0.09);
 
-/* ---------- Progresso e conquistas ---------- */
-const doneCount = () => STAGES.filter((s) => S.done[s.id]).length;
-const allDone = () => doneCount() === STAGES.length;
-let badgeQueue = [];
-function checkStages() {
-  const rules = {
-    cerebro: () => Object.keys(S.efSeen).length >= EF_CARDS.length,
-    tdah: () => Object.keys(S.quiz.ans).length >= QUIZ.length,
-    comigo: () => Object.keys(S.cards.ans).length >= 10,
-    desafios: () => Object.keys(S.games).length >= 3,
-    ferramentas: () => Object.keys(S.toolsSeen).length >= 3,
-    manual: () => S.manualDone,
-  };
-  STAGES.forEach((st) => { if (!S.done[st.id] && rules[st.id]()) completeStage(st.id, true); });
-}
-function completeStage(id, auto = false) {
-  if (S.done[id]) return;
-  S.done[id] = true; save(); badgeQueue.push(id); updateNav();
-  if (!$("#modal-root").innerHTML) showNextBadge();
-}
-function showNextBadge() {
-  const id = badgeQueue.shift(); if (!id) return;
-  const st = STAGES.find((s) => s.id === id);
-  const fim = allDone();
-  burst();
-  chime();
-  openModal(`<div class="modal-body" style="text-align:center;padding-top:34px;align-items:center">
-    <div class="badge-medal">${medalSVG(st, true, 120)}</div>
-    <span class="eyebrow">${starFill(14)} Conquista desbloqueada</span>
-    <h2>${st.badge}</h2>
-    <p class="muted" style="max-width:36ch">${st.badgeMsg}. ${fim ? "Você completou todas as etapas do percurso!" : `Mais uma estrela no seu percurso: ${doneCount()} de ${STAGES.length}.`}</p>
-    <div class="row" style="justify-content:center;margin-top:6px">
-      ${fim ? `<a class="btn btn-primary" href="#final" data-act="closeModal">${icon("star")} Ver encerramento</a>` : `<button class="btn btn-primary" data-act="closeModal">Continuar</button>`}
-      <a class="btn btn-ghost" href="#inicio" data-act="closeModal">Ver meu percurso</a>
-    </div></div>`);
-  updateNav();
-  if ((location.hash || "#inicio") === "#inicio") positionSkater();
-}
-function burst() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const b = document.createElement("div"); b.className = "burst";
-  const cols = ["#F2D47E", "#91D8C9", "#C6B2E8", "#E9A4AD", "#A9C9E9", "#7656A8"];
-  for (let i = 0; i < 36; i++) {
-    const s = document.createElement("i"); const size = 8 + Math.random() * 14;
-    s.style.left = Math.random() * 100 + "vw"; s.style.animationDuration = 1.8 + Math.random() * 1.8 + "s"; s.style.animationDelay = Math.random() * 0.4 + "s";
-    s.innerHTML = Math.random() > 0.35 ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><polygon points="${starPts(12, 12, 11, 4.6)}" fill="${pick(cols)}"/></svg>` : `<svg width="${size}" height="${size}" viewBox="0 0 40 40" style="color:${pick(cols)}"><g fill="currentColor"><ellipse cx="13.5" cy="29.5" rx="7" ry="5.2"/><rect x="18.4" y="5" width="3.4" height="25"/></g></svg>`;
-    b.appendChild(s);
-  }
-  document.body.appendChild(b); setTimeout(() => b.remove(), 4200);
-}
-
-/* ---------- Modal e toast ---------- */
+/* ---------- Modal / toast / impressão ---------- */
 let lastFocus = null;
 function openModal(html, opts = {}) {
   const root = $("#modal-root"); lastFocus = document.activeElement;
   root.innerHTML = `<div class="modal-bg" data-act="modalBg"><div class="modal ${opts.wide ? "wide" : ""}" role="dialog" aria-modal="true" aria-label="${esc(opts.label || "Janela")}"><button class="modal-close" data-act="closeModal" aria-label="Fechar">${icon("x")}</button>${html}</div></div>`;
   setTimeout(() => { const f = root.querySelector(".modal .btn, .modal-close"); f && f.focus(); }, 30);
 }
-function closeModal() {
-  $("#modal-root").innerHTML = "";
-  if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {}
-  if (badgeQueue.length) setTimeout(showNextBadge, 250);
-}
+function closeModal() { $("#modal-root").innerHTML = ""; if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {} }
 A.closeModal = () => closeModal();
 A.modalBg = (el, e) => { if (e.target === el) closeModal(); };
-function toast(msg) {
-  const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); t.textContent = msg;
-  document.body.appendChild(t); setTimeout(() => t.remove(), 2800);
-}
-
-/* ---------- Impressão ---------- */
+function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
 function printButtons(label = "Imprimir") {
-  if (FRAMED) return `<div class="note lav no-print">${icon("info")}<span>Para imprimir ou salvar em PDF, baixe o arquivo <b>index.html</b> e abra no navegador do computador. Esta janela de visualização não permite impressão.</span></div>`;
-  return `<button class="btn btn-roxo" data-act="print">${icon("printer")} ${label}</button><button class="btn btn-ghost" data-act="printPdf">${icon("share")} Salvar em PDF</button>`;
+  if (FRAMED) return `<div class="note lav no-print">${icon("info")}<span>Para imprimir ou salvar em PDF, abra o arquivo <b>index.html</b> no navegador do computador. Esta janela de visualização não permite impressão.</span></div>`;
+  return `<button class="btn btn-dark" data-act="print">${icon("printer", 18)} ${label}</button><button class="btn btn-ghost" data-act="printPdf">${icon("share", 18)} Salvar em PDF</button>`;
 }
 A.print = () => window.print();
 A.printPdf = () => { toast("Na janela de impressão, escolha “Salvar como PDF” como destino."); setTimeout(() => window.print(), 600); };
 
+/* ---------- Componentes comuns ---------- */
+function talk(q, label = "Para conversar") { return `<div class="talk"><span class="ti">${icon("chat", 18)}</span><div><div class="label">${label}</div><div class="tq">${q}</div></div></div>`; }
+function secTitle(t, sub) { return `<div class="sec-title"><h2>${t}</h2><span class="ln"></span>${sub ? `<span class="label">${sub}</span>` : ""}</div>`; }
+function chipsHTML(list, sel, act, extra = "", cls = "") { return list.map((x) => `<button class="chip ${cls} ${sel.includes(x) ? "on" : ""}" data-act="${act}" data-v="${esc(x)}" ${extra} aria-pressed="${sel.includes(x)}">${esc(x)}</button>`).join(""); }
+function toggleIn(arr, v) { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); return arr; }
+function wave(color = "#91D8C9", seed = 1) {
+  let d = "M0 40"; for (let x = 0; x <= 1200; x += 12) { const y = 40 + Math.sin(x / (60 + seed * 7)) * 12 * Math.sin(x / 300 + seed) + Math.sin(x / 23) * 3; d += ` L${x} ${y.toFixed(1)}`; }
+  return `<svg class="wave" viewBox="0 0 1200 80" preserveAspectRatio="none" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+}
+
 /* ---------- Estrutura (menu) ---------- */
 function renderShell() {
   document.getElementById("root").innerHTML = `
-  <div class="topbar no-print">
-    <button class="btn btn-soft btn-icon" data-act="openNav" aria-label="Abrir menu">${icon("menu")}</button>
-    <span class="brand-title" id="tb-title">${esc(S.title)}</span>
-    <span class="tb-prog" id="tb-prog" aria-hidden="true"></span>
-  </div>
+  <div class="topbar no-print"><button class="btn btn-light btn-icon" data-act="openNav" aria-label="Abrir menu">${icon("menu")}</button><span class="brand-title" id="tb-title"></span><span class="segs" id="tb-segs" aria-hidden="true"></span></div>
   <div class="scrim no-print" data-act="closeNav"></div>
   <div class="app">
     <aside class="sidebar no-print" id="sidebar" aria-label="Menu principal">
-      <a class="brand" href="#inicio">
-        <span class="brand-mark">${icon("mic", 22, 2)}</span>
-        <span><span class="brand-title" id="side-title">${esc(S.title)}</span><br><span class="brand-sub">Seu mundo, seu ritmo, sua mente</span></span>
-      </a>
-      <div class="mini-progress" id="mini-progress"></div>
+      <a class="brand" href="#inicio"><span class="brand-mark">${icon("mic", 20, 2)}</span><span><span class="brand-title" id="side-title"></span><br><span class="brand-sub">Seu mundo, seu ritmo, sua mente</span></span></a>
+      <div class="prog" id="prog"></div>
       <nav class="nav" id="nav"></nav>
       <div class="side-foot">
         <a href="#familia" data-nav="familia">${icon("users", 18)} Guia para a família</a>
-        <a href="#referencias" data-nav="referencias">${icon("bookopen", 18)} Referências</a>
         <a href="#guia" data-nav="guia">${icon("clipboard", 18)} Guia da sessão</a>
-        <button data-act="askReset">${icon("refresh", 18)} Reiniciar a jornada</button>
+        <a href="#referencias" data-nav="referencias">${icon("bookopen", 18)} Referências</a>
+        <button data-act="askReset">${icon("refresh", 18)} Reiniciar</button>
       </div>
     </aside>
     <main id="main"><div id="view"></div></main>
@@ -253,439 +167,269 @@ function renderShell() {
   <div id="modal-root"></div>`;
   updateNav();
 }
+function navState(id) { return S.m[id] && S.m[id].done ? "done" : started(id) ? "part" : ""; }
 function updateNav() {
-  const cur = (location.hash || "#inicio").slice(1);
-  const nav = $("#nav"); if (!nav) return;
-  nav.innerHTML = `<a href="#inicio" class="${cur === "inicio" ? "active" : ""}"><span class="ni">${icon("home", 18)}</span>Início</a>
-    <div class="nav-label">Etapas da jornada</div>
-    ${STAGES.map((s) => `<a href="#${s.id}" class="${cur === s.id || (s.id === "manual" && cur === "resumo") ? "active" : ""}"><span class="ni">${icon(s.icon, 18)}</span><span><span class="nnum">Etapa ${s.n}</span><br>${s.nome}</span><span class="nstate ${S.done[s.id] ? "done" : ""}" title="${S.done[s.id] ? "Concluída" : "A explorar"}">${S.done[s.id] ? starFill(16) : icon("star", 16)}</span></a>`).join("")}`;
+  const cur = (location.hash || "#inicio").slice(1); const nav = $("#nav"); if (!nav) return;
+  nav.innerHTML = `<a href="#inicio" class="${cur === "inicio" ? "active" : ""}"><span class="nn">${icon("home", 16)}</span>Início<span></span></a>
+    <div class="nav-label label light">Missões</div>
+    ${MISSIONS.map((m) => `<a href="#${m.id}" class="${cur === m.id ? "active" : ""}"><span class="nn">${pad2(m.n)}</span>${m.titulo}<span class="st ${navState(m.id)}">${navState(m.id) === "done" ? icon("check", 12, 3) : ""}</span></a>`).join("")}`;
   const n = doneCount();
-  $("#mini-progress").innerHTML = `<div class="row" style="justify-content:space-between;gap:6px"><b style="font-size:.85rem;color:var(--roxo-900)">Seu percurso</b><span style="font-size:.8rem;color:var(--muted);font-weight:700">${n} de ${STAGES.length}</span></div>
-    <div class="bar"><span style="width:${(n / STAGES.length) * 100}%"></span></div>
-    <div class="stars">${STAGES.map((s) => `<span class="${S.done[s.id] ? "on" : ""}" title="${s.badge}">${starFill(15)}</span>`).join("")}</div>`;
-  $("#tb-prog").innerHTML = STAGES.map((s) => `<span class="${S.done[s.id] ? "on" : ""}">${starFill(13)}</span>`).join("");
+  $("#prog").innerHTML = `<div class="row between"><span class="label light">Percurso</span><span style="font-family:var(--f-mono);font-size:.78rem;color:var(--on-night-2)">${n}/${MISSIONS.length}</span></div><div class="segs">${MISSIONS.map((m) => `<i class="${navState(m.id) === "done" ? "on" : navState(m.id) === "part" ? "part" : ""}" title="${m.titulo}"></i>`).join("")}</div>`;
+  $("#tb-segs").innerHTML = MISSIONS.map((m) => `<i class="${navState(m.id) === "done" ? "on" : ""}"></i>`).join("");
   $$(".side-foot a").forEach((a) => a.classList.toggle("active", a.dataset.nav === cur || (a.dataset.nav === "familia" && cur === "familia-compartilhar")));
   $("#side-title").textContent = S.title; $("#tb-title").textContent = S.title;
 }
 A.openNav = () => { $("#sidebar").classList.add("open"); $(".scrim").classList.add("open"); };
-A.closeNav = () => { $("#sidebar").classList.remove("open"); $(".scrim").classList.remove("open"); };
-
-A.askReset = () => {
-  openModal(`<div class="modal-head"><div class="icon-blob b-coral">${icon("refresh", 24)}</div><div><h2>Reiniciar a jornada?</h2><p class="muted" style="margin-top:6px">Todas as respostas, anotações e conquistas desta sessão serão apagadas deste navegador. Essa ação não pode ser desfeita.</p></div></div>
-  <div class="modal-body"><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-act="closeModal">Cancelar</button><button class="btn btn-roxo" data-act="doReset">${icon("refresh", 18)} Reiniciar</button></div></div>`, { label: "Reiniciar" });
-};
-A.doReset = () => {
-  const title = S.title; stopAllGames(); stopTimer(true);
-  S = DEFAULT_STATE(); S.title = title; save(); badgeQueue = [];
-  closeModal(); location.hash = "#inicio"; route(); toast("Jornada reiniciada.");
-};
+A.closeNav = () => { const s = $("#sidebar"); if (s) { s.classList.remove("open"); $(".scrim").classList.remove("open"); } };
+A.askReset = () => openModal(`<div class="modal-head"><span class="ib i-coral">${icon("refresh", 22)}</span><div><h2>Reiniciar tudo?</h2><p class="muted" style="margin-top:6px">Todas as respostas, escolhas e ingressos desta sessão serão apagados deste navegador. Essa ação não pode ser desfeita.</p></div></div>
+  <div class="modal-body"><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-act="closeModal">Cancelar</button><button class="btn btn-dark" data-act="doReset">Reiniciar</button></div></div>`, { label: "Reiniciar" });
+A.doReset = () => { const t = S.title; stopAllGames(); stopTimer(true); S = DEFAULT_STATE(); S.title = t; save(); closeModal(); location.hash = "#inicio"; route(); toast("Tudo foi reiniciado."); };
 
 /* ---------- Roteador ---------- */
 const VIEWS = {};
 function route() {
-  const h = (location.hash || "#inicio").slice(1);
-  const key = VIEWS[h] ? h : "inicio";
+  const h = (location.hash || "#inicio").slice(1); const key = VIEWS[h] ? h : "inicio";
   document.body.classList.toggle("standalone", key === "familia-compartilhar");
-  if (key !== "desafios") stopAllGames();
-  const v = $("#view");
-  v.innerHTML = `<div class="view" id="v-${key}">${VIEWS[key].render()}</div>`;
+  stopAllGames(); CUR = null;
+  $("#view").innerHTML = `<div class="view" id="v-${key}">${VIEWS[key].render()}</div>`;
   VIEWS[key].mount && VIEWS[key].mount();
-  updateNav(); A.closeNav();
-  window.scrollTo(0, 0);
-  const h1 = v.querySelector("h1"); if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus({ preventScroll: true }); }
-}
-
-/* ---------- Partes comuns de seção ---------- */
-function secHead(id, title, lead) {
-  const st = STAGES.find((s) => s.id === id);
-  return `<header class="sec-head"><div><span class="eyebrow">${icon(st.icon, 16)} Etapa ${st.n} de ${STAGES.length}</span><h1 style="margin-top:8px">${title}</h1><p class="lead">${lead}</p></div>
-  <div class="stage-badge ${S.done[id] ? "done" : ""}" id="sb-${id}">${medalSVG(st, !!S.done[id], 36)}<span>${S.done[id] ? "Conquista: " + st.badge : "A conquistar: " + st.badge}</span></div></header>`;
-}
-function stageFoot(id) {
-  const st = STAGES.find((s) => s.id === id); const i = STAGES.indexOf(st); const next = STAGES[i + 1]; const done = !!S.done[id];
-  const nextBtn = next ? `<a class="btn btn-primary" href="#${next.id}">Próxima: ${next.nome} ${icon("arrowR", 18)}</a>` : `<a class="btn btn-primary" href="#${allDone() ? "final" : "inicio"}">${allDone() ? "Ver encerramento" : "Ver meu percurso"} ${icon("arrowR", 18)}</a>`;
-  return `<section class="stage-foot no-print" id="foot-${id}"><div><h3>${done ? "Etapa concluída!" : "Terminou de explorar esta etapa?"}</h3><p class="muted">${done ? `A estrela <b>${st.badge}</b> já brilha no seu percurso.` : `Ao concluir, você recebe a conquista <b>${st.badge}</b> e pode voltar a esta etapa quando quiser.`}</p></div>
-  <div class="row">${done ? "" : `<button class="btn btn-roxo" data-act="completeStage" data-id="${id}">${starFill(16)} Concluir esta etapa</button>`}${nextBtn}</div></section>`;
-}
-A.completeStage = (el) => { completeStage(el.dataset.id); refreshStageChrome(el.dataset.id); };
-function refreshStageChrome(id) {
-  const f = $("#foot-" + id); if (f) f.outerHTML = stageFoot(id);
-  const sb = $("#sb-" + id); if (sb) { const st = STAGES.find((s) => s.id === id); sb.className = "stage-badge done"; sb.innerHTML = `${medalSVG(st, true, 36)}<span>Conquista: ${st.badge}</span>`; }
-}
-function afterProgress(id) { const before = !!S.done[id]; checkStages(); if (!before && S.done[id]) refreshStageChrome(id); }
-function sectionTitle(t, ic) { return `<div class="sec-title">${ic ? `<span class="icon-blob b-lilas" style="width:40px;height:40px;border-radius:12px">${icon(ic, 20)}</span>` : ""}<h2>${t}</h2><span class="ln"></span></div>`; }
-function reflectBox(q, label = "Para conversar") { return `<div class="reflect"><span style="color:var(--amarelo-800)">${icon("chat", 22)}</span><div><div class="rl">${label}</div><div class="rq">${q}</div></div></div>`; }
-
-/* =========================================================
-   ILUSTRAÇÕES
-   ========================================================= */
-function heroArt(variant = "hero") {
-  const st = (x, y, R, cls, col) => `<polygon class="twinkle ${cls}" points="${starPts(x, y, R, R * 0.44)}" fill="${col}"/>`;
-  const nt = (x, y, s, col, cls = "") => `<g class="floaty ${cls}" transform="translate(${x} ${y}) scale(${s})"><g fill="${col}"><ellipse cx="13.5" cy="29.5" rx="7" ry="5.2" transform="rotate(-22 13.5 29.5)"/><rect x="18.4" y="5" width="3.4" height="25" rx="1.7"/><path d="M20 5c4.5 1 10 3.5 10 10-2.4-3.3-5.6-4.5-10-4.5z"/></g></g>`;
-  return `<svg viewBox="0 0 520 440" role="img" aria-label="Ilustração de um palco com holofotes, um patins, um microfone, estrelas e notas musicais" preserveAspectRatio="xMidYMid meet">
-  <defs>
-    <linearGradient id="beamG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2D47E" stop-opacity=".55"/><stop offset="1" stop-color="#F2D47E" stop-opacity="0"/></linearGradient>
-    <linearGradient id="beamG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#91D8C9" stop-opacity=".5"/><stop offset="1" stop-color="#91D8C9" stop-opacity="0"/></linearGradient>
-    <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
-    <linearGradient id="curt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5C4290"/><stop offset="1" stop-color="#8C6CC0"/></linearGradient>
-    <clipPath id="micClip"><circle cx="0" cy="0" r="40"/></clipPath>
-  </defs>
-  <polygon class="beam" points="120,-10 150,-10 300,420 40,420" fill="url(#beamG)"/>
-  <polygon class="beam b2" points="390,-10 420,-10 480,420 230,420" fill="url(#beamG2)"/>
-  <circle cx="270" cy="250" r="190" fill="url(#glow)"/>
-  <ellipse cx="270" cy="404" rx="230" ry="30" fill="#E2D7F4"/>
-  <ellipse cx="270" cy="400" rx="170" ry="18" fill="#C6B2E8" opacity=".6"/>
-  ${variant === "hero" ? `<path d="M520 0v300c-30-40-40-120-30-190C498 60 505 25 520 0z" fill="url(#curt)" opacity=".9"/><path d="M500 30c-6 60-4 140 14 220" stroke="#fff" stroke-opacity=".18" stroke-width="3" fill="none"/>` : ""}
-  <path d="M30 352c60-30 140-26 210 4s170 20 250-16" stroke="#91D8C9" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round" fill="none"/>
-  <g class="roll" transform="translate(70 214)">
-    <path d="M30 10Q30 0 40 0h48q10 0 10 10l2 52q50 4 68 26 6 8 6 16v8H30z" fill="#fff" stroke="#3B2860" stroke-width="4" stroke-linejoin="round"/>
-    <rect x="32" y="14" width="66" height="12" rx="4" fill="#C6B2E8"/>
-    <path d="M66 36h30M66 47h32M68 58h32" stroke="#7656A8" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="M40 84q50-12 92 6" stroke="#E9A4AD" stroke-width="7" stroke-linecap="round" fill="none"/>
-    <rect x="24" y="110" width="158" height="13" rx="6.5" fill="#3B2860"/>
-    <rect x="176" y="108" width="18" height="22" rx="7" fill="#E9A4AD" stroke="#3B2860" stroke-width="3"/>
-    <circle cx="54" cy="138" r="18" fill="#91D8C9" stroke="#3B2860" stroke-width="4"/><circle cx="54" cy="138" r="6" fill="#fff"/>
-    <circle cx="150" cy="138" r="18" fill="#91D8C9" stroke="#3B2860" stroke-width="4"/><circle cx="150" cy="138" r="6" fill="#fff"/>
-  </g>
-  <g transform="translate(355 118) rotate(20)">
-    <path d="M-24 48h48l-12 128q-12 12-24 0z" fill="#3B2860"/>
-    <rect x="-16" y="104" width="32" height="8" rx="3" fill="#91D8C9"/>
-    <circle cx="0" cy="0" r="42" fill="#7656A8"/>
-    <g clip-path="url(#micClip)" stroke="#fff" stroke-opacity=".35" stroke-width="2.5"><path d="M-50 -20h100M-50 -6h100M-50 8h100M-50 22h100M-24 -50v100M-8 -50v100M8 -50v100M24 -50v100"/></g>
-    <ellipse cx="-14" cy="-18" rx="12" ry="7" fill="#fff" opacity=".35" transform="rotate(-30 -14 -18)"/>
-    <rect x="-30" y="36" width="60" height="16" rx="6" fill="#F2D47E"/>
-  </g>
-  <path d="M418 74q22 20 6 48M436 58q34 32 10 80" stroke="#7656A8" stroke-width="4" stroke-linecap="round" fill="none" opacity=".45"/>
-  ${nt(220, 70, 1.3, "#7656A8")}${nt(300, 260, 1, "#91D8C9", "f2")}${nt(60, 120, 0.9, "#E9A4AD", "f2")}${nt(455, 210, 0.8, "#A9C9E9")}
-  ${st(190, 168, 16, "", "#F2D47E")}${st(470, 40, 12, "t2", "#F2D47E")}${st(90, 60, 10, "t3", "#91D8C9")}${st(262, 40, 8, "t2", "#E9A4AD")}${st(36, 260, 9, "", "#C6B2E8")}${st(470, 320, 11, "t3", "#F2D47E")}${st(330, 340, 7, "", "#7656A8")}
-  </svg>`;
+  updateNav(); A.closeNav(); window.scrollTo(0, 0);
+  const h1 = $("#view h1"); if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus({ preventScroll: true }); }
 }
 
 /* =========================================================
    INÍCIO
    ========================================================= */
+function heroArt() {
+  const bars = Array.from({ length: 22 }, (_, i) => { const h = 40 + ((i * 37) % 120); const x = 30 + i * 18; return `<rect class="eqbar" x="${x}" y="${300 - h}" width="9" height="${h}" rx="4.5" fill="${i % 5 === 2 ? "#91D8C9" : "#C6B2E8"}" opacity="${(0.35 + (i % 3) * 0.2).toFixed(2)}" style="animation-delay:${-(i * 0.17).toFixed(2)}s;animation-duration:${(2 + (i % 4) * 0.4).toFixed(1)}s"/>`; }).join("");
+  return `<svg viewBox="0 0 460 340" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Equalizador animado e uma linha de pista">
+    <path id="pista" d="M-10 250 C80 170 150 300 240 220 S380 120 470 170" fill="none" stroke="#91D8C9" stroke-width="1.5" stroke-dasharray="1 7" stroke-linecap="round"/>
+    ${bars}
+    <circle r="6" fill="#91D8C9"><animateMotion dur="9s" repeatCount="indefinite"><mpath href="#pista"/></animateMotion></circle>
+    <path class="spark" d="${sparkPath(380, 70, 16)}" fill="#F2D47E"/>
+    <path class="spark" d="${sparkPath(90, 80, 8)}" fill="#C6B2E8" style="animation-delay:-1.5s"/>
+    <path class="spark" d="${sparkPath(300, 40, 6)}" fill="#91D8C9" style="animation-delay:-2.6s"/>
+  </svg>`;
+}
+function statusPill(id) {
+  const m = S.m[id];
+  if (m && m.done) return `<span class="stp done">${icon("check", 13, 2.6)} Concluída${m.at ? " · " + m.at : ""}</span>`;
+  if (started(id)) return `<span class="stp part">Em andamento</span>`;
+  return `<span class="stp">Nova</span>`;
+}
+function ticketHTML(m, big = false) {
+  const st = S.m[m.id] || {}; const on = !!st.done;
+  const nota = st.nota ? "“" + esc(st.nota.length > 110 ? st.nota.slice(0, 110) + "…" : st.nota) + "”" : m.tema;
+  return `<div class="ticket ${on ? "" : "off"} ${big ? "big stamp" : ""}"><div class="tk-main"><span class="label ${on ? "light" : ""}">Missão ${pad2(m.n)} · ${on ? "Selo " + m.selo : "A conquistar"}</span><h4>${m.titulo}</h4><p>${on ? nota : m.tema}</p></div><div class="tk-stub"><span class="n">${pad2(m.n)}</span><small>${on ? st.at || "" : "—"}</small></div></div>`;
+}
 VIEWS.inicio = {
   render() {
-    const n = doneCount();
-    const firstOpen = STAGES.find((s) => !S.done[s.id]);
-    const cta = n === 0 ? "Começar minha jornada" : allDone() ? "Ver encerramento" : "Continuar minha jornada";
-    const ctaHref = allDone() ? "#final" : "#" + (firstOpen ? firstOpen.id : "cerebro");
-    return `
-    <section class="hero">
-      <div class="hero-text">
-        <div class="hero-title-slot e-in" title="Título do projeto (editável no Guia da sessão)">${starFill(14)} ${esc(S.title)}</div>
-        <h1 class="e-in d1">Seu mundo, seu ritmo,<span class="accent">sua mente.</span></h1>
-        <p class="sub e-in d2">Cada pessoa tem seu próprio jeito de pensar, sentir, aprender e enxergar o mundo. Que tal descobrir um pouco mais sobre o seu?</p>
-        <div class="cta e-in d3"><a class="btn btn-primary" href="${ctaHref}" style="font-size:1.05rem;padding:15px 26px">${icon("play", 18)} ${cta}</a><button class="btn btn-ghost" data-act="scrollTo" data-target="percurso">Ver as etapas</button></div>
+    const n = doneCount(); const next = MISSIONS.find((m) => !(S.m[m.id] && S.m[m.id].done));
+    return `<section class="hero">
+      <div class="hero-text"><span class="title-slot" title="Título editável no Guia da sessão">${esc(S.title)}</span>
+        <h1>Seu mundo, seu ritmo, <em>sua mente.</em></h1>
+        <p class="sub">Cada pessoa tem seu próprio jeito de pensar, sentir, aprender e enxergar o mundo. Que tal descobrir um pouco mais sobre o seu?</p>
+        <div class="row" style="margin-top:6px"><a class="btn btn-primary" href="#${next ? next.id : "final"}">${icon("play", 16)} ${n === 0 ? "Começar minha jornada" : next ? "Continuar: " + next.titulo : "Ver encerramento"}</a><button class="btn btn-light" data-act="scrollTo" data-target="setlist">Ver as missões</button></div>
       </div>
-      <div class="hero-art e-in d2">${heroArt()}</div>
+      <div class="hero-art">${heroArt()}</div>
     </section>
-
-    <section class="stack" style="margin-top:36px" id="percurso">
-      <div class="row" style="justify-content:space-between"><div><span class="eyebrow">${icon("skate", 16)} Seu percurso</span><h2 style="margin-top:6px">Uma pista com seis paradas</h2></div><span class="tag ${n ? "amarelo" : ""}">${starFill(13)} ${n} de ${STAGES.length} estrelas</span></div>
-      <p class="muted prose">Cada etapa é uma parada na pista. Você pode seguir a ordem ou escolher por onde começar. A cada etapa concluída, uma estrela se acende e você recebe uma conquista.</p>
-      <div class="track">${trackSVG()}<div class="track-legend">${STAGES.map((s) => `<a href="#${s.id}" class="${S.done[s.id] ? "done" : ""}">${s.curto}<small>${S.done[s.id] ? s.badge : "Etapa " + s.n}</small></a>`).join("")}</div></div>
+    <section style="margin-top:30px" class="stack">
+      <span class="label">Como funciona</span>
+      <div class="how">
+        ${[["01", "Escolham a missão", "Uma missão por encontro, na ordem que fizer sentido."], ["02", "Joguem juntas", "Cada missão é um jogo diferente, com escolhas suas."], ["03", "Conversem", "As escolhas abrem conversas. Não existem respostas certas."], ["04", "Guarde o ingresso", "Ao concluir, a missão vira um ingresso no seu percurso."]].map(([k, t, p]) => `<div class="hs"><span class="label">${k}</span><b>${t}</b><p>${p}</p></div>`).join("")}
+      </div>
     </section>
-
-    <section class="steps-grid" style="margin-top:22px">
-      ${STAGES.map((s) => `<a class="step-card ${S.done[s.id] ? "done" : ""}" href="#${s.id}"><div class="st"><span class="icon-blob b-${s.cor}">${icon(s.icon, 24)}</span><span class="sn">0${s.n}</span></div><h3>${s.nome}</h3><p>${s.resumo}</p><span class="badge-line">${S.done[s.id] ? starFill(14) : icon("star", 14)} ${S.done[s.id] ? "Conquista: " + s.badge : "Conquista: " + s.badge}</span></a>`).join("")}
+    <section style="margin-top:38px;scroll-margin-top:70px" id="setlist">
+      ${secTitle("Setlist", n + " de " + MISSIONS.length + " concluídas")}
+      <div class="setlist">${MISSIONS.map((m) => `<a class="track-row ${S.m[m.id] && S.m[m.id].done ? "done" : ""}" href="#${m.id}"><span class="num">${pad2(m.n)}</span><span><h3>${m.titulo}</h3><span class="meta">${m.tema}</span></span><span class="dur">${m.dur}</span>${statusPill(m.id)}</a>`).join("")}</div>
     </section>
-
-    <section class="stack" style="margin-top:40px">
-      ${sectionTitle("Suas conquistas", "trophy")}
-      <div class="badges-row">${STAGES.map((s) => `<div class="bdg ${S.done[s.id] ? "" : "off"}">${medalSVG(s, !!S.done[s.id], 64)}<b>${s.badge}</b><small>${s.badgeMsg}</small></div>`).join("")}</div>
-      <p class="muted" style="font-size:.9rem">As conquistas valorizam a exploração e a curiosidade. Aqui não há notas, acertos ou pontuações.</p>
+    <section style="margin-top:38px">
+      ${secTitle("Ingressos", "Seu percurso")}
+      <div class="tickets">${MISSIONS.map((m) => ticketHTML(m)).join("")}</div>
+      <p class="muted small" style="margin-top:12px">Os ingressos registram as missões vividas. Não há notas, acertos ou pontuações.</p>
     </section>`;
   },
-  mount() { positionSkater(); },
 };
 A.scrollTo = (el) => { const t = document.getElementById(el.dataset.target); t && t.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
-const TRACK_D = "M30,120 C120,30 200,30 260,90 S380,160 450,100 S580,20 650,80 S780,150 840,90 S940,40 975,60";
-function trackSVG() {
-  return `<svg class="track-svg" viewBox="0 0 1000 170" role="img" aria-label="Pista de patinação com seis paradas: ${doneCount()} concluídas">
-    <path d="${TRACK_D}" fill="none" stroke="#F0EAFA" stroke-width="30" stroke-linecap="round"/>
-    <path id="trackPath" d="${TRACK_D}" fill="none" stroke="#C6B2E8" stroke-width="4" stroke-dasharray="3 12" stroke-linecap="round"/>
-    <path id="trackDone" d="${TRACK_D}" fill="none" stroke="#91D8C9" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 9999"/>
-    <g id="trackStops"></g>
-    <g id="skater" class="skater"><g transform="translate(-22 -58)"><circle cx="22" cy="30" r="26" fill="#fff" opacity=".9"/><g transform="translate(4 8) scale(.9)">${sym("skate", "roxo").replace("<svg", '<svg width="40" height="40"')}</g></g></g>
-  </svg>`;
-}
-function positionSkater() {
-  const p = $("#trackPath"); if (!p) return;
-  const L = p.getTotalLength(); const stops = STAGES.map((s, i) => (L * (i + 0.6)) / (STAGES.length + 0.2));
-  $("#trackStops").innerHTML = STAGES.map((s, i) => {
-    const pt = p.getPointAtLength(stops[i]); const on = !!S.done[s.id];
-    return `<a href="#${s.id}" aria-label="${s.nome}"><g transform="translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})"><circle r="21" fill="${on ? "#F2D47E" : "#fff"}" stroke="${on ? "#D9B44A" : "#C6B2E8"}" stroke-width="3"/>${on ? `<polygon points="${starPts(0, 1, 12, 5.2)}" fill="#fff"/>` : `<text y="6" text-anchor="middle" font-family="Outfit, sans-serif" font-weight="700" font-size="17" fill="#7656A8">${s.n}</text>`}</g></a>`;
-  }).join("");
-  const n = doneCount(); const at = n === 0 ? 0 : stops[Math.min(n, STAGES.length) - 1];
-  const pt = p.getPointAtLength(at);
-  $("#skater").setAttribute("transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
-  $("#trackDone").setAttribute("stroke-dasharray", `${at} 9999`);
-}
-
 /* =========================================================
-   ABA 1 — MEU CÉREBRO
+   ESTRUTURA DAS MISSÕES
+   MREND[id]  = funções dos passos intermediários (sem briefing/fechamento)
+   MMOUNT[id] = { [índice do passo]: função } (opcional)
+   MSUM[id]   = resumo das escolhas, exibido no fechamento (opcional)
    ========================================================= */
-const LOBE_PATHS = {
-  frontal: "M70,175 C40,140 45,85 95,55 C125,38 160,30 197,30 C197,70 192,98 182,118 C160,128 140,140 128,160 C110,178 88,185 70,175 Z",
-  parietal: "M197,30 C245,28 295,45 322,75 C315,95 300,108 285,115 C255,118 215,118 182,118 C192,98 197,70 197,30 Z",
-  occipital: "M322,75 C350,100 360,140 347,172 C330,176 312,170 300,160 C298,140 292,125 285,115 C300,108 315,95 322,75 Z",
-  temporal: "M128,160 C140,140 160,128 182,118 C215,118 255,118 285,115 C292,125 298,140 300,160 C285,185 250,200 210,202 C170,204 140,190 128,160 Z",
-  cerebelo: "M290,178 C310,170 335,172 349,178 C353,200 330,222 300,220 C280,218 270,200 290,178 Z",
+const MREND = {}, MMOUNT = {}, MSUM = {};
+let CUR = null;
+function missionView(id) {
+  return {
+    render() {
+      CUR = id; const m = missionOf(id); const st = M(id); save();
+      return `<header class="mhead"><span class="bignum" aria-hidden="true">${pad2(m.n)}</span>${wave("#91D8C9", m.n)}
+        <div class="tools no-print"><button class="btn btn-light btn-sm" data-act="mediacao">${icon("clipboard", 16)} Notas para a mediação</button></div>
+        <span class="label light">Missão ${pad2(m.n)} de ${pad2(MISSIONS.length)} · ${m.tema}</span>
+        <h1>${m.titulo}</h1><p class="hook">${m.hook}</p>
+        <div class="meta"><span>${m.dur}</span><span>Selo: ${m.selo}</span>${st.done ? `<span class="done">Concluída em ${st.at}</span>` : ""}</div>
+      </header>
+      <nav class="stepper no-print" id="stepper" aria-label="Etapas da missão"></nav>
+      <section id="mstep"></section>
+      <div class="stepnav no-print" id="stepnav"></div>`;
+    },
+    mount() { CUR = id; renderStep(); },
+  };
+}
+function renderStep() {
+  const id = CUR; const m = missionOf(id); const st = M(id); const last = m.steps.length - 1;
+  st.step = Math.max(0, Math.min(last, st.step || 0)); st.seen[st.step] = true; save();
+  $("#stepper").innerHTML = m.steps.map((s, i) => `<button class="${i === st.step ? "on" : ""} ${st.seen[i] ? "seen" : ""}" data-act="goStep" data-i="${i}" aria-current="${i === st.step}"><span class="sn">${pad2(i + 1)}</span><span class="sl">${s}</span></button>`).join("");
+  let html;
+  if (st.step === 0) html = briefHTML(m);
+  else if (st.step === last) html = closingHTML(m);
+  else html = MREND[id][st.step - 1]();
+  $("#mstep").innerHTML = `<div style="animation:viewIn .35s ease both">${html}</div>`;
+  const mt = MMOUNT[id] && MMOUNT[id][st.step]; mt && mt();
+  $("#stepnav").innerHTML = `${st.step > 0 ? `<button class="btn btn-ghost" data-act="stepBy" data-d="-1">${icon("arrowL", 16)} ${m.steps[st.step - 1]}</button>` : `<a class="btn btn-ghost" href="#inicio">${icon("arrowL", 16)} Setlist</a>`}
+    ${st.step < last ? `<button class="btn btn-dark" data-act="stepBy" data-d="1">${m.steps[st.step + 1]} ${icon("arrowR", 16)}</button>` : ""}`;
+  updateNav();
+}
+function rerender() { if (CUR) { const y = window.scrollY; renderStep(); window.scrollTo(0, y); } }
+A.goStep = (el) => { stopAllGames(); M(CUR).step = +el.dataset.i; renderStep(); };
+A.stepBy = (el) => { stopAllGames(); const st = M(CUR); st.step = st.step + +el.dataset.d; renderStep(); const s = $("#stepper"); s && window.scrollTo({ top: s.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" }); };
+function briefHTML(m) {
+  const X = MDATA()[m.id];
+  return `<div class="brief"><div class="stack"><span class="label">Briefing</span><p class="lead">${X.brief}</p>
+    <div class="row" style="margin-top:6px"><button class="btn btn-primary" data-act="stepBy" data-d="1">${icon("play", 16)} Começar a missão</button></div></div>
+    <div class="card goal"><span class="label">O que vamos fazer</span><ol class="flow-mini" style="padding:0;margin:0">${X.passos.map((p) => `<li>${p}</li>`).join("")}</ol>
+    <div class="note lav small">${icon("info", 18)}<span>Dá para pausar, voltar e pular etapas a qualquer momento. O ritmo é de vocês.</span></div></div></div>`;
+}
+function closingHTML(m) {
+  const X = MDATA()[m.id]; const st = M(m.id); const nx = nextMission(m);
+  return `<div class="closing"><div class="stack"><span class="label">Fechamento</span><h2>O que fica desta missão</h2><p class="muted">${CLOSING_DEFAULT}</p>
+      ${X.fechamento.map((q) => talk(q)).join("")}
+      ${MSUM[m.id] ? `<div class="card tight stack"><span class="label">O que você explorou</span>${MSUM[m.id]()}</div>` : ""}</div>
+    <div class="stack"><div class="card stack"><label for="nota" class="label">Uma frase para levar (opcional)</label><textarea id="nota" class="field" data-input="nota" maxlength="300" placeholder="Algo que você percebeu, uma pergunta nova, algo para observar...">${esc(st.nota)}</textarea><p class="muted small">Essa frase aparece no seu ingresso.</p></div>
+      ${st.done ? `${ticketHTML(m)}<div class="row"><a class="btn btn-primary" href="#${nx ? nx.id : "final"}">${nx ? "Próxima missão" : "Ver encerramento"} ${icon("arrowR", 16)}</a><button class="btn btn-ghost" data-act="finish">Atualizar ingresso</button></div>`
+        : `<button class="btn btn-primary" data-act="finish" style="padding:15px 22px;font-size:1rem">${icon("ticket", 18)} Concluir missão e receber o ingresso</button>`}
+    </div></div>`;
+}
+function nextMission(m) { return MISSIONS.find((x) => x.n > m.n && !(S.m[x.id] && S.m[x.id].done)) || MISSIONS.find((x) => x.id !== m.id && !(S.m[x.id] && S.m[x.id].done)); }
+A.finish = () => {
+  const m = missionOf(CUR); const st = M(CUR); const was = st.done;
+  st.done = true; st.at = st.at || new Date().toLocaleDateString("pt-BR"); save(); chime(); updateNav();
+  const nx = nextMission(m); const fim = allDone();
+  openModal(`<div class="modal-body" style="padding-top:30px"><span class="label">${was ? "Ingresso atualizado" : "Missão concluída"}</span><h2>${m.titulo}</h2>${ticketHTML(m, true)}
+    <p class="muted">${fim ? "Todas as missões do percurso foram concluídas." : `${doneCount()} de ${MISSIONS.length} missões concluídas. Vocês podem voltar a esta missão sempre que quiserem.`}</p>
+    <div class="row">${fim ? `<a class="btn btn-primary" href="#final" data-act="closeModal">Ver encerramento ${icon("arrowR", 16)}</a>` : nx ? `<a class="btn btn-primary" href="#${nx.id}" data-act="closeModal">Próxima: ${nx.titulo} ${icon("arrowR", 16)}</a>` : ""}<a class="btn btn-ghost" href="#inicio" data-act="closeModal">Ver o percurso</a></div></div>`, { label: "Missão concluída" });
+  renderStep();
 };
-const LOBE_LABELS = { frontal: [112, 110, "Frontal"], parietal: [252, 76, "Parietal"], occipital: [322, 140, "Occip."], temporal: [222, 175, "Temporal"], cerebelo: [316, 202, "Cerebelo"] };
-function brainSVG() {
-  const sel = S.brainSel;
-  return `<svg class="brain-svg ${sel ? "has-sel" : ""}" viewBox="20 10 360 270" role="group" aria-label="Mapa interativo do cérebro">
-    <path d="M238,196 C246,204 258,204 266,198 L272,262 C264,272 248,272 240,262 Z" fill="#DDD3EE" stroke="#fff" stroke-width="3"/>
-    ${BRAIN_REGIONS.map((r) => `<path class="lobe ${sel === r.id ? "sel" : ""}" d="${LOBE_PATHS[r.id]}" fill="${r.cor}" tabindex="0" role="button" aria-label="${r.nome}" data-act="brainSel" data-id="${r.id}"><title>${r.nome}</title></path>`).join("")}
-    <g fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.2" stroke-linecap="round" pointer-events="none">
-      <path d="M95,92 C115,86 128,98 150,92"/><path d="M80,135 C100,128 112,140 135,132"/><path d="M150,55 C160,70 175,70 182,85"/>
-      <path d="M225,52 C238,66 255,64 270,80"/><path d="M290,62 C292,80 305,88 312,98"/><path d="M160,160 C190,152 225,162 262,150"/><path d="M325,110 C335,125 332,140 340,152"/><path d="M296,196 C312,190 328,194 342,190"/><path d="M290,207 C308,204 322,210 336,204"/>
-    </g>
-    ${BRAIN_REGIONS.map((r) => { const [x, y, t] = LOBE_LABELS[r.id]; return `<text x="${x}" y="${y}" text-anchor="middle">${t}</text>`; }).join("")}
-    ${BRAIN_DEEP.map((d) => `<g class="deep ${sel === d.id ? "sel" : ""}" tabindex="0" role="button" aria-label="${d.nome}" data-act="brainSel" data-id="${d.id}"><title>${d.nome}</title><circle class="pulse" cx="${d.x}" cy="${d.y}" r="8" fill="${d.cor}"/><circle class="core" cx="${d.x}" cy="${d.y}" r="8" fill="${d.cor}" stroke="#3B2860" stroke-width="2"/></g>`).join("")}
-  </svg>`;
-}
-function regionPanel() {
-  const all = BRAIN_REGIONS.concat(BRAIN_DEEP); const r = all.find((x) => x.id === S.brainSel);
-  if (!r) return `<div class="card region-panel" style="justify-content:center"><span class="icon-blob b-lilas">${icon("brain", 26)}</span><h3>Toque em uma região do cérebro</h3><p class="muted">As cores indicam as grandes regiões, chamadas <b>lobos</b>. Os pontos pulsantes indicam estruturas localizadas na parte interna do cérebro.</p><div class="brain-legend">${all.map((x) => `<button class="chip" data-act="brainSel" data-id="${x.id}"><span style="width:10px;height:10px;border-radius:50%;background:${x.cor}"></span>${x.nome.split(" (")[0].replace("Núcleos da base e sistema de recompensa", "Núcleos da base")}</button>`).join("")}</div></div>`;
-  return `<div class="card region-panel" aria-live="polite"><div class="row" style="gap:12px;align-items:flex-start;flex-wrap:nowrap"><span class="icon-blob" style="background:${r.cor}33;color:var(--roxo-900)"><span style="width:20px;height:20px;border-radius:50%;background:${r.cor}"></span></span><div><span class="hand">${r.apelido}</span><h3 style="margin-top:2px">${r.nome}</h3></div></div>
-    <p>${r.texto}</p>
-    <div class="rp-fn">${r.fn.map((f) => `<span class="tag agua">${f}</span>`).join("")}</div>
-    <div class="note lav">${icon("music" in ICONS ? "music" : "note")}<span><b>No dia a dia:</b> ${r.exemplo}</span></div>
-    <div class="row"><button class="btn btn-ghost btn-sm" data-act="brainSel" data-id="">${icon("arrowL", 16)} Ver todas as regiões</button></div></div>`;
-}
-A.brainSel = (el) => { S.brainSel = el.dataset.id || null; save(); $("#brain-svg-wrap").innerHTML = brainSVG(); $("#region-panel").innerHTML = regionPanel(); };
-function flowDetail() {
-  const f = BRAIN_FLOW[S.flowIdx];
-  return `<div class="card flat lav flow-detail" aria-live="polite"><div class="row" style="justify-content:space-between"><h3>${S.flowIdx + 1}. ${f.nome} <span class="muted" style="font-weight:500;font-size:.95rem">· ${f.sub}</span></h3><div class="row" style="gap:6px"><button class="btn btn-ghost btn-icon btn-sm" data-act="flowStep" data-d="-1" aria-label="Passo anterior" ${S.flowIdx === 0 ? "disabled" : ""}>${icon("left")}</button><button class="btn btn-ghost btn-icon btn-sm" data-act="flowStep" data-d="1" aria-label="Próximo passo" ${S.flowIdx === BRAIN_FLOW.length - 1 ? "disabled" : ""}>${icon("right")}</button></div></div><p style="margin-top:8px">${f.texto}</p></div>`;
-}
-function flowButtons() { return BRAIN_FLOW.map((f, i) => `<button class="${i === S.flowIdx ? "on" : ""}" data-act="flowSel" data-i="${i}" aria-pressed="${i === S.flowIdx}"><span class="fi">${icon(f.icon, 22)}</span>${f.nome}<small>${f.sub}</small></button>`).join(""); }
-A.flowSel = (el) => { S.flowIdx = +el.dataset.i; save(); $("#flow").innerHTML = flowButtons(); $("#flow-detail").innerHTML = flowDetail(); };
-A.flowStep = (el) => { S.flowIdx = Math.max(0, Math.min(BRAIN_FLOW.length - 1, S.flowIdx + +el.dataset.d)); save(); $("#flow").innerHTML = flowButtons(); $("#flow-detail").innerHTML = flowDetail(); };
-function conceptArea() {
-  const c = BRAIN_CONCEPTS.find((x) => x.nome === S.concept);
-  return `<div class="concepts">${BRAIN_CONCEPTS.map((x) => `<button class="chip agua ${S.concept === x.nome ? "on" : ""}" data-act="concept" data-n="${x.nome}" aria-pressed="${S.concept === x.nome}">${x.nome}</button>`).join("")}</div>
-  ${c ? `<div class="note agua" style="margin-top:12px" aria-live="polite">${icon("bulb")}<span><b>${c.nome}:</b> ${c.texto}</span></div>` : `<p class="muted" style="margin-top:10px;font-size:.92rem">Toque em uma palavra para ver o que ela significa.</p>`}`;
-}
-A.concept = (el) => { S.concept = S.concept === el.dataset.n ? null : el.dataset.n; save(); $("#concepts").innerHTML = conceptArea(); };
-function efGrid() {
-  return EF_CARDS.map((c, i) => `<button class="ef-card" data-act="efOpen" data-id="${c.id}"><span class="seen" title="${S.efSeen[c.id] ? "Já explorado" : ""}">${S.efSeen[c.id] ? starFill(18) : ""}</span><span class="icon-blob b-${c.cor}">${icon(c.icon, 24)}</span><span class="ef-nick">${c.apelido}</span><h3>${i + 1}. ${c.titulo}</h3><span class="open-hint">${S.efSeen[c.id] ? "Ver de novo" : "Abrir card"} ${icon("arrowR", 16)}</span></button>`).join("");
-}
-A.efOpen = (el) => {
-  const c = EF_CARDS.find((x) => x.id === el.dataset.id);
-  S.efSeen[c.id] = true; save();
-  openModal(`<div class="modal-head"><span class="icon-blob b-${c.cor}">${icon(c.icon, 26)}</span><div><span class="hand">${c.apelido}</span><h2>${c.titulo}</h2></div></div>
-  <div class="modal-body">
-    <div class="kv"><span class="k">O que é</span><p>${c.explicacao}</p></div>
-    <div class="kv"><span class="k">No cérebro</span><p>${c.cerebro}</p></div>
-    <div class="kv"><span class="k">No dia a dia</span><p>${c.exemplo}</p></div>
-    ${reflectBox(c.pergunta, "Pergunta para reflexão")}
-    <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:.88rem">${Object.keys(S.efSeen).length} de ${EF_CARDS.length} cards explorados</span>${nextEfButton(c.id)}</div>
-  </div>`, { label: c.titulo });
-  $("#ef-grid").innerHTML = efGrid();
-  afterProgress("cerebro");
-};
-function nextEfButton(id) {
-  const i = EF_CARDS.findIndex((x) => x.id === id); const nx = EF_CARDS[i + 1];
-  return nx ? `<button class="btn btn-primary btn-sm" data-act="efNext" data-id="${nx.id}">Próximo: ${nx.titulo} ${icon("arrowR", 16)}</button>` : `<button class="btn btn-primary btn-sm" data-act="closeModal">Fechar</button>`;
-}
-A.efNext = (el) => { $("#modal-root").innerHTML = ""; A.efOpen(el); };
-
-VIEWS.cerebro = {
-  render() {
-    return `${secHead("cerebro", "Meu cérebro", "Antes de falar sobre o TDAH, é importante conhecer o órgão onde tudo acontece. Explore o mapa, acompanhe o caminho da informação e descubra as habilidades que ajudam você a alcançar seus objetivos.")}
-    <div class="stack-lg">
-      <section class="grid g2" style="align-items:stretch">
-        <div class="card stack"><span class="eyebrow">${icon("brain", 16)} O que é o cérebro?</span>${BRAIN_INTRO.map((p) => `<p>${p}</p>`).join("")}</div>
-        <div class="panel stack" style="background:linear-gradient(140deg,var(--lilas-100),var(--agua-100))"><span class="hand" style="font-size:1.7rem">Uma banda afinada</span><p>Em um show, há quem cante, quem toque guitarra, quem cuide das luzes e quem controle o som. Se alguém entra fora do tempo, todos percebem. O cérebro funciona de forma parecida: nenhuma região trabalha sozinha, e todas precisam se comunicar e se coordenar.</p><div class="row" style="gap:6px">${["Neurônios", "Sinapses", "Neurotransmissores", "Redes"].map((t) => `<span class="tag">${t}</span>`).join("")}</div></div>
-      </section>
-
-      <section>
-        ${sectionTitle("Explore o mapa do cérebro", "eye")}
-        <div class="brain-wrap"><div class="brain-stage"><div id="brain-svg-wrap">${brainSVG()}</div><p class="muted" style="font-size:.82rem;text-align:center;margin-top:4px">Vista lateral do cérebro, com a testa à esquerda. Ilustração simplificada.</p></div><div id="region-panel">${regionPanel()}</div></div>
-      </section>
-
-      <section>
-        ${sectionTitle("Como a informação viaja", "route")}
-        <p class="muted prose" style="margin-bottom:14px">Imagine que a professora explica a coreografia nova. Do momento em que você ouve até o momento em que executa o passo, a informação percorre um caminho. Toque em cada etapa:</p>
-        <div class="flow" id="flow">${flowButtons()}</div>
-        <div id="flow-detail">${flowDetail()}</div>
-      </section>
-
-      <section>
-        ${sectionTitle("Palavras importantes", "bulb")}
-        <div id="concepts">${conceptArea()}</div>
-      </section>
-
-      <section>
-        ${sectionTitle("As funções executivas", "sliders")}
-        <div class="grid g2" style="margin-bottom:18px;align-items:center"><p class="prose">${EF_INTRO}</p><div class="note amarelo">${icon("star")}<span>Abra os <b>seis cards</b> abaixo. Cada um apresenta uma habilidade, um exemplo do dia a dia e uma pergunta para reflexão.</span></div></div>
-        <div class="ef-grid" id="ef-grid">${efGrid()}</div>
-      </section>
-    </div>
-    ${stageFoot("cerebro")}`;
-  },
-  mount() {
-    $("#v-cerebro").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-act=brainSel]")) { e.preventDefault(); A.brainSel(e.target.closest("[data-act]")); } });
-  },
+A.mediacao = () => {
+  const g = GUIA[CUR]; const m = missionOf(CUR);
+  openModal(`<div class="modal-head"><span class="ib i-night">${icon("clipboard", 22)}</span><div><span class="label">Notas para a mediação</span><h2>${m.titulo}</h2></div></div>
+  <div class="modal-body"><div class="kv"><span class="k">Objetivo terapêutico</span><p>${g.obj}</p></div>
+  <div class="kv"><span class="k">Perguntas que podem ajudar</span><ul class="dots">${g.perguntas.map((p) => `<li>${p}</li>`).join("")}</ul></div>
+  <div class="kv"><span class="k">Cuidados</span><ul class="dots">${g.cuidados.map((p) => `<li>${p}</li>`).join("")}</ul></div>
+  <a class="btn btn-ghost btn-sm" href="#guia" data-act="closeModal" style="align-self:flex-start">Abrir o guia completo</a></div>`, { label: "Notas para a mediação", wide: true });
 };
 
 /* =========================================================
-   ABA 2 — DESVENDANDO O TDAH
-   ========================================================= */
-function chapterBody() {
-  const c = TDAH_CHAPTERS[S.chapter]; S.chaptersRead[c.id] = true; save();
-  let extra = "";
-  if (c.trio) extra = `<p>Os sinais do TDAH costumam ser descritos em três grupos. Cada pessoa pode ter mais sinais de um grupo do que de outro.</p><div class="trio">${TDAH_TRIO.map((t) => `<div class="card flat" style="background:var(--${t.cor}-100);border-color:transparent"><div class="row" style="gap:10px;margin-bottom:10px"><span class="icon-blob b-${t.cor}" style="background:#fff">${icon(t.icon, 22)}</span><h3>${t.nome}</h3></div><ul class="ticks">${t.itens.map((i) => `<li>${i}</li>`).join("")}</ul></div>`).join("")}</div>`;
-  if (c.impactos) extra = `<p>O TDAH pode influenciar diferentes áreas da vida. Isso varia muito de pessoa para pessoa e também depende do apoio e das estratégias disponíveis.</p><div class="grid g2">${TDAH_IMPACTOS.map((t) => `<div class="card flat"><div class="row" style="gap:10px;margin-bottom:8px"><span class="icon-blob b-lilas" style="width:42px;height:42px">${icon(t.icon, 20)}</span><h3>${t.nome}</h3></div><p>${t.texto}</p></div>`).join("")}</div>`;
-  return `<article class="card chapter stack" aria-live="polite"><span class="eyebrow">Capítulo ${S.chapter + 1} de ${TDAH_CHAPTERS.length}</span><h2>${c.titulo}</h2><div class="prose stack">${c.html}</div>${extra}
-    <div class="note lav">${icon("star")}<span>${c.destaque}</span></div>
-    <div class="q-nav"><button class="btn btn-ghost btn-sm" data-act="chapStep" data-d="-1" ${S.chapter === 0 ? "disabled" : ""}>${icon("arrowL", 16)} Anterior</button>${S.chapter < TDAH_CHAPTERS.length - 1 ? `<button class="btn btn-primary btn-sm" data-act="chapStep" data-d="1">Próximo capítulo ${icon("arrowR", 16)}</button>` : `<button class="btn btn-primary btn-sm" data-act="scrollTo" data-target="quiz">Ir para o quiz ${icon("arrowR", 16)}</button>`}</div></article>`;
-}
-function chapterNav() { return TDAH_CHAPTERS.map((c, i) => `<button class="${i === S.chapter ? "on" : ""} ${S.chaptersRead[c.id] ? "read" : ""}" data-act="chapSel" data-i="${i}" aria-current="${i === S.chapter}"><span class="cn">${S.chaptersRead[c.id] && i !== S.chapter ? icon("check", 14, 2.4) : i + 1}</span>${c.titulo}</button>`).join(""); }
-function renderChapters() { $("#chap-body").innerHTML = chapterBody(); $("#chap-nav").innerHTML = chapterNav(); }
-A.chapSel = (el) => { S.chapter = +el.dataset.i; renderChapters(); };
-A.chapStep = (el) => { S.chapter = Math.max(0, Math.min(TDAH_CHAPTERS.length - 1, S.chapter + +el.dataset.d)); renderChapters(); $("#chap-body").scrollIntoView({ behavior: "smooth", block: "nearest" }); };
-
-function eqArea() {
-  const sc = TDAH_EQ.cenas.find((c) => c.id === S.eqScene) || TDAH_EQ.cenas[0];
-  const bars = (v, k) => Array.from({ length: 5 }, (_, i) => { const h = Math.max(8, Math.min(100, v * 10 + [-14, -4, 6, -8, 2][(i + k) % 5])); return `<i style="height:${h}%"></i>`; }).join("");
-  return `<div class="row" style="gap:8px;margin-bottom:14px">${TDAH_EQ.cenas.map((c) => `<button class="chip ${c.id === sc.id ? "on" : ""}" data-act="eqScene" data-id="${c.id}" aria-pressed="${c.id === sc.id}">${c.nome}</button>`).join("")}</div>
-  <div class="grid g2" style="align-items:center"><div class="eq" role="img" aria-label="Mesa de som: ${TDAH_EQ.canais.map((n, i) => n + " " + sc.canais[i] + " de 10").join(", ")}">${TDAH_EQ.canais.map((n, i) => `<div class="ch"><div class="bars">${bars(sc.canais[i], i)}</div><span>${n}</span></div>`).join("")}</div>
-  <div class="stack"><p style="font-weight:600">${sc.texto}</p><p class="muted" style="font-size:.9rem">${TDAH_EQ.rodape}</p></div></div>`;
-}
-A.eqScene = (el) => { S.eqScene = el.dataset.id; save(); $("#eq-area").innerHTML = eqArea(); };
-
-function quizBody() {
-  const total = QUIZ.length, answered = Object.keys(S.quiz.ans).length;
-  const dots = `<div class="q-dots" role="tablist" aria-label="Afirmações">${QUIZ.map((q, i) => `<button class="${i === S.quiz.idx ? "cur" : S.quiz.ans[i] ? "ans" : ""}" data-act="quizGo" data-i="${i}" aria-label="Afirmação ${i + 1}">${i + 1}</button>`).join("")}</div>`;
-  if (S.quiz.idx >= total) {
-    return `${dots}<div class="q-card"><div class="badge-medal" style="width:90px;height:90px">${medalSVG(STAGES[1], true, 90)}</div><h2 style="margin-top:12px">Você explorou as ${total} afirmações!</h2><p class="muted" style="max-width:46ch;margin:10px auto 18px">Mitos sobre o TDAH são muito comuns. Conhecer informações corretas ajuda você a compreender melhor a si mesma.</p>${reflectBox("Qual dessas afirmações mais surpreendeu você? Alguma você já tinha ouvido de alguém?")}<div class="row" style="justify-content:center;margin-top:18px"><button class="btn btn-ghost" data-act="quizRestart">${icon("refresh", 18)} Recomeçar o quiz</button></div></div>`;
-  }
-  const q = QUIZ[S.quiz.idx], a = S.quiz.ans[S.quiz.idx];
-  let fb = "";
-  if (a) {
-    const hit = a === q.r;
-    const verdict = q.r === "mito" ? "esta afirmação é um mito" : "esta afirmação é verdadeira";
-    const head = hit ? `Correto: ${verdict}.` : q.r === "mito" ? "Esta afirmação é um mito, embora seja uma ideia comum." : "Esta afirmação é verdadeira.";
-    fb = `<div class="q-feedback"><div class="q-verdict ${q.r}">${q.r === "mito" ? icon("x", 22, 2.4) : icon("check", 22, 2.4)} ${head}</div><p>${q.e}</p></div>`;
-  }
-  return `${dots}<div class="q-card"><span class="tag">Afirmação ${S.quiz.idx + 1} de ${total}</span><p class="q-text">“${q.q}”</p>
-    <div class="q-opts"><button class="q-opt mito ${a === "mito" ? "picked" : ""}" data-act="quizAns" data-v="mito" ${a ? "disabled" : ""}>${icon("x", 26, 2.2)} Mito</button><button class="q-opt verdade ${a === "verdade" ? "picked" : ""}" data-act="quizAns" data-v="verdade" ${a ? "disabled" : ""}>${icon("check", 26, 2.2)} Verdade</button></div>
-    ${fb}
-    <div class="q-nav"><button class="btn btn-ghost btn-sm" data-act="quizStep" data-d="-1" ${S.quiz.idx === 0 ? "disabled" : ""}>${icon("arrowL", 16)} Anterior</button><span class="muted" style="font-size:.85rem;align-self:center">${answered} de ${total} exploradas</span><button class="btn ${a ? "btn-primary" : "btn-ghost"} btn-sm" data-act="quizStep" data-d="1">${S.quiz.idx === total - 1 ? "Concluir" : "Próxima"} ${icon("arrowR", 16)}</button></div></div>`;
-}
-function renderQuiz() { $("#quiz-body").innerHTML = quizBody(); }
-A.quizAns = (el) => { S.quiz.ans[S.quiz.idx] = el.dataset.v; save(); if (el.dataset.v === QUIZ[S.quiz.idx].r) tone(660, 0.18, "sine", 0.12); renderQuiz(); afterProgress("tdah"); };
-A.quizStep = (el) => {
-  const d = +el.dataset.d; let i = S.quiz.idx + d;
-  if (d > 0 && S.quiz.idx === QUIZ.length - 1) { const firstOpen = QUIZ.findIndex((q, k) => !S.quiz.ans[k]); i = firstOpen === -1 ? QUIZ.length : firstOpen; }
-  S.quiz.idx = Math.max(0, Math.min(QUIZ.length, i)); save(); renderQuiz();
-};
-A.quizGo = (el) => { S.quiz.idx = +el.dataset.i; save(); renderQuiz(); };
-A.quizRestart = () => { S.quiz = { idx: 0, ans: {} }; save(); renderQuiz(); };
-
-VIEWS.tdah = {
-  render() {
-    return `${secHead("tdah", "Desvendando o TDAH", "Informações científicas sobre o TDAH, apresentadas de forma clara. Leia os capítulos no seu ritmo e, depois, explore o quiz de mito ou verdade.")}
-    <div class="stack-lg">
-      <section class="chapters"><nav class="chapter-nav" id="chap-nav" aria-label="Capítulos">${chapterNav()}</nav><div id="chap-body">${chapterBody()}</div></section>
-      <section>
-        ${sectionTitle("A mesa de som da atenção", "sliders")}
-        <p class="muted prose" style="margin-bottom:14px">${TDAH_EQ.intro}</p>
-        <div class="card" id="eq-area">${eqArea()}</div>
-      </section>
-      <section id="quiz" style="scroll-margin-top:80px">
-        ${sectionTitle("Quiz: mito ou verdade?", "search")}
-        <p class="muted prose" style="margin-bottom:18px">Leia cada afirmação e indique se é mito ou verdade. Após cada resposta, aparece uma explicação. Não há nota: o objetivo é aprender e conversar.</p>
-        <div class="quiz" id="quiz-body">${quizBody()}</div>
-      </section>
-    </div>
-    ${stageFoot("tdah")}`;
-  },
-};
-
-/* =========================================================
-   ABA 3 — ISSO ACONTECE COMIGO?
-   ========================================================= */
-const deckCards = () => (S.cards.cat === "all" ? CARDS : CARDS.filter((c) => c.cat === S.cards.cat));
-let deckDir = 1;
-function deckBody() {
-  const list = deckCards(); if (S.cards.idx >= list.length) S.cards.idx = 0;
-  const c = list[S.cards.idx]; const cat = CARD_CATS.find((x) => x.id === c.cat); const a = S.cards.ans[c.id];
-  const resp = RESPOSTAS.find((r) => r.id === a);
-  return `<div class="pcard ${deckDir < 0 ? "back" : ""}" aria-live="polite">
-    <div class="pc-deco">${sym(pick(["star", "note", "mic", "skate"]), "lilas").replace("<svg", '<svg width="140" height="140"')}</div>
-    <div class="pc-top"><span class="tag ${cat.cor === "lilas" ? "" : cat.cor}">${icon(cat.icon, 14)} ${cat.nome}</span><span class="deck-count">Carta ${S.cards.idx + 1} de ${list.length}</span></div>
-    <p class="pc-sit">${c.sit}</p>
-    <p class="muted">Isso acontece com você?</p>
-    <div class="resp-grid" role="group" aria-label="Respostas">${RESPOSTAS.map((r) => `<button class="resp ${a === r.id ? "picked" : ""}" data-act="cardAns" data-v="${r.id}" aria-pressed="${a === r.id}"><span class="rdot" style="background:${r.cor}"></span>${r.nome}</button>`).join("")}</div>
-    ${resp ? `<div class="follow stack">${reflectBox(resp.follow[0], "Para conversar")}${resp.follow[1] ? reflectBox(resp.follow[1], "Outra pergunta") : ""}${reflectBox(c.extra, "Para aprofundar")}</div>` : ""}
-  </div>
-  <div class="deck-nav"><button class="btn btn-ghost" data-act="cardStep" data-d="-1" ${S.cards.idx === 0 ? "disabled" : ""}>${icon("arrowL", 18)} Anterior</button><span class="deck-count">${Object.keys(S.cards.ans).length} de ${CARDS.length} cartas exploradas</span><button class="btn ${a ? "btn-primary" : "btn-ghost"}" data-act="cardStep" data-d="1" ${S.cards.idx >= list.length - 1 ? "disabled" : ""}>Próxima ${icon("arrowR", 18)}</button></div>`;
-}
-function catRow() { return `<button class="chip ${S.cards.cat === "all" ? "on" : ""}" data-act="cardCat" data-c="all">Todas</button>${CARD_CATS.map((c) => `<button class="chip ${S.cards.cat === c.id ? "on" : ""}" data-act="cardCat" data-c="${c.id}">${icon(c.icon, 15)} ${c.nome}</button>`).join("")}`; }
-function renderDeck() { $("#deck").innerHTML = deckBody(); $("#cat-row").innerHTML = catRow(); }
-A.cardAns = (el) => { const c = deckCards()[S.cards.idx]; S.cards.ans[c.id] = el.dataset.v; save(); tone(523, 0.12, "sine", 0.08); deckDir = 1; renderDeck(); afterProgress("comigo"); };
-A.cardStep = (el) => { deckDir = +el.dataset.d; S.cards.idx = Math.max(0, Math.min(deckCards().length - 1, S.cards.idx + deckDir)); save(); renderDeck(); };
-A.cardCat = (el) => { S.cards.cat = el.dataset.c; S.cards.idx = 0; deckDir = 1; save(); renderDeck(); };
-
-VIEWS.comigo = {
-  render() {
-    return `${secHead("comigo", "Isso acontece comigo?", "Cada carta apresenta uma situação do dia a dia. Leia, reflita se ela se aplica a você e escolha uma resposta. Em seguida, aparece uma pergunta para conversar.")}
-    <div class="stack">
-      <div class="grid g2">
-        <div class="note lav">${icon("heart")}<span>Não existem respostas certas ou erradas. Todas as situações podem acontecer com qualquer pessoa, em algum momento.</span></div>
-        <div class="note">${icon("info")}<span>As cartas não geram pontuação nem diagnóstico, e uma situação isolada não confirma nenhum sintoma. Elas servem para você se conhecer melhor.</span></div>
-      </div>
-      <div class="deck-wrap" style="margin-top:14px"><div class="cat-row" id="cat-row">${catRow()}</div><div class="deck" id="deck">${deckBody()}</div></div>
-    </div>
-    ${stageFoot("comigo")}`;
-  },
-};
-
-/* =========================================================
-   ENCERRAMENTO, REFERÊNCIAS
+   ENCERRAMENTO E REFERÊNCIAS
    ========================================================= */
 VIEWS.final = {
   render() {
     const fim = allDone();
-    return `<section class="final stack">
-      <div class="final-art">${heroArt("final")}</div>
-      ${fim ? `<span class="eyebrow" style="justify-content:center">${starFill(14)} Encerramento</span><h1>Jornada concluída</h1>
-      <p class="big">Você descobriu novas maneiras de entender seu cérebro, reconheceu algumas das suas habilidades e conheceu ferramentas que podem ajudar no seu dia a dia.</p>
-      <p class="big">Lembre-se: cada pessoa tem seu próprio ritmo, suas habilidades e seus desafios. Conhecer melhor a si mesma é uma maneira de descobrir novos caminhos.</p>
-      <p class="hand" style="font-size:1.8rem;margin-top:6px">Seu mundo, seu ritmo, sua mente.</p>`
-      : `<span class="eyebrow" style="justify-content:center">${icon("skate", 16)} Encerramento</span><h1>Ainda há etapas pela frente</h1><p class="big">Você já conquistou ${doneCount()} de ${STAGES.length} estrelas. Ao concluir todas as etapas, a mensagem de encerramento será exibida aqui.</p>`}
-      <div class="badges-row" style="margin-top:18px;text-align:left">${STAGES.map((s) => `<div class="bdg ${S.done[s.id] ? "" : "off"}">${medalSVG(s, !!S.done[s.id], 64)}<b>${s.badge}</b><small>${s.badgeMsg}</small></div>`).join("")}</div>
-      <div class="row" style="justify-content:center;margin-top:20px"><a class="btn btn-primary" href="#resumo">${icon("book", 18)} Ver meu manual</a><a class="btn btn-ghost" href="#inicio">${icon("home", 18)} Voltar ao início</a></div>
-    </section>`;
+    return `<section class="hero" style="grid-template-columns:1fr;min-height:0"><div class="hero-text" style="padding:44px">
+      <span class="label light">${fim ? "Percurso concluído" : "Encerramento"}</span>
+      <h1>${fim ? "Meu cérebro, minhas <em>descobertas.</em>" : "Ainda há <em>missões</em> pela frente"}</h1>
+      ${fim ? FINAL_TXT.map((p) => `<p class="sub" style="max-width:60ch">${p}</p>`).join("") : `<p class="sub">Você já concluiu ${doneCount()} de ${MISSIONS.length} missões. Quando todas estiverem concluídas, esta tela estará esperando por você.</p>`}
+      <div class="row"><a class="btn btn-primary" href="#rider">${icon("mic", 16)} Ver meu rider</a><a class="btn btn-light" href="#inicio">Voltar ao início</a></div></div></section>
+      <section style="margin-top:30px">${secTitle("Ingressos", doneCount() + "/" + MISSIONS.length)}<div class="tickets">${MISSIONS.map((m) => ticketHTML(m)).join("")}</div></section>`;
   },
-  mount() { if (allDone()) burst(); },
 };
-
 VIEWS.referencias = {
   render() {
-    return `<header class="sec-head"><div><span class="eyebrow">${icon("bookopen", 16)} Fundamentação científica</span><h1 style="margin-top:8px">Referências</h1><p class="lead">O conteúdo deste material foi elaborado com base em manuais diagnósticos, diretrizes clínicas e literatura científica sobre TDAH, neurodesenvolvimento, funções executivas e intervenções psicossociais.</p></div></header>
-    <div class="stack">
-      <div class="note lav">${icon("info")}<span>Este é um material de <b>psicoeducação</b>. Ele não substitui avaliação, diagnóstico ou tratamento realizados por profissionais habilitados. Recomenda-se conferir as edições mais recentes das diretrizes antes de citá-las.</span></div>
-      <div class="card"><ol class="ref-list">${REFERENCIAS.map((r) => `<li>${r}</li>`).join("")}</ol></div>
+    return `<header class="stack" style="margin-bottom:22px"><span class="label">Fundamentação científica</span><h1>Referências</h1><p class="muted prose">O conteúdo foi elaborado com base em manuais diagnósticos, diretrizes clínicas e literatura científica sobre TDAH, neurodesenvolvimento, funções executivas e intervenções psicossociais.</p></header>
+    <div class="stack"><div class="note lav">${icon("info")}<span>Este é um material de psicoeducação. Ele não substitui avaliação, diagnóstico ou tratamento realizados por profissionais habilitados. Recomenda-se conferir as edições mais recentes das diretrizes antes de citá-las.</span></div>
+    <div class="card"><ol class="ref-list">${REFERENCIAS.map((r) => `<li>${r}</li>`).join("")}</ol></div></div>`;
+  },
+};
+
+/* =========================================================
+   GUIA PARA A FAMÍLIA
+   ========================================================= */
+function familiaBody(standalone) {
+  const F = FAMILIA;
+  const toc = [...F.secoes.map((s) => [s.id, s.titulo]), ["f-poss", "Possibilidades no dia a dia"], ["f-com", "Comunicação"], ["f-ref", "Para refletir em família"]];
+  return `<div class="fam-layout"><nav class="toc no-print" aria-label="Sumário">${toc.map(([id, t]) => `<button type="button" data-act="scrollTo" data-target="${id}">${t}</button>`).join("")}</nav>
+  <div class="stack-lg">
+    ${F.secoes.map((s) => `<section class="fam-sec" id="${s.id}"><h2>${s.titulo}</h2><div class="prose">${s.html}</div></section>`).join("")}
+    <section class="fam-sec" id="f-poss"><h2>Possibilidades no dia a dia</h2><p class="muted prose">${F.possibilidades.intro}</p>
+      <div class="consider">${F.possibilidades.itens.map((p) => `<div class="card"><div class="row" style="gap:10px;margin-bottom:8px"><span class="ib sm i-lilas">${icon(p.icon, 18)}</span><h4>${p.t}</h4></div><p>${p.p}</p></div>`).join("")}</div></section>
+    <section class="fam-sec" id="f-com"><h2>Comunicação</h2><p class="muted prose">${F.comunicacao.intro}</p>
+      <div class="row small" style="gap:10px"><span class="tag coral">No calor do momento</span><span class="tag agua">Uma alternativa possível</span></div>
+      <div class="stack" style="gap:10px">${F.comunicacao.pares.map(([a, b, w]) => `<div class="swap"><div class="from">“${a}”</div><div class="to">“${b}”</div><div class="why">${w}</div></div>`).join("")}</div></section>
+    <section class="fam-sec" id="f-ref"><h2>Para refletir em família</h2><p class="muted prose">Perguntas para pensar individualmente ou levar para uma conversa com a psicóloga.</p>
+      <div class="grid g2">${F.reflexoes.map((q) => talk(q, "Reflexão")).join("")}</div></section>
+    <div class="note">${icon("info")}<span>${F.fecho}</span></div>
+    <p class="muted small">Material de psicoeducação baseado em evidências científicas (DSM-5-TR, CID-11, diretrizes clínicas e literatura sobre TDAH e funções executivas). ${standalone ? "" : `Veja as <a href="#referencias">referências</a>.`}</p>
+  </div></div>`;
+}
+VIEWS.familia = {
+  render() {
+    return `<section class="fam-hero"><div class="stack"><span class="label">Área para a família</span><h1>Guia para a família</h1><p class="prose">${FAMILIA.intro}</p></div>
+      <div class="stack no-print"><a class="btn btn-dark" href="#familia-compartilhar">${icon("share", 16)} Versão para compartilhar</a><p class="muted small">Abre apenas este guia, sem o menu e sem nenhuma resposta da adolescente.</p></div></section>
+      <div style="margin-top:30px">${familiaBody(false)}</div>`;
+  },
+};
+VIEWS["familia-compartilhar"] = {
+  render() {
+    return `<div class="share-banner no-print"><span class="row" style="gap:10px">${icon("users")}<span>Guia para a família · versão para leitura e impressão</span></span><div class="row">${printButtons("Imprimir guia")}<a class="btn btn-ghost btn-sm" href="#familia">${icon("arrowL", 16)} Voltar</a></div></div>
+      <section class="fam-hero"><div class="stack"><span class="label">${esc(S.title)}</span><h1>Guia para a família</h1><p class="prose">${FAMILIA.intro}</p></div></section>
+      <div style="margin-top:30px">${familiaBody(true)}</div>`;
+  },
+};
+
+/* =========================================================
+   GUIA DA SESSÃO
+   ========================================================= */
+function guiaBody() {
+  const g = GUIA[S.guiaTab]; const m = missionOf(S.guiaTab);
+  return `<div class="grid g2"><div class="card stack"><span class="label">Missão ${pad2(m.n)} · ${m.dur}</span><h3>${m.titulo}</h3><p>${g.obj}</p><a class="btn btn-ghost btn-sm" href="#${m.id}" style="align-self:flex-start">Abrir a missão ${icon("arrowR", 14)}</a></div>
+    <div class="card stack"><span class="label">Perguntas que podem ajudar</span><ul class="dots">${g.perguntas.map((p) => `<li>${p}</li>`).join("")}</ul><span class="label" style="margin-top:6px">Cuidados</span><ul class="dots">${g.cuidados.map((p) => `<li>${p}</li>`).join("")}</ul></div></div>`;
+}
+A.guiaTab = (el) => { S.guiaTab = el.dataset.id; save(); $("#guia-tabs").innerHTML = guiaTabs(); $("#guia-body").innerHTML = guiaBody(); };
+const guiaTabs = () => MISSIONS.map((m) => `<button class="chip ${S.guiaTab === m.id ? "on" : ""}" data-act="guiaTab" data-id="${m.id}">${pad2(m.n)} · ${m.titulo}</button>`).join("");
+A.saveTitle = () => { S.title = $("#title-in").value.trim() || TITULO_PADRAO; save(); updateNav(); toast("Título atualizado."); };
+A.toggleDone = (el) => { const st = M(el.dataset.id); st.done = !st.done; if (st.done && !st.at) st.at = new Date().toLocaleDateString("pt-BR"); save(); updateNav(); $("#guia-st").innerHTML = guiaStatus(); };
+const guiaStatus = () => MISSIONS.map((m) => `<div class="todo"><span style="flex:1"><b>${pad2(m.n)} · ${m.titulo}</b><br><span class="muted small">${S.m[m.id] && S.m[m.id].done ? "Concluída em " + S.m[m.id].at : started(m.id) ? "Em andamento" : "Não iniciada"}</span></span><button class="btn btn-ghost btn-sm" data-act="toggleDone" data-id="${m.id}">${S.m[m.id] && S.m[m.id].done ? "Desmarcar" : "Marcar como concluída"}</button></div>`).join("");
+VIEWS.guia = {
+  render() {
+    return `<header class="stack" style="margin-bottom:24px"><span class="label">Uso profissional</span><h1>Guia da sessão</h1><p class="muted prose">Apoio para conduzir cada missão. As mesmas notas aparecem dentro de cada missão, no botão “Notas para a mediação”.</p></header>
+    <div class="stack-lg">
+      <section class="grid g2"><div class="card stack"><h3>Dinâmica sugerida</h3><ol class="flow-mini" style="padding:0;margin:0">${GUIA_GERAL.dinamica.map((p) => `<li>${p}</li>`).join("")}</ol></div>
+        <div class="card stack"><h3>Postura</h3><ul class="dots">${GUIA_GERAL.postura.map((p) => `<li>${p}</li>`).join("")}</ul></div></section>
+      <section>${secTitle("Por missão")}<div class="guide-tabs" id="guia-tabs">${guiaTabs()}</div><div id="guia-body">${guiaBody()}</div></section>
+      <section class="grid g2" style="align-items:start">
+        <div class="stack"><h3>Título do projeto</h3><p class="muted small">Aparece no menu, na tela inicial e no pôster. Para fixar, altere <code>TITULO_PADRAO</code> em <code>src/content.js</code>.</p><form class="add-row" onsubmit="event.preventDefault();A.saveTitle()"><label class="sr-only" for="title-in">Título</label><input id="title-in" value="${esc(S.title)}" maxlength="60"><button class="btn btn-dark" type="submit">Salvar</button></form>
+          <div class="note agua">${icon("lock")}<span>${GUIA_GERAL.privacidade}</span></div><button class="btn btn-ghost" data-act="askReset" style="align-self:flex-start">${icon("refresh", 16)} Reiniciar</button></div>
+        <div class="stack"><h3>Andamento das missões</h3><div class="stack" style="gap:8px" id="guia-st">${guiaStatus()}</div></div>
+      </section>
     </div>`;
   },
 };
 
 /* =========================================================
-   Eventos globais e inicialização
+   Eventos globais
    ========================================================= */
+const INPUTS = {};
 document.addEventListener("click", (e) => {
-  const t = e.target.closest("[data-act]"); if (!t) return;
-  const fn = A[t.dataset.act]; if (!fn) return;
-  if (t.tagName === "A" && t.dataset.act === "closeModal") { $("#modal-root").innerHTML = ""; if (badgeQueue.length) setTimeout(showNextBadge, 300); return; }
+  const t = e.target.closest("[data-act]"); if (!t) return; const fn = A[t.dataset.act]; if (!fn) return;
+  if (t.tagName === "A" && t.dataset.act === "closeModal") { $("#modal-root").innerHTML = ""; return; }
   fn(t, e);
+});
+document.addEventListener("input", (e) => {
+  const k = e.target.dataset && e.target.dataset.input; if (!k) return;
+  if (k === "nota") { M(CUR).nota = e.target.value; save(); }
+  else if (INPUTS[k]) INPUTS[k](e.target);
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if ($("#modal-root") && $("#modal-root").innerHTML) closeModal(); else A.closeNav(); } });
 window.addEventListener("hashchange", route);
-function boot() { renderShell(); route(); }
+function boot() { MISSIONS.forEach((m) => (VIEWS[m.id] = missionView(m.id))); renderShell(); route(); }
