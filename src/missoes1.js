@@ -1,363 +1,214 @@
 /* =========================================================
-   MISSÕES 1 a 4
+   MISSÃO 1 — ENTENDENDO MINHA MENTE
    ========================================================= */
-let G = { timers: [], keyHandler: null };
-function gLater(fn, ms) { const t = setTimeout(fn, ms); G.timers.push(t); return t; }
-function stopAllGames() { G.timers.forEach(clearTimeout); G.timers = []; if (G.keyHandler) document.removeEventListener("keydown", G.keyHandler); G.keyHandler = null; G.running = false; }
-
-/* Fader vertical reutilizável */
-function fader(id, label, val, input, extra = "") {
-  return `<div class="fader"><div class="track"><div class="fill" style="height:${val * 10}%"></div><input type="range" min="0" max="10" step="1" value="${val}" data-input="${input}" data-id="${id}" ${extra} aria-label="${esc(label)}"></div><span>${esc(label)}</span></div>`;
-}
-function paintFader(el) { const f = el.parentElement.querySelector(".fill"); if (f) f.style.height = el.value * 10 + "%"; }
-
-/* =================== MISSÃO 1 — BASTIDORES =================== */
-const LOBE_PATHS = {
-  frontal: "M70,175 C40,140 45,85 95,55 C125,38 160,30 197,30 C197,70 192,98 182,118 C160,128 140,140 128,160 C110,178 88,185 70,175 Z",
-  parietal: "M197,30 C245,28 295,45 322,75 C315,95 300,108 285,115 C255,118 215,118 182,118 C192,98 197,70 197,30 Z",
-  occipital: "M322,75 C350,100 360,140 347,172 C330,176 312,170 300,160 C298,140 292,125 285,115 C300,108 315,95 322,75 Z",
-  temporal: "M128,160 C140,140 160,128 182,118 C215,118 255,118 285,115 C292,125 298,140 300,160 C285,185 250,200 210,202 C170,204 140,190 128,160 Z",
-  cerebelo: "M290,178 C310,170 335,172 349,178 C353,200 330,222 300,220 C280,218 270,200 290,178 Z",
-};
-const LOBE_LABELS = { frontal: [112, 108, "Frontal"], parietal: [252, 74, "Parietal"], occipital: [324, 138, "Occip."], temporal: [236, 182, "Temporal"], cerebelo: [318, 202, "Cerebelo"] };
-function brainSVG() {
-  const d = D("bastidores"); const sel = d.sel;
-  return `<svg class="brain-svg ${sel ? "has-sel" : ""}" viewBox="30 18 340 262" role="group" aria-label="Mapa interativo do cérebro">
-    <path d="M238,196 C246,204 258,204 266,198 L272,262 C264,272 248,272 240,262 Z" fill="#3A2E5C"/>
-    ${M1.regioes.map((r) => `<path class="lobe ${sel === r.id ? "sel" : ""}" d="${LOBE_PATHS[r.id]}" fill="${r.cor}" tabindex="0" role="button" aria-label="${r.nome}" data-act="brainSel" data-id="${r.id}"><title>${r.nome}</title></path>`).join("")}
-    ${M1.regioes.map((r) => { const [x, y, t] = LOBE_LABELS[r.id]; return `<text x="${x}" y="${y}" text-anchor="middle">${t}</text>`; }).join("")}
-    ${M1.profundas.map((p) => `<g class="deep" tabindex="0" role="button" aria-label="${p.nome}" data-act="brainSel" data-id="${p.id}"><title>${p.nome}</title><circle class="pulse" cx="${p.x}" cy="${p.y}" r="7" fill="#fff"/><circle cx="${p.x}" cy="${p.y}" r="${sel === p.id ? 10 : 7}" fill="#211936" stroke="#fff" stroke-width="2.5"/></g>`).join("")}
-  </svg>`;
-}
-function regionPanel() {
-  const d = D("bastidores"); const all = M1.regioes.concat(M1.profundas); const r = all.find((x) => x.id === d.sel); const seen = Object.keys(d.regions || {}).length;
-  const list = `<div class="row" style="gap:6px">${all.map((x) => `<button class="chip ${d.sel === x.id ? "on" : ""}" data-act="brainSel" data-id="${x.id}">${(d.regions || {})[x.id] ? icon("check", 12, 3) : ""}${x.nome}</button>`).join("")}</div>`;
-  if (!r) return `<div class="card stack"><span class="label">${seen} de ${all.length} exploradas</span><h3>Toque em uma região</h3><p class="muted">As cores mostram as grandes regiões do cérebro, os lobos. Os pontos brancos indicam estruturas que ficam na parte interna.</p>${list}</div>`;
-  return `<div class="card stack" aria-live="polite"><span class="label">${r.apelido}</span><h3>${r.nome}</h3><p>${r.texto}</p><div class="note lav small">${icon("mic", 16)}<span>${r.exemplo}</span></div><span class="label" style="margin-top:4px">${seen} de ${all.length} exploradas</span>${list}</div>`;
-}
-A.brainSel = (el) => { const d = D("bastidores"); d.sel = el.dataset.id; d.regions = d.regions || {}; d.regions[d.sel] = true; save(); $("#brain").innerHTML = brainSVG(); $("#region").innerHTML = regionPanel(); };
-function passHTML(c) {
-  const d = D("bastidores"); const f = (d.flip || {})[c.id];
-  return `<button class="pass ${f ? "flip" : ""}" data-act="passFlip" data-id="${c.id}" aria-pressed="${!!f}" aria-label="${c.nome}: ${c.apelido}"><div class="inner">
-    <div class="face front"><span class="hole"></span><span class="label light">Credencial · ${c.nome}</span><h3>${c.apelido}</h3><p class="role">${c.papel}</p><span style="margin-top:auto;color:var(--agua);display:flex;gap:6px;align-items:center;font-size:.84rem;font-weight:700">${icon(c.icon, 16)} Toque para virar</span></div>
-    <div class="face back"><div><b>O que faz</b>${c.faz}</div><div><b>No cérebro</b>${c.onde}</div><div><b>No dia a dia</b>${c.ex}</div></div>
-  </div></button>`;
-}
-A.passFlip = (el) => { const d = D("bastidores"); d.flip = d.flip || {}; d.flip[el.dataset.id] = !d.flip[el.dataset.id]; save(); el.classList.toggle("flip"); };
-function diaHTML() {
-  const d = D("bastidores"); d.dia = d.dia || 0; d.pick = d.pick || {}; d.rev = d.rev || {};
-  const i = d.dia; const sc = M1.dia[i]; const picked = d.pick[i] || []; const rev = !!d.rev[i];
-  return `<div class="stack"><div class="timeline" role="tablist" aria-label="Momentos do dia">${M1.dia.map((x, k) => `<button class="${k === i ? "on" : ""} ${d.rev[k] ? "done" : ""}" data-act="diaGo" data-i="${k}">${x.t}</button>`).join("")}</div>
-    <div class="scene"><div class="sc-top"><span class="sc-time">${sc.t}</span><p style="font-weight:650;font-size:1.06rem">${sc.s}</p></div>
-    <div class="sc-body"><span class="label">Quem da equipe precisa entrar em cena? Escolha quantas quiser.</span>
-      <div class="crew-pick">${M1.equipe.map((c) => `<button class="${picked.includes(c.id) ? "on" : ""} ${rev && sc.eq.includes(c.id) ? "hit" : ""}" data-act="crewPick" data-id="${c.id}" aria-pressed="${picked.includes(c.id)}">${icon(c.icon, 16)} ${c.apelido}</button>`).join("")}</div>
-      ${rev ? `<div class="note agua">${icon("eye", 18)}<span><b>Nos bastidores:</b> ${sc.nota} As integrantes destacadas costumam participar dessa cena, mas outras também podem ajudar.</span></div>${talk(sc.q)}`
-        : `<div><button class="btn btn-dark" data-act="diaReveal" ${picked.length ? "" : "disabled"}>${icon("eye", 16)} Ver os bastidores</button></div>`}
-    </div></div>
-    ${rev && i < M1.dia.length - 1 ? `<div><button class="btn btn-primary" data-act="diaGo" data-i="${i + 1}">Próximo momento: ${M1.dia[i + 1].t} ${icon("arrowR", 16)}</button></div>` : ""}
-    ${rev && i === M1.dia.length - 1 ? `<div class="note lav">${icon("flag", 18)}<span>O dia terminou. Repare que quase todos os momentos chamaram mais de uma integrante: as funções executivas trabalham em equipe.</span></div>` : ""}
-  </div>`;
-}
-A.crewPick = (el) => { const d = D("bastidores"); const i = d.dia; d.pick[i] = toggleIn(d.pick[i] || [], el.dataset.id); save(); $("#dia").innerHTML = diaHTML(); };
-A.diaReveal = () => { const d = D("bastidores"); d.rev[d.dia] = true; save(); tone(660, 0.15); $("#dia").innerHTML = diaHTML(); };
-A.diaGo = (el) => { const d = D("bastidores"); d.dia = +el.dataset.i; save(); $("#dia").innerHTML = diaHTML(); };
-MREND.bastidores = [
-  () => `<div class="brain-wrap"><div class="brain-stage" id="brain">${brainSVG()}</div><div id="region">${regionPanel()}</div></div><p class="muted small" style="margin-top:10px">Vista lateral simplificada, com a testa à esquerda.</p>`,
-  () => `<div class="stack"><p class="prose">${M1.equipeNota}</p><div class="passes">${M1.equipe.map(passHTML).join("")}</div></div>`,
-  () => `<div id="dia">${diaHTML()}</div>`,
+MREND.mente = [
+  () => `<div class="stack-lg">${introHTML(M1.intro, `<div class="note gold">${icon("eye", 20)}<span><b>Um lembrete importante.</b> ${M1.investigacao}</span></div>`)}${deepBlocks("mente", M1.blocos)}${talk("Qual desses blocos mais parece com você? E qual não tem nada a ver?")}</div>`,
+  () => `<div id="myth">${mythHTML()}</div>`,
+  () => m1Conecte(),
+  () => conquistaHTML("mente", { sub: "Você conheceu melhor o jeito da sua mente: atenção, impulsos, começo e fim das tarefas, interesse e os dias que mudam.", label: "Uma descoberta que levo comigo", ph: "Algo que você percebeu, uma pergunta nova, algo para observar nos próximos dias...", top: m1Resumo() }),
 ];
-MSUM.bastidores = () => {
-  const d = D("bastidores"); d.team = d.team || {};
-  return `<p class="muted small">Como está cada integrante da sua equipe ultimamente? Arraste para cima ou para baixo. Não é medida: é como você percebe hoje.</p>
-    <div class="mixer">${M1.equipe.map((c) => fader(c.id, c.apelido.replace(/^(A|O) /, ""), d.team[c.id] ?? 5, "team")).join("")}</div>
-    <div class="row between small muted"><span>embaixo: precisa de reforço</span><span>em cima: trabalha bem</span></div>`;
-};
-INPUTS.team = (el) => { const d = D("bastidores"); d.team = d.team || {}; d.team[el.dataset.id] = +el.value; save(); paintFader(el); };
+function mythHTML() {
+  const d = D("mente"); d.myth = d.myth || { i: 0, ans: {} }; const st = d.myth; const L = M1.mitos;
+  const dots = `<div class="mdots" aria-hidden="true">${L.map((_, k) => `<i class="${k === st.i && st.i < L.length ? "cur" : st.ans[k] ? "on" : ""}"></i>`).join("")}</div>`;
+  if (st.i >= L.length) return `<div class="myth">${dots}<div class="mcard"><span class="label">Síntese</span><h2>O que fica dos mitos</h2><ul class="stack-sm" style="margin:0;padding-left:20px">${M1.sintese.map((s) => `<li>${s}</li>`).join("")}</ul>${talk("Qual dessas ideias você gostaria que mais gente soubesse?")}<div class="row"><button class="btn btn-pri" data-act="stepBy" data-d="1">Avançar: Conecte ${icon("arrowR", 16)}</button><button class="btn btn-ghost" data-act="mythAll">${icon("list", 16)} Rever todas as afirmações</button><button class="btn btn-ghost btn-sm" data-act="mythRestart">${icon("refresh", 14)} Jogar de novo</button></div><div id="mythall"></div></div></div>`;
+  const it = L[st.i]; const a = st.ans[st.i];
+  const VT = { mito: "É mito", verdade: "É verdade", depende: "Depende" };
+  return `<div class="myth"><div class="row between"><div><span class="label">Desvendando os mitos</span><h2 style="margin-top:4px">Verdade ou mito?</h2></div><span class="small muted count">Afirmação ${st.i + 1} de ${L.length}</span></div>${dots}
+    <div class="mcard" ${a ? "" : 'style="animation:pop .35s ease both"'}><p class="stmt">“${it.t}”</p>
+      <div class="mopts">${[["verdade", "Verdade"], ["mito", "Mito"], ["nsei", "Não tenho certeza"]].map(([k, l]) => `<button class="mopt ${a === k ? "mine" : ""}" data-act="mythAns" data-v="${k}" ${a ? "disabled" : ""}>${l}</button>`).join("")}</div>
+      ${a ? `<div class="reveal"><span class="verdict ${it.v}">${VT[it.v]}</span><p>${it.exp}</p><p class="small muted">Você marcou: ${a === "nsei" ? "não tenho certeza" : a}. Não existe placar aqui: o que importa é a conversa.</p></div>
+      <div class="row"><button class="btn btn-pri" data-act="mythNext">${st.i === L.length - 1 ? "Ver a síntese" : "Próxima afirmação"} ${icon("arrowR", 16)}</button></div>` : `<p class="small muted">Escolha uma opção para ver a explicação.</p>`}</div>
+    <p class="small muted">Dica: antes de abrir, conte em voz alta por que escolheu essa resposta.</p></div>`;
+}
+const mythRefresh = () => { $("#myth").innerHTML = mythHTML(); };
+A.mythAns = (el) => { const st = D("mente").myth; st.ans[st.i] = el.dataset.v; save(); mythRefresh(); };
+A.mythNext = () => { const st = D("mente").myth; st.i++; save(); mythRefresh(); $("#myth").scrollIntoView({ behavior: "smooth", block: "start" }); };
+A.mythRestart = () => { D("mente").myth = { i: 0, ans: {} }; save(); mythRefresh(); };
+A.mythAll = () => { const VT = { mito: "Mito", verdade: "Verdade", depende: "Depende" }; $("#mythall").innerHTML = `<div class="stack-sm">${M1.mitos.map((m) => `<details class="deep"><summary><span class="dic">${icon("chat", 20)}</span><span><b style="font-size:.98rem">${m.t}</b><span class="dsub">${VT[m.v]}</span></span><span class="chev">${icon("down")}</span></summary><div class="deep-body"><div class="dsec"><p>${m.exp}</p></div></div></details>`).join("")}</div>`; };
+function m1Conecte() {
+  const d = D("mente"); d.facil = d.facil || []; d.dificil = d.dificil || []; d.facilOwn = d.facilOwn || []; d.dificilOwn = d.dificilOwn || []; d.foco = d.foco || {};
+  const col = (k, title, ic, cls) => `<div class="card stack"><h3 class="row" style="gap:8px"><span style="color:var(--${cls}-ink)">${icon(ic, 20)}</span>${title}</h3><div class="chips">${chips([...M1[k], ...d[k + "Own"]], d[k], "mente", k, cls)}</div>
+    <form class="add-row" data-form="addOwn" data-m="mente" data-k="${k}"><label class="sr-only" for="own-${k}">Outra situação</label><input id="own-${k}" class="field" placeholder="Outra situação..." maxlength="50" autocomplete="off"><button class="btn btn-ghost btn-sm" type="submit">${icon("plus", 14)} Incluir</button></form></div>`;
+  return `<div class="stack-lg"><section class="stack"><h2>Meus dias mais fáceis e mais difíceis</h2><p class="muted prose">Marque o que costuma acontecer com você. São pistas, não respostas: servem para se observar e para conversar.</p>
+    <div class="grid g2">${col("facil", "Minha atenção fica mais fácil quando...", "spark", "acc")}${col("dificil", "Minha atenção fica mais difícil quando...", "wave", "warm")}</div></section>
+    <section class="stack"><h2>Interessante ou tedioso?</h2><p class="muted prose">Quanto foco você costuma ter em cada atividade? Arraste cada barra.</p>
+      <div class="card stack">${M1.ativ.map((a, i) => { const v = d.foco[i] ?? 5; return `<div class="stack-sm" style="gap:4px"><div class="row between"><label for="foco-${i}" style="font-weight:700">${a}</label><span class="small muted count" id="fv-${i}">${focoTxt(v)}</span></div><input id="foco-${i}" type="range" min="0" max="10" value="${v}" data-input="foco" data-i="${i}"></div>`; }).join("")}
+      <div class="row between small muted"><span>quase nenhum foco</span><span>foco total</span></div></div>
+      <div class="note acc">${icon("info", 20)}<span>Repare como o foco muda de uma atividade para outra. Isso acontece com todo mundo. O tamanho da diferença e o que faz o foco subir são pistas sobre como a sua mente funciona.</span></div></section>
+    <div class="grid g2">${talk("O que os seus dias mais fáceis têm em comum?")}${talk("Dá para levar alguma coisa das atividades com mais foco para as com menos?")}</div></div>`;
+}
+const focoTxt = (v) => (v <= 2 ? "quase nenhum" : v <= 4 ? "pouco" : v <= 6 ? "médio" : v <= 8 ? "bastante" : "total");
+INPUTS.foco = (el) => { D("mente").foco[el.dataset.i] = +el.value; save(); $("#fv-" + el.dataset.i).textContent = focoTxt(+el.value); };
+FORMS.addOwn = (f) => { const inp = f.querySelector("input"); const v = inp.value.trim(); if (!v) return; const d = D(f.dataset.m); const k = f.dataset.k; d[k + "Own"] = d[k + "Own"] || []; if (!d[k + "Own"].includes(v)) d[k + "Own"].push(v); d[k] = d[k] || []; if (!d[k].includes(v)) d[k].push(v); save(); rerender(); };
+function m1Resumo() {
+  const d = D("mente"); const f = d.facil || [], g = d.dificil || [];
+  if (!f.length && !g.length) return "";
+  return `<div class="card soft stack-sm"><span class="label">O que você observou</span>${f.length ? `<p><b>Mais fácil quando:</b> ${esc(f.join(", ").toLowerCase())}.</p>` : ""}${g.length ? `<p><b>Mais difícil quando:</b> ${esc(g.join(", ").toLowerCase())}.</p>` : ""}</div>`;
+}
 
-/* =================== MISSÃO 2 — GRUPO DA TURMA =================== */
-function chatInit() { const d = D("grupo"); if (!d.log) { d.log = []; d.ti = 0; d.files = {}; d.ch = {}; pushThread(d); save(); } return d; }
-function pushThread(d) { const th = M2.threads[d.ti]; if (th) d.log.push({ k: "them", who: th.who, key: th.key, t: th.msg }); }
-function bubble(m, delay) {
-  const st = delay ? `style="animation-delay:${delay}ms"` : "";
-  if (m.k === "me") return `<div class="msg me" ${st}>${esc(m.t)}</div>`;
-  if (m.k === "sys") return `<div class="msg sys" ${st}>${esc(m.t)}</div>`;
-  return `<div class="msg them" ${st}><b style="color:${M2.pessoas[m.key]}">${esc(m.who)}</b>${esc(m.t)}</div>`;
+/* =========================================================
+   MISSÃO 2 — DA VONTADE À AÇÃO
+   ========================================================= */
+function bridgeSVG() {
+  return `<svg viewBox="0 0 360 150" style="width:100%;max-width:420px;height:auto" role="img" aria-label="Uma ponte entre saber e fazer, apoiada por lembretes, listas, etapas e rotina">
+    <rect x="6" y="70" width="70" height="70" rx="10" class="f-soft"/><rect x="284" y="70" width="70" height="70" rx="10" class="f-soft"/>
+    <text x="41" y="110" text-anchor="middle" class="f-ink" style="font:800 14px var(--f-body)">Saber</text><text x="319" y="110" text-anchor="middle" class="f-ink" style="font:800 14px var(--f-body)">Fazer</text>
+    <path d="M76 78 Q180 30 284 78" fill="none" class="s-pri" stroke-width="4"/>
+    ${[0, 1, 2, 3, 4, 5, 6].map((i) => { const x = 92 + i * 30; const y = 78 - Math.sin(((x - 76) / 208) * Math.PI) * 24; return `<rect x="${x - 10}" y="${y - 3}" width="20" height="9" rx="2" class="f-gold"/>`; }).join("")}
+    ${["lembretes", "listas", "etapas", "rotina"].map((t, i) => `<g transform="translate(${100 + i * 45} 120)"><path d="M0 -28 v24" class="s-acc" stroke-width="3"/><text x="0" y="12" text-anchor="middle" class="f-ink" style="font:700 10px var(--f-body)">${t}</text></g>`).join("")}
+    <path d="${sparkPath(180, 18, 8)}" class="f-gold twinkle"/></svg>`;
 }
-let chatNew = 0;
-function chatHTML() {
-  const d = chatInit(); const th = M2.threads[d.ti]; const fresh = d.log.length - chatNew;
-  const msgs = d.log.map((m, i) => bubble(m, i >= fresh && chatNew ? (i - fresh) * 650 : 0)).join("");
-  chatNew = 0;
-  const actions = th ? `<span class="label">Como você quer responder?</span>${th.opts.map((o, k) => `<button class="opt" data-act="chatOpt" data-k="${k}">${o.l}${o.me ? `<small>“${esc(o.me)}”</small>` : `<small>(sem mensagem)</small>`}</button>`).join("")}
-      <form class="add-row" onsubmit="event.preventDefault();A.chatOwn()"><label class="sr-only" for="own">Escrever minha resposta</label><input id="own" placeholder="Ou escreva a sua resposta..." maxlength="200" autocomplete="off"><button class="btn btn-dark" type="submit">Enviar</button></form>`
-    : `<div class="note agua">${icon("check", 18)}<span>A conversa terminou e todos os arquivos foram liberados.</span></div><div class="row"><button class="btn btn-ghost btn-sm" data-act="chatReset">${icon("refresh", 14)} Recomeçar a conversa</button><button class="btn btn-primary btn-sm" data-act="stepBy" data-d="1">Ir para a mesa de som ${icon("arrowR", 14)}</button></div>`;
-  return `<div class="chat-wrap"><div class="phone"><div class="phone-top"><span class="av">8º</span><div><b>8º ano B</b><small>Lucas, Bia, Theo, Mari e você</small></div></div>
-      <div class="chat" id="chat" aria-live="polite">${msgs}</div><div class="chat-actions">${actions}</div></div>
-    <aside class="stack"><div class="row between"><span class="label">Dossiê</span><span class="label">${Object.keys(d.files).length}/${M2.threads.length}</span></div><div class="dossier">${M2.threads.map((t, i) => d.files[i] ? `<div class="file ${d.lastFile === i ? "new" : ""}"><h4>${icon("file", 16)} ${t.file.t}</h4><p>${t.file.txt}</p><div class="src">${t.file.src}</div></div>` : `<div class="file locked small">${icon("lock", 14)} Arquivo ${pad2(i + 1)} bloqueado</div>`).join("")}</div></aside></div>`;
-}
-function chatAdvance(d, meText, reply) {
-  const th = M2.threads[d.ti]; const before = d.log.length;
-  if (meText) d.log.push({ k: "me", t: meText });
-  d.log.push({ k: "them", who: reply.who, key: reply.key, t: reply.t });
-  d.log.push({ k: "sys", t: "Arquivo liberado: " + th.file.t });
-  d.files[d.ti] = true; d.lastFile = d.ti; d.ti++; pushThread(d);
-  chatNew = d.log.length - before; save(); tone(587, 0.1, "sine", 0.08);
-  $("#chatbox").innerHTML = chatHTML(); const c = $("#chat"); c.scrollTop = c.scrollHeight;
-}
-A.chatOpt = (el) => { const d = D("grupo"); const o = M2.threads[d.ti].opts[+el.dataset.k]; d.ch[d.ti] = o.l; chatAdvance(d, o.me, o.r); };
-A.chatOwn = () => { const v = $("#own").value.trim(); if (!v) return; const d = D("grupo"); const th = M2.threads[d.ti]; d.ch[d.ti] = "Resposta própria: " + v; chatAdvance(d, v, th.opts[0].r); };
-A.chatReset = () => { const d = D("grupo"); delete d.log; save(); $("#chatbox").innerHTML = chatHTML(); };
-function mesaHTML() {
-  const d = D("grupo"); d.mix = d.mix || {}; d.cena = d.cena || "aula"; const mix = d.mix[d.cena] || {};
-  const cenaNome = (c) => (c.id === "livre" && d.livre ? d.livre : c.nome);
-  return `<div class="stack"><p class="prose">${M2.mesa.intro}</p>
-    <div class="row">${M2.mesa.cenas.map((c) => `<button class="chip ${d.cena === c.id ? "on" : ""}" data-act="cena" data-id="${c.id}">${esc(cenaNome(c))}</button>`).join("")}</div>
-    ${d.cena === "livre" ? `<input class="field" data-input="livre" placeholder="Qual situação? (ex.: patinando com as amigas)" value="${esc(d.livre || "")}" maxlength="60" aria-label="Situação escolhida">` : ""}
-    <div class="mixer">${M2.mesa.canais.map((c) => fader(c.id, c.n, mix[c.id] ?? 5, "mix")).join("")}</div>
-    <div class="card tight stack"><span class="label">Comparando as cenas</span><div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:.84rem;min-width:520px;width:100%"><thead><tr><th style="text-align:left;padding:6px">Cena</th>${M2.mesa.canais.map((c) => `<th style="padding:6px;font-weight:600;color:var(--ink-2)">${c.n}</th>`).join("")}</tr></thead><tbody>
-      ${M2.mesa.cenas.filter((c) => d.mix[c.id]).map((c) => `<tr><td style="padding:6px;font-weight:650">${esc(cenaNome(c))}</td>${M2.mesa.canais.map((k) => { const v = d.mix[c.id][k.id] ?? 5; return `<td style="padding:6px"><div style="height:8px;border-radius:4px;background:var(--line);overflow:hidden"><div style="height:100%;width:${v * 10}%;background:var(--roxo)"></div></div></td>`; }).join("")}</tr>`).join("") || `<tr><td colspan="7" class="muted" style="padding:8px">Ajuste os canais de uma cena para começar a comparar.</td></tr>`}
-    </tbody></table></div></div>
-    <div class="note lav">${icon("sliders", 18)}<span>${M2.mesa.leitura}</span></div></div>`;
-}
-A.cena = (el) => { D("grupo").cena = el.dataset.id; save(); $("#mesa").innerHTML = mesaHTML(); };
-INPUTS.mix = (el) => { const d = D("grupo"); d.mix[d.cena] = d.mix[d.cena] || {}; d.mix[d.cena][el.dataset.id] = +el.value; save(); paintFader(el); clearTimeout(INPUTS._mt); INPUTS._mt = setTimeout(() => { const y = window.scrollY; $("#mesa").innerHTML = mesaHTML(); window.scrollTo(0, y); }, 600); };
-INPUTS.livre = (el) => { D("grupo").livre = el.value; save(); };
-MREND.grupo = [() => `<div id="chatbox">${chatHTML()}</div>`, () => `<div id="mesa">${mesaHTML()}</div>`];
-MMOUNT.grupo = { 1: () => { const c = $("#chat"); if (c) c.scrollTop = c.scrollHeight; } };
-MSUM.grupo = () => { const d = D("grupo"); const ch = d.ch || {}; const n = Object.keys(d.files || {}).length; return `<p class="small">${n} de ${M2.threads.length} arquivos liberados.</p>${Object.keys(ch).length ? `<ul class="dots small">${Object.entries(ch).map(([i, v]) => `<li><b>${esc(M2.threads[i].who)}:</b> ${esc(v)}</li>`).join("")}</ul>` : ""}`; };
-
-/* =================== MISSÃO 3 — ISSO TEM A VER COMIGO? =================== */
-function deckInit() { const d = D("comigo"); if (!d.order) { d.order = shuffle(M3.cartas.map((c) => c.id)); d.sorted = {}; d.star = []; d.ctx = {}; d.hist = []; save(); } return d; }
-const cardById = (id) => M3.cartas.find((c) => c.id === id);
-function sortHTML() {
-  const d = deckInit(); const left = d.order.filter((id) => !d.sorted[id]); const cur = left[0], nxt = left[1]; const n = M3.cartas.length - left.length;
-  const card = (id, under) => { const c = cardById(id); return `<div class="scard ${c.cat === "forte" ? "forte" : ""} ${under ? "under" : ""}" ${under ? "" : `id="scard" tabindex="0"`}><span class="label ${c.cat === "forte" ? "light" : ""}">${M3.cats[c.cat]}</span><p class="sit">${c.t}</p><span class="small" style="opacity:.7">${under ? "" : "Arraste até uma pilha ou toque em um botão"}</span></div>`; };
-  return `<div class="sort-wrap"><div class="note lav small">${icon("info", 18)}<span>${M3.aviso}</span></div>
-    <div class="row between"><span class="label">${n} de ${M3.cartas.length} separadas</span><div class="row" style="gap:6px"><button class="btn btn-ghost btn-sm" data-act="cardUndo" ${d.hist.length ? "" : "disabled"}>${icon("arrowL", 14)} Desfazer</button>${cur ? `<button class="btn btn-ghost btn-sm" data-act="cardSkip">Pular</button>` : ""}</div></div>
-    ${cur ? `<div class="deck-zone" id="deckzone">${nxt ? card(nxt, true) : ""}${card(cur)}</div>
-      <div class="piles" id="piles">${M3.pilhas.map((p) => `<button class="pile" data-act="cardTo" data-p="${p.id}"><span class="dot" style="background:${p.cor}"></span>${p.nome}<span class="pc">${Object.values(d.sorted).filter((v) => v === p.id).length}</span></button>`).join("")}</div>`
-    : `<div class="card stack" style="text-align:center;align-items:center;padding:34px"><span class="ib i-agua">${icon("check", 22)}</span><h3>Todas as cartas foram separadas</h3><p class="muted">Agora dá para ver o seu mapa e escolher o que conversar.</p><button class="btn btn-primary" data-act="stepBy" data-d="1">Ver meu mapa ${icon("arrowR", 16)}</button></div>`}
-  </div>`;
-}
-function sortCard(p, animate) {
-  const d = D("comigo"); const id = d.order.find((x) => !d.sorted[x]); if (!id) return;
-  const go = () => { d.sorted[id] = p; d.hist.push(id); save(); tone(523 + Object.keys(d.sorted).length * 10, 0.1, "sine", 0.07); $("#sort").innerHTML = sortHTML(); bindDeck(); };
-  const el = $("#scard");
-  if (animate && el) { const pile = $(`.pile[data-p="${p}"]`); const r = pile.getBoundingClientRect(), c = el.getBoundingClientRect(); el.classList.add("fly"); el.style.transform = `translate(${r.left + r.width / 2 - (c.left + c.width / 2)}px,${r.top - c.top}px) scale(.3) rotate(${(Math.random() - 0.5) * 30}deg)`; el.style.opacity = "0"; setTimeout(go, 300); }
-  else go();
-}
-A.cardTo = (el) => sortCard(el.dataset.p, true);
-A.cardSkip = () => { const d = D("comigo"); const id = d.order.find((x) => !d.sorted[x]); d.order = d.order.filter((x) => x !== id).concat(id); save(); $("#sort").innerHTML = sortHTML(); bindDeck(); };
-A.cardUndo = () => { const d = D("comigo"); const id = d.hist.pop(); if (!id) return; delete d.sorted[id]; d.order = [id].concat(d.order.filter((x) => x !== id)); save(); $("#sort").innerHTML = sortHTML(); bindDeck(); };
-function bindDeck() {
-  const el = $("#scard"); if (!el) return; let sx = 0, sy = 0, drag = false;
-  const piles = () => $$("#piles .pile");
-  const over = (x, y) => piles().find((p) => { const r = p.getBoundingClientRect(); return x >= r.left - 10 && x <= r.right + 10 && y >= r.top - 40 && y <= r.bottom + 10; });
-  el.addEventListener("pointerdown", (e) => { drag = true; sx = e.clientX; sy = e.clientY; el.setPointerCapture(e.pointerId); el.classList.add("dragging"); });
-  el.addEventListener("pointermove", (e) => { if (!drag) return; const dx = e.clientX - sx, dy = e.clientY - sy; el.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 18}deg)`; const h = over(e.clientX, e.clientY); piles().forEach((p) => p.classList.toggle("hot", p === h)); });
-  const end = (e) => { if (!drag) return; drag = false; el.classList.remove("dragging"); const h = over(e.clientX, e.clientY); piles().forEach((p) => p.classList.remove("hot")); if (h) { el.style.transform = ""; sortCard(h.dataset.p, false); } else { el.classList.add("fly"); el.style.transform = ""; setTimeout(() => el.classList.remove("fly"), 350); } };
-  el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
-  el.addEventListener("keydown", (e) => { const k = { 1: "muito", 2: "asvezes", 3: "pouco", 4: "depende" }[e.key]; if (k) sortCard(k, true); });
-}
-function mapHTML() {
-  const d = deckInit(); const left = M3.cartas.filter((c) => !d.sorted[c.id]).length; const sel = d.sel ? cardById(d.sel) : null;
-  return `<div class="stack">${left ? `<div class="note amarelo">${icon("cards", 18)}<span>Ainda faltam ${left} cartas para separar. <button class="btn btn-ghost btn-sm" data-act="goStep" data-i="1">Voltar ao baralho</button></span></div>` : ""}
-    <p class="muted">Toque em uma carta para mudar de pilha, marcar onde acontece ou escolhê-la para conversar. Você pode escolher até três.</p>
-    <div class="board-map">${M3.pilhas.map((p) => { const cs = M3.cartas.filter((c) => d.sorted[c.id] === p.id); return `<div class="bcol"><h4><span class="dot" style="width:10px;height:10px;border-radius:3px;background:${p.cor}"></span>${p.nome}<span class="label" style="margin-left:auto">${cs.length}</span></h4>${cs.map((c) => `<button class="mcard ${c.cat === "forte" ? "forte" : ""} ${d.star.includes(c.id) ? "star" : ""}" data-act="mapSel" data-id="${c.id}">${d.star.includes(c.id) ? icon("chat", 14) : ""}<span>${c.t}</span></button>`).join("") || `<span class="muted small">Nenhuma carta</span>`}</div>`; }).join("")}</div>
-    ${sel ? deepHTML(sel) : ""}</div>`;
-}
-function deepHTML(c) {
-  const d = D("comigo"); const qs = c.cat === "forte" ? M3.aprofundar.forte : M3.aprofundar.dif; const ctx = d.ctx[c.id] || []; const starred = d.star.includes(c.id);
-  return `<div class="deep stack" id="deep"><div class="row between"><span class="label">${M3.cats[c.cat]}</span><button class="btn btn-ghost btn-sm" data-act="mapSel" data-id="">${icon("x", 14)} Fechar</button></div><h3>${c.t}</h3>
-    <div class="row" style="gap:6px"><span class="small muted">Pilha:</span>${M3.pilhas.map((p) => `<button class="chip ${d.sorted[c.id] === p.id ? "on" : ""}" data-act="mapMove" data-p="${p.id}">${p.nome}</button>`).join("")}</div>
-    <div class="row" style="gap:6px"><span class="small muted">Onde acontece:</span>${chipsHTML(M3.contextos, ctx, "mapCtx", "", "agua")}</div>
-    <div><button class="btn ${starred ? "btn-dark" : "btn-primary"} btn-sm" data-act="mapStar" ${!starred && d.star.length >= 3 ? "disabled" : ""}>${icon("chat", 14)} ${starred ? "Escolhida para conversar" : d.star.length >= 3 ? "Já há três escolhidas" : "Escolher para conversar"}</button></div>
-    ${starred ? `<div class="grid g2">${qs.map((q) => talk(q)).join("")}</div>` : ""}</div>`;
-}
-const mapRefresh = () => { $("#map").innerHTML = mapHTML(); const dp = $("#deep"); dp && dp.scrollIntoView({ behavior: "smooth", block: "nearest" }); };
-A.mapSel = (el) => { D("comigo").sel = el.dataset.id || null; save(); mapRefresh(); };
-A.mapMove = (el) => { const d = D("comigo"); d.sorted[d.sel] = el.dataset.p; save(); mapRefresh(); };
-A.mapCtx = (el) => { const d = D("comigo"); d.ctx[d.sel] = toggleIn(d.ctx[d.sel] || [], el.dataset.v); save(); mapRefresh(); };
-A.mapStar = () => { const d = D("comigo"); if (d.star.includes(d.sel)) d.star = d.star.filter((x) => x !== d.sel); else if (d.star.length < 3) d.star.push(d.sel); save(); mapRefresh(); };
-MREND.comigo = [() => `<div id="sort">${sortHTML()}</div>`, () => `<div id="map">${mapHTML()}</div>`];
-MMOUNT.comigo = { 1: bindDeck };
-MSUM.comigo = () => { const d = deckInit(); return `<div class="row" style="gap:6px">${M3.pilhas.map((p) => `<span class="tag line">${p.nome}: ${Object.values(d.sorted).filter((v) => v === p.id).length}</span>`).join("")}</div>${d.star.length ? `<span class="small muted">Escolhidas para conversar:</span><ul class="dots small">${d.star.map((id) => `<li>${cardById(id).t}${(d.ctx[id] || []).length ? ` <span class="muted">(${d.ctx[id].join(", ")})</span>` : ""}</li>`).join("")}</ul>` : ""}`; };
-
-/* =================== MISSÃO 4 — LABORATÓRIO =================== */
-const LD = () => { const d = D("laboratorio"); d.played = d.played || {}; d.j = d.j || {}; return d; };
-const gameArea = () => $("#game-area");
-function gameHeader(g) {
-  return `<div class="game-head"><div class="row" style="gap:12px"><span class="ib i-night">${icon(g.icon, 22)}</span><div><span class="label">${g.hab}</span><h3>${g.nome}</h3></div></div>
-  <div class="row" style="gap:8px"><button class="btn btn-soft btn-icon btn-sm" data-act="toggleSound" aria-label="${S.sound ? "Desligar som" : "Ligar som"}">${icon(S.sound ? "volume" : "mute", 18)}</button><button class="btn btn-ghost btn-sm" data-act="gameEnd">${icon("flag", 14)} Encerrar e registrar</button></div></div>`;
-}
-A.toggleSound = (el) => { S.sound = !S.sound; save(); el.innerHTML = icon(S.sound ? "volume" : "mute", 18); };
-function labGrid() { const d = LD(); return GAMES.map((g) => `<button class="exp ${d.cur === g.id ? "on" : ""}" data-act="gameOpen" data-id="${g.id}"><div class="row between"><span class="ib sm i-lilas">${icon(g.icon, 18)}</span>${d.played[g.id] ? `<span class="tag agua">${icon("check", 11, 3)} Registrado</span>` : ""}</div><span class="label">${g.hab}</span><h4>${g.nome}</h4><p>${g.desc}</p></button>`).join(""); }
-A.gameOpen = (el) => { stopAllGames(); LD().cur = el.dataset.id; save(); $("#lab-grid").innerHTML = labGrid(); startGame(el.dataset.id); gameArea().scrollIntoView({ behavior: "smooth", block: "start" }); };
-function startGame(id) { gameArea().hidden = false; ({ atencao: attStart, memoria: memStart, inibicao: inhStart, planejamento: planStart, flexibilidade: flexStart })[id](); }
-A.gameEnd = () => finishGame(LD().cur);
-function journalHTML(g) {
-  const j = LD().j[g.id] || { p: [], e: [] };
-  return `<div class="journal"><span class="label">Diário do experimento</span><div><p class="small" style="font-weight:700;margin-bottom:6px">O que aconteceu com você?</p><div class="row" style="gap:6px">${chipsHTML(M4.percepcoes, j.p, "jP")}</div></div>
-    <div><p class="small" style="font-weight:700;margin-bottom:6px">Que estratégia você usou?</p><div class="row" style="gap:6px">${chipsHTML(M4.estrategias, j.e, "jE", "", "agua")}</div></div></div>`;
-}
-function finishGame(id) {
-  stopAllGames(); const g = GAMES.find((x) => x.id === id); if (!g) return; const d = LD(); d.played[id] = true; d.j[id] = d.j[id] || { p: [], e: [] }; save(); chime();
-  gameArea().innerHTML = `<div class="game-head"><div class="row" style="gap:12px"><span class="ib i-agua">${icon("check", 22)}</span><div><span class="label">${g.hab}</span><h3>${g.nome}</h3></div></div></div>
-    <div class="stack">${journalHTML(g)}<div class="kv"><span class="k">A habilidade por trás do jogo</span><p>${g.explica}</p></div>${talk(g.pergunta)}
-    <div class="row"><button class="btn btn-ghost" data-act="gameOpen" data-id="${g.id}">${icon("refresh", 16)} Jogar de novo</button><button class="btn btn-dark" data-act="scrollTo" data-target="lab-grid">Escolher outro experimento</button></div></div>`;
-  $("#lab-grid").innerHTML = labGrid();
-}
-A.jP = (el) => { const d = LD(); const j = d.j[d.cur]; toggleIn(j.p, el.dataset.v); save(); el.classList.toggle("on"); };
-A.jE = (el) => { const d = LD(); const j = d.j[d.cur]; toggleIn(j.e, el.dataset.v); save(); el.classList.toggle("on"); };
-
-/* 1. Holofote */
-const ATT_ROUNDS = [
-  { cols: 5, target: ["star", "amarelo"], label: "estrelas amarelas", n: 5, pool: () => [pick(["note", "mic", "skate"]), pick(Object.keys(SYM_COLORS))] },
-  { cols: 6, target: ["note", "agua"], label: "notas musicais verde-água", n: 6, pool: () => (Math.random() < 0.5 ? ["note", pick(["roxo", "coral", "azul", "amarelo", "lilas"])] : [pick(["star", "mic", "skate"]), Math.random() < 0.5 ? "agua" : pick(Object.keys(SYM_COLORS))]) },
-  { cols: 6, target: ["skate", "roxo"], label: "patins roxos", n: 6, distract: true, pool: () => (Math.random() < 0.45 ? ["skate", pick(["lilas", "azul", "coral"])] : [pick(["star", "mic", "note"]), Math.random() < 0.6 ? "roxo" : pick(Object.keys(SYM_COLORS))]) },
+MREND.acao = [
+  () => `<div class="stack-lg">${introHTML(M2.intro, `<div class="card stack" style="align-items:center">${bridgeSVG()}<p class="small muted" style="text-align:center">As tábuas são as estratégias que deixam a travessia mais firme.</p></div>`)}<div class="note">${icon("hand", 20)}<span>${M2.chave}</span></div>${deepBlocks("acao", M2.blocos)}${talk("Em qual dessas partes a sua ponte costuma balançar mais?")}</div>`,
+  () => `<div id="caos">${caosHTML()}</div>`,
+  () => toolsHTML(),
+  () => conquistaHTML("acao", { sub: "Você entendeu a distância entre saber e fazer e experimentou ferramentas para atravessá-la.", label: "Como vou usar essa ferramenta", help: "Quando, onde, e o que pode atrapalhar.", ph: "ex.: vou usar a lista de conferência toda noite antes de dormir, colada na porta do quarto...", top: m2Pick() }),
 ];
-function attStart() { G.att = { round: 0 }; attRound(); }
-function attRound() {
-  const R = ATT_ROUNDS[G.att.round]; const total = R.cols * R.cols; const pos = new Set(shuffle([...Array(total).keys()]).slice(0, R.n));
-  const cells = [...Array(total)].map((_, i) => { if (pos.has(i)) return { s: R.target[0], c: R.target[1], t: true }; let x; do { x = R.pool(); } while (x[0] === R.target[0] && x[1] === R.target[1]); return { s: x[0], c: x[1], t: false }; });
-  G.att.cells = cells; G.att.found = 0; G.att.n = R.n;
-  gameArea().innerHTML = `${gameHeader(GAMES[0])}
-  <div class="row between" style="margin-bottom:12px"><p>Rodada ${G.att.round + 1} de ${ATT_ROUNDS.length}: encontre todos os <span class="target-pill">${sym(R.target[0], R.target[1])} ${R.label}</span></p><span class="gstatus" id="att-status" aria-live="polite">0/${R.n}</span></div>
-  ${R.distract ? `<p class="muted small" style="margin-bottom:10px">Nesta rodada, alguns elementos vão atravessar a tela. Procure manter o foco no alvo.</p>` : ""}
-  <div class="att-grid" style="grid-template-columns:repeat(${R.cols},minmax(0,1fr))">${cells.map((c, i) => `<button class="att-cell" data-act="attCell" data-i="${i}" aria-label="${SHAPE_NOMES[c.s]} ${SYM_NOMES[c.c]}">${sym(c.s, c.c)}</button>`).join("")}${R.distract ? `<div class="distract-layer" id="distract"></div>` : ""}</div>
-  <div id="att-next" style="margin-top:14px;text-align:center"></div>`;
-  if (R.distract) attDistract();
-}
-function attDistract() { const layer = $("#distract"); if (!layer) return; const sp = document.createElement("span"); const size = 26 + Math.random() * 26; sp.style.left = Math.random() * 85 + "%"; sp.style.top = 40 + Math.random() * 55 + "%"; sp.style.width = size + "px"; sp.style.height = size + "px"; sp.innerHTML = sym(pick(["note", "star"]), pick(["amarelo", "coral", "agua"])); layer.appendChild(sp); setTimeout(() => sp.remove(), 5000); gLater(attDistract, 700); }
-A.attCell = (el) => {
-  const c = G.att.cells[+el.dataset.i]; if (el.classList.contains("found")) return;
-  if (c.t) {
-    el.classList.add("found"); G.att.found++; tone(660 + G.att.found * 40, 0.15, "sine", 0.1); $("#att-status").textContent = `${G.att.found}/${G.att.n}`;
-    if (G.att.found === G.att.n) { chime(); G.timers.forEach(clearTimeout); G.timers = []; const last = G.att.round === ATT_ROUNDS.length - 1;
-      $("#att-next").innerHTML = `<p class="muted" style="margin-bottom:10px">Todos os alvos encontrados. ${last ? "Esta era a última rodada." : "A próxima rodada é um pouco mais desafiadora."}</p>${last ? `<button class="btn btn-primary" data-act="gameEnd">Registrar no diário ${icon("arrowR", 16)}</button>` : `<button class="btn btn-dark" data-act="attNext">Próxima rodada ${icon("arrowR", 16)}</button>`}`; }
-  } else { el.classList.remove("nope"); void el.offsetWidth; el.classList.add("nope"); softNo(); }
-};
-A.attNext = () => { G.att.round++; attRound(); };
+MMOUNT.acao = { 1: bindDrag };
 
-/* 2. Sequência musical */
-const PADS = [{ s: "star", c: "amarelo", f: 523.25, bg: "#FBF3D9" }, { s: "note", c: "agua", f: 392.0, bg: "#E2F4EF" }, { s: "mic", c: "roxo", f: 329.63, bg: "#EFE9F9" }, { s: "skate", c: "coral", f: 261.63, bg: "#FBEAEC" }];
-function memStart() {
-  G.mem = { seq: [], pos: 0, phase: "idle" };
-  gameArea().innerHTML = `${gameHeader(GAMES[1])}<p style="text-align:center" class="prose" >Observe a sequência de luzes e sons. Depois, toque nos símbolos na mesma ordem. A cada acerto, a sequência ganha mais um elemento.</p>
-  <div class="simon" id="simon">${PADS.map((p, i) => `<button class="pad" data-act="memPad" data-i="${i}" style="background:${p.bg};color:${SYM_COLORS[p.c]}" aria-label="${SHAPE_NOMES[p.s]}" disabled>${sym(p.s, p.c)}</button>`).join("")}</div>
-  <p id="mem-status" class="gstatus" style="text-align:center;min-height:1.6em" aria-live="polite">Quando estiver pronta, toque em Começar.</p>
-  <div id="mem-ctrl" class="row" style="justify-content:center;margin-top:8px"><button class="btn btn-primary" data-act="memGo">${icon("play", 16)} Começar</button></div>`;
+/* ---------- Organizando o caos ---------- */
+function caos() { const d = D("acao"); if (!d.caos) d.caos = { phase: "plan", list: M2.caos.base.slice(), col: {}, sel: null, split: [] }; return d.caos; }
+const CC = (id) => M2.caos.cards[id];
+const fmtH = (h) => { const m = Math.round(h * 60); return m < 60 ? m + " min" : (m % 60 ? Math.floor(m / 60) + "h" + String(m % 60).padStart(2, "0") : m / 60 + "h"); };
+const capOf = (c) => (c.phase === "plan" ? 6 : 3);
+const hoursIn = (c, col) => c.list.filter((id) => c.col[id] === col).reduce((a, id) => a + CC(id).h, 0);
+function tcardHTML(c, id) {
+  const k = CC(id); const sel = c.sel === id;
+  return `<div class="tcard ${sel ? "sel" : ""} ${k.of ? "child" : ""}" data-act="caosSel" data-id="${id}" role="button" tabindex="0" aria-pressed="${sel}"><span class="grip" data-grip="${id}" aria-hidden="true" title="Arrastar">${icon("grip", 16)}</span><span class="tt">${k.t}</span>
+    <span class="tm"><span>${icon("clock", 13)} ${fmtH(k.h)}</span><span class="${k.urg ? "urg" : ""}">prazo: ${k.prazo}</span></span>
+    ${k.split && c.phase !== "done" ? `<span class="tact"><button class="linkbtn" data-act="caosSplit" data-id="${id}">${icon("stairs", 13)} Dividir em etapas</button></span>` : ""}</div>`;
 }
-function memLight(i, dur = 420) { const b = $$("#simon .pad")[i]; if (!b) return; b.classList.add("lit"); tone(PADS[i].f, dur / 1000, "sine", 0.18); setTimeout(() => b.classList.remove("lit"), dur); }
-const memPads = (on) => $$("#simon .pad").forEach((b) => (b.disabled = !on));
-A.memGo = () => { G.mem.seq = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)]; memPlay(); };
-function memPlay() {
-  G.mem.phase = "watch"; G.mem.pos = 0; memPads(false); $("#mem-ctrl").innerHTML = ""; $("#mem-status").textContent = `Observe a sequência de ${G.mem.seq.length}`;
-  G.mem.seq.forEach((v, k) => gLater(() => memLight(v), 700 + k * 720));
-  gLater(() => { G.mem.phase = "play"; memPads(true); $("#mem-status").textContent = "Sua vez"; }, 700 + G.mem.seq.length * 720);
+function caosHTML() {
+  const c = caos(); const cap = capOf(c); const bank = c.list.filter((id) => !c.col[id]); const used = hoursIn(c, "hoje");
+  const colHTML = (col) => { const ids = c.list.filter((id) => c.col[id] === col.id); const over = col.id === "hoje" && used > cap;
+    return `<div class="ccol ${col.id} ${c.sel ? "target" : ""} ${over ? "over" : ""}" data-col="${col.id}"><div class="ccol-h"><div class="row between"><b>${col.t}</b><span class="small muted count">${ids.length}</span></div>
+      ${col.id === "hoje" ? `<div class="bar" aria-label="Tempo usado"><i style="width:${Math.min(100, (used / cap) * 100)}%;background:${over ? "var(--warm-ink)" : "var(--acc)"}"></i></div><span class="small ${over ? "" : "muted"}" style="${over ? "color:var(--warm-ink);font-weight:750" : ""}">${fmtH(used)} de ${cap}h${over ? " · passou do tempo da tarde" : ""}</span>` : ""}</div>
+      ${c.sel && c.col[c.sel] !== col.id ? `<button class="drop-here" data-act="caosMove" data-col="${col.id}">Mover para cá</button>` : ""}
+      ${ids.map((id) => tcardHTML(c, id)).join("")}</div>`; };
+  const head = c.phase === "plan" ? `<div class="note">${icon("calendar", 20)}<span>${M2.caos.cena}</span></div>`
+    : `<div class="twist"><span style="color:var(--gold)">${icon("bell", 26)}</span><div class="stack-sm"><h3>${M2.caos.twist.t}</h3><p>${M2.caos.twist.txt}</p></div></div>`;
+  const how = `<p class="small muted">${icon("grip", 14)} Arraste pela alça, ou toque num cartão e depois em “Mover para cá”.</p>`;
+  const actions = c.phase === "plan" ? `<button class="btn btn-pri" data-act="caosNext" ${bank.length ? "disabled" : ""}>${icon("check", 16)} Fechar o plano da tarde</button>${bank.length ? `<span class="small muted">Organize todos os cartões para continuar.</span>` : ""}`
+    : c.phase === "twist" ? `<button class="btn btn-pri" data-act="caosNext">${icon("eye", 16)} Ver como ficou</button>` : "";
+  return `<div class="caos"><div class="row between"><div><span class="label">Organizando o caos</span><h2 style="margin-top:4px">Uma tarde, muitas coisas</h2></div><button class="btn btn-ghost btn-sm" data-act="caosReset">${icon("refresh", 14)} Recomeçar o jogo</button></div>
+    ${head}${c.phase === "done" ? caosResult() : `${how}
+    ${bank.length ? `<div class="bank ${c.sel ? "" : ""}" data-col=""><div class="bank-h row between"><b>Para organizar</b><span class="small muted count">${bank.length} cartões</span></div>${c.sel && c.col[c.sel] ? `<button class="drop-here" data-act="caosMove" data-col="">Devolver para cá</button>` : ""}${bank.map((id) => tcardHTML(c, id)).join("")}</div>` : ""}
+    <div class="caos-cols">${M2.caos.cols.map(colHTML).join("")}</div><div class="row">${actions}</div>`}</div>`;
 }
-A.memPad = (el) => {
-  if (G.mem.phase !== "play") return; const i = +el.dataset.i; memLight(i, 260);
-  if (i === G.mem.seq[G.mem.pos]) { G.mem.pos++; if (G.mem.pos === G.mem.seq.length) { G.mem.phase = "watch"; memPads(false); $("#mem-status").textContent = "Certo. A próxima sequência terá mais um elemento."; G.mem.seq.push(Math.floor(Math.random() * 4)); gLater(memPlay, 1300); } }
-  else { G.mem.phase = "idle"; memPads(false); softNo();
-    $("#mem-status").innerHTML = `A sequência era: <span style="display:inline-flex;gap:4px;vertical-align:middle">${G.mem.seq.map((v) => `<span style="width:24px;height:24px;display:inline-block">${sym(PADS[v].s, PADS[v].c)}</span>`).join("")}</span>`;
-    $("#mem-ctrl").innerHTML = `<button class="btn btn-dark" data-act="memRetry">${icon("refresh", 16)} Tentar de novo</button><button class="btn btn-primary" data-act="gameEnd">Registrar no diário</button>`; }
-};
-A.memRetry = () => memPlay();
+function caosResult() {
+  const c = caos(); const cap = capOf(c); const used = hoursIn(c, "hoje"); const T = (col) => c.list.filter((id) => c.col[id] === col).map((id) => CC(id));
+  const urgFora = c.list.filter((id) => CC(id).urg && c.col[id] !== "hoje").map(CC); const descanso = c.col.c8 === "hoje"; const div = c.split.map((id) => CC(id).t.toLowerCase());
+  const obs = [];
+  obs.push(used > cap ? `A tarde ficou com ${fmtH(used)} de tarefas para ${cap}h. Na vida real, algo provavelmente ficaria pela metade ou atrasaria o aniversário. O que você tiraria?` : `A tarde ficou com ${fmtH(used)} de tarefas para ${cap}h. ${cap - used >= 0.5 ? "Sobrou uma folga, que ajuda quando algo demora mais do que o previsto." : "Ficou bem justa."}`);
+  if (urgFora.length) obs.push(`Algumas coisas com prazo curto ficaram fora de hoje: ${urgFora.map((k) => k.t.toLowerCase()).join(", ")}. Dá para fazer em outro momento, como de manhã cedo, ou combinar um novo prazo?`);
+  else obs.push("As coisas com prazo para hoje ou amanhã cedo ficaram na tarde. Isso costuma evitar correria depois.");
+  obs.push(descanso ? "Você incluiu descanso na tarde. Descansar também é parte do plano: um cérebro cansado rende menos." : "O descanso ficou de fora da tarde. Tudo bem, mas vale pensar quando ele vai acontecer.");
+  if (div.length) obs.push(`Você dividiu ${div.join(" e ")} em etapas. Assim dá para fazer uma parte hoje e o resto depois, sem precisar de um bloco enorme de tempo.`);
+  return `<div class="grid g2" style="align-items:start"><div class="stack">${M2.caos.cols.map((col) => `<div class="card stack-sm"><b>${col.t}</b>${T(col.id).length ? `<ul style="margin:0;padding-left:18px">${T(col.id).map((k) => `<li>${k.t} <span class="small muted">(${fmtH(k.h)})</span></li>`).join("")}</ul>` : `<span class="small muted">Nada aqui.</span>`}</div>`).join("")}</div>
+    <div class="stack"><div class="card soft stack-sm"><span class="label">O que dá para perceber</span>${obs.map((o) => `<p>${o}</p>`).join("")}<p class="small muted">Isso não é nota nem avaliação. Toda escolha tem trocas.</p></div>
+      <div class="card stack-sm"><span class="label acc">Por que priorizar ajuda</span><p>Priorizar não é conseguir fazer tudo. É escolher, de propósito, o que fica de fora. Duas perguntas ajudam: <b>o que vence primeiro?</b> e <b>o que é importante de verdade?</b> O que é urgente e importante vem primeiro; o que não é nenhum dos dois pode esperar sem culpa.</p><p>E quando aparece um imprevisto, o plano não falhou: ele só precisa mudar. Reorganizar faz parte de planejar.</p></div>
+      ${talk("O que você moveu quando o imprevisto apareceu? Por quê?")}${talk("Na sua semana real, o que costuma ficar de fora quando o tempo aperta?")}
+      <div class="row"><button class="btn btn-ghost btn-sm" data-act="caosBack">${icon("arrowL", 14)} Voltar e mexer no plano</button></div></div></div>`;
+}
+const caosRefresh = () => { const y = window.scrollY; $("#caos").innerHTML = caosHTML(); window.scrollTo(0, y); };
+A.caosSel = (el) => { if (DRAG.justDropped) return; const c = caos(); if (c.phase === "done") return; c.sel = c.sel === el.dataset.id ? null : el.dataset.id; save(); caosRefresh(); };
+A.caosMove = (el) => { const c = caos(); if (!c.sel) return; moveCard(c.sel, el.dataset.col); };
+function moveCard(id, col) { const c = caos(); if (col) c.col[id] = col; else delete c.col[id]; c.sel = null; save(); caosRefresh(); }
+A.caosSplit = (el, e) => { e.stopPropagation(); const c = caos(); const id = el.dataset.id; const k = CC(id); const i = c.list.indexOf(id); const col = c.col[id]; c.list.splice(i, 1, ...k.split); k.split.forEach((s) => { if (col) c.col[s] = col; }); delete c.col[id]; c.split.push(id); c.sel = null; save(); caosRefresh(); toast("Tarefa dividida em " + k.split.length + " etapas."); };
+A.caosNext = () => { const c = caos(); c.phase = c.phase === "plan" ? "twist" : "done"; c.sel = null; save(); caosRefresh(); $("#caos").scrollIntoView({ behavior: "smooth", block: "start" }); };
+A.caosBack = () => { caos().phase = "twist"; save(); caosRefresh(); };
+A.caosReset = () => { D("acao").caos = null; save(); caosRefresh(); };
+const DRAG = { id: null, ghost: null, sx: 0, sy: 0, moved: false, justDropped: false };
+function bindDrag() {}
+document.addEventListener("pointerdown", (e) => { const g = e.target.closest("[data-grip]"); if (!g) return; e.preventDefault(); DRAG.id = g.dataset.grip; DRAG.sx = e.clientX; DRAG.sy = e.clientY; DRAG.moved = false; DRAG.src = g.closest(".tcard"); });
+document.addEventListener("pointermove", (e) => {
+  if (!DRAG.id) return; const dx = e.clientX - DRAG.sx, dy = e.clientY - DRAG.sy;
+  if (!DRAG.moved && Math.hypot(dx, dy) < 5) return;
+  if (!DRAG.moved) { DRAG.moved = true; const gh = DRAG.src.cloneNode(true); gh.classList.add("ghost"); document.body.appendChild(gh); DRAG.ghost = gh; DRAG.src.style.opacity = ".35"; $$("[data-col]").forEach((c) => c.classList.add("target")); }
+  DRAG.ghost.style.left = e.clientX - 30 + "px"; DRAG.ghost.style.top = e.clientY - 20 + "px";
+});
+document.addEventListener("pointerup", (e) => {
+  if (!DRAG.id) return; const id = DRAG.id; DRAG.id = null;
+  if (!DRAG.moved) { const c = caos(); c.sel = c.sel === id ? null : id; save(); caosRefresh(); DRAG.justDropped = true; setTimeout(() => (DRAG.justDropped = false), 50); return; }
+  DRAG.ghost && DRAG.ghost.remove(); DRAG.ghost = null; DRAG.justDropped = true; setTimeout(() => (DRAG.justDropped = false), 50);
+  const under = document.elementFromPoint(e.clientX, e.clientY); const col = under && under.closest("[data-col]");
+  if (col) moveCard(id, col.dataset.col); else caosRefresh();
+});
+document.addEventListener("pointercancel", () => { if (DRAG.ghost) DRAG.ghost.remove(); DRAG.id = null; DRAG.ghost = null; if ($("#caos")) caosRefresh(); });
 
-/* 3. Hora do aplauso */
-const INH_PHASES = [
-  { regra: "Toque em <b>Aplaudir</b> (ou aperte a barra de espaço) quando aparecer o <b>microfone</b>. Quando aparecer a placa de <b>silêncio</b>, segure o aplauso.", n: 20, gen: () => (Math.random() < 0.7 ? { k: "mic", go: true } : { k: "shh", go: false }) },
-  { regra: "Nova regra: aplauda <b>só</b> quando o microfone aparecer <b>com o holofote aceso</b>. Microfone no escuro ou placa de silêncio: segure.", n: 20, gen: () => { const r = Math.random(); return r < 0.5 ? { k: "mic", spot: true, go: true } : r < 0.8 ? { k: "mic", spot: false, go: false } : { k: "shh", spot: Math.random() < 0.5, go: false }; } },
-];
-const SHH_SVG = `<svg viewBox="0 0 120 120" width="110" height="110" aria-label="Placa de silêncio" role="img"><rect x="10" y="26" width="100" height="56" rx="12" fill="#E9A4AD"/><text x="60" y="61" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="15" fill="#211936" letter-spacing="2">SILÊNCIO</text><rect x="55" y="82" width="10" height="30" rx="3" fill="#C6B2E8"/></svg>`;
-const MIC_BIG = () => sym("mic", "amarelo").replace("<svg", '<svg width="110" height="110"');
-function inhStart() { G.inh = { phase: 0 }; inhIntro(); }
-function inhIntro() {
-  const P = INH_PHASES[G.inh.phase];
-  gameArea().innerHTML = `${gameHeader(GAMES[2])}<div class="stack" style="align-items:center;text-align:center"><span class="tag coral">Parte ${G.inh.phase + 1} de ${INH_PHASES.length}</span><p class="prose">${P.regra}</p><button class="btn btn-primary" data-act="inhGo">${icon("play", 16)} Começar</button></div>`;
+/* ---------- Autonomia no cotidiano ---------- */
+function TD() { const d = D("acao"); d.t = d.t || { tab: "agenda", tried: {}, agenda: {}, lembretes: [], lista: [], etapas: { goal: "", steps: [], mini: false }, visual: [], rotina: { tipo: "manha", blocks: null, saida: "07:10" }, ajuda: { quem: "", oque: "", precisa: [] } }; return d.t; }
+const tried = (k) => { TD().tried[k] = 1; };
+function toolsHTML() {
+  const t = TD(); const tool = M2.tools.find((x) => x.id === t.tab);
+  return `<div class="stack-lg"><div class="stack"><span class="label">Autonomia no cotidiano</span><h2>Ferramentas para experimentar de verdade</h2><p class="muted prose">Escolha uma ferramenta e use com algo real da sua semana. Experimente quantas quiser: cada pessoa se dá melhor com umas do que com outras.</p>
+    <div class="note acc">${icon("hand", 20)}<span><b>Ser independente não significa fazer tudo sozinha.</b> Significa conhecer o que te ajuda, inclusive saber quando e a quem pedir apoio. Usar lembrete, lista ou pedir ajuda é um jeito de cuidar das suas coisas.</span></div></div>
+    <div class="tooltabs" role="tablist">${M2.tools.map((x) => `<button class="chip ${t.tab === x.id ? "on" : ""}" data-act="toolTab" data-id="${x.id}" role="tab" aria-selected="${t.tab === x.id}">${t.tried[x.id] ? icon("check", 14, 2.6) : icon(x.icon, 15)} ${x.nome}</button>`).join("")}</div>
+    <div class="toolbox-panel" id="toolp"><div class="row" style="gap:12px"><span class="ib" style="width:44px;height:44px;border-radius:13px;background:var(--pri-soft);color:var(--pri-ink);display:grid;place-items:center">${icon(tool.icon, 22)}</span><h3>${tool.nome}</h3></div>
+      <div class="why">${icon("spark", 18)}<span><b>Por que funciona:</b> ${tool.pq}</span></div>${TOOLR[t.tab]()}</div></div>`;
 }
-A.inhGo = () => {
-  const P = INH_PHASES[G.inh.phase]; G.inh.trials = Array.from({ length: P.n }, P.gen); G.inh.t = -1; G.running = true;
-  gameArea().innerHTML = `${gameHeader(GAMES[2])}<p style="text-align:center" class="small">${P.regra}</p>
-  <div class="stage-box"><div class="spot" id="inh-spot"></div><div id="inh-stim"></div><div class="flash" id="inh-flash" aria-live="polite"></div></div>
-  <div style="text-align:center" id="inh-ctrl"><button class="btn btn-dark" style="padding:15px 30px;font-size:1.05rem" data-act="inhClap">${icon("hand", 20)} Aplaudir</button></div>`;
-  G.keyHandler = (e) => { if (e.code === "Space" && G.running) { e.preventDefault(); A.inhClap(); } }; document.addEventListener("keydown", G.keyHandler);
-  gLater(inhNext, 900);
+const toolRefresh = () => { const y = window.scrollY; $("#mstep").innerHTML = `<div>${toolsHTML()}</div>`; window.scrollTo(0, y); };
+A.toolTab = (el) => { TD().tab = el.dataset.id; save(); toolRefresh(); };
+const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+const TOOLR = {
+  agenda: () => { const a = TD().agenda; return `<p class="small muted">Anote compromissos e prazos reais. Depois, espalhe as tarefas grandes em mais de um dia.</p><div class="week-grid">${DIAS.map((n, i) => `<div class="wday"><h4>${n}</h4>${(a[i] || []).map((x, k) => `<div class="witem"><span>${esc(x)}</span><button class="mini" style="width:22px;height:22px" data-act="agDel" data-i="${i}" data-k="${k}" aria-label="Remover">${icon("x", 12)}</button></div>`).join("")}<form data-form="agAdd" data-i="${i}"><label class="sr-only" for="ag-${i}">Adicionar em ${n}</label><input id="ag-${i}" placeholder="+ adicionar" maxlength="60" autocomplete="off"></form></div>`).join("")}</div>`; },
+  lembretes: () => { const L = TD().lembretes; return `<div class="grid g2" style="align-items:start"><form class="card stack-sm" data-form="lemAdd"><label class="label" for="lem-t">O que fazer, exatamente</label><input id="lem-t" class="field" placeholder="ex.: separar o material de inglês na mochila" maxlength="80" autocomplete="off"><div class="row" style="flex-wrap:nowrap"><div class="stack-sm" style="flex:1;gap:4px"><label class="label" for="lem-d">Dia</label><select id="lem-d" class="field">${["Todo dia", ...DIAS].map((x) => `<option>${x}</option>`).join("")}</select></div><div class="stack-sm" style="flex:1;gap:4px"><label class="label" for="lem-h">Hora</label><input id="lem-h" type="time" class="field" value="19:00"></div></div><button class="btn btn-pri" type="submit">${icon("bell", 16)} Criar lembrete</button><div id="lem-tip"></div></form>
+    <div class="stack-sm"><span class="label">Compare</span><div class="notif" style="opacity:.6"><span class="ni">${icon("bell", 18)}</span><span><b>Lembrete</b><small>vago: o que era mesmo?</small></span><span></span></div><div class="notif"><span class="ni">${icon("bell", 18)}</span><span><b>Colocar a apostila de Ciências na mochila</b><small>claro: dá para fazer na hora</small></span><span></span></div>
+    <span class="label" style="margin-top:8px">Meus lembretes</span>${L.length ? L.map((l, k) => `<div class="notif"><span class="ni">${icon("bell", 18)}</span><span><b>${esc(l.t)}</b><small>${esc(l.d)} · ${esc(l.h)}</small></span><button class="mini" data-act="lemDel" data-k="${k}" aria-label="Remover">${icon("x", 14)}</button></div>`).join("") : `<div class="empty">Crie um lembrete de verdade para esta semana. Depois, se quiser, copie para o seu celular.</div>`}</div></div>`; },
+  lista: () => { const L = TD().lista; return `<div class="row" style="gap:6px"><span class="small muted">Começar com um modelo:</span>${Object.keys(M2.listas).map((k) => `<button class="chip sug" data-act="listaTpl" data-k="${esc(k)}">${icon("plus", 13)} ${k}</button>`).join("")}</div>
+    <form class="add-row" data-form="listaAdd"><label class="sr-only" for="lista-in">Novo item</label><input id="lista-in" class="field" placeholder="Novo item da lista" maxlength="80" autocomplete="off"><button class="btn btn-pri" type="submit">${icon("plus", 16)} Incluir</button></form>
+    ${L.length ? `<div class="stack-sm">${L.map((x, k) => `<div class="check-item ${x.ok ? "done" : ""}"><label><input type="checkbox" data-act="listaTog" data-k="${k}" ${x.ok ? "checked" : ""}><span>${esc(x.t)}</span></label><button class="mini" data-act="listaDel" data-k="${k}" aria-label="Remover">${icon("x", 14)}</button></div>`).join("")}</div><div class="row"><span class="small muted count">${L.filter((x) => x.ok).length} de ${L.length} conferidos</span><button class="btn btn-ghost btn-sm" data-act="listaClear">${icon("refresh", 14)} Desmarcar tudo</button></div>` : `<div class="empty">Sua lista aparece aqui.</div>`}`; },
+  etapas: () => { const E = TD().etapas; const done = E.steps.filter((s) => s.ok).length; return `<div class="stack-sm"><label class="label" for="et-goal">Uma tarefa grande da sua semana</label><input id="et-goal" class="field" data-input="etGoal" value="${esc(E.goal)}" placeholder="ex.: apresentação de Ciências na sexta" maxlength="100"></div>
+    <form class="add-row" data-form="etAdd"><label class="sr-only" for="et-in">Próximo passo</label><input id="et-in" class="field" placeholder="Próximo passo pequeno e concreto" maxlength="100" autocomplete="off"><button class="btn btn-pri" type="submit">${icon("plus", 16)} Passo</button></form>
+    ${E.steps.length ? `<div class="bar"><i style="width:${(done / E.steps.length) * 100}%"></i></div><span class="small muted count">${done} de ${E.steps.length} passos</span><div class="stack-sm">${E.steps.map((s, k) => `<div class="check-item ${s.ok ? "done" : ""}"><label><input type="checkbox" data-act="etTog" data-k="${k}" ${s.ok ? "checked" : ""}><span><b>${k + 1}.</b> ${esc(s.t)}</span></label><button class="mini" data-act="etMove" data-k="${k}" data-d="-1" aria-label="Subir">${icon("up", 14)}</button><button class="mini" data-act="etDel" data-k="${k}" aria-label="Remover">${icon("x", 14)}</button></div>`).join("")}</div>
+      <label class="check-item" style="cursor:pointer"><input type="checkbox" data-act="etMini" ${E.mini ? "checked" : ""}><span>O primeiro passo cabe em dois minutos?</span></label>${E.mini ? "" : `<p class="small muted">Se não cabe, tente dividir o primeiro passo em um ainda menor. É ele que tira a tarefa do lugar.</p>`}` : `<div class="empty">Dica: o primeiro passo deve ser tão pequeno que dê para fazer agora mesmo.</div>`}`; },
+  visual: () => { const V = TD().visual; const C = ["A fazer", "Fazendo", "Pronto"]; return `<form class="add-row" data-form="visAdd"><label class="sr-only" for="vis-in">Nova tarefa</label><input id="vis-in" class="field" placeholder="Tarefa da semana" maxlength="80" autocomplete="off"><button class="btn btn-pri" type="submit">${icon("plus", 16)} Incluir</button></form>
+    <div class="kanban">${C.map((n, ci) => { const it = V.filter((x) => x.c === ci); return `<div class="kcol"><div class="row between"><b>${n}</b><span class="tag line">${it.length}</span></div>${it.map((x) => `<div class="kitem" style="border-left-color:var(--${["pri", "gold", "acc"][ci]})"><span>${esc(x.t)}</span><div class="kact">${ci > 0 ? `<button class="mini" data-act="visMove" data-id="${x.id}" data-d="-1" aria-label="Voltar coluna">${icon("left", 14)}</button>` : ""}${ci < 2 ? `<button class="mini" data-act="visMove" data-id="${x.id}" data-d="1" aria-label="Avançar coluna">${icon("right", 14)}</button>` : ""}<button class="mini" data-act="visDel" data-id="${x.id}" aria-label="Remover">${icon("x", 14)}</button></div></div>`).join("") || `<span class="small muted">vazio</span>`}</div>`; }).join("")}</div>`; },
+  rotina: () => { const R = TD().rotina; if (!R.blocks) R.blocks = M2.rotinas[R.tipo].map(([t, m]) => ({ t, m })); const tot = R.blocks.reduce((a, b) => a + (+b.m || 0), 0); const [hh, mm] = (R.saida || "07:10").split(":").map(Number); const ini = new Date(2000, 0, 1, hh, mm - tot); const iniTxt = String(ini.getHours()).padStart(2, "0") + ":" + String(ini.getMinutes()).padStart(2, "0");
+    return `<div class="row"><button class="chip ${R.tipo === "manha" ? "on" : ""}" data-act="rotTipo" data-v="manha">Rotina da manhã</button><button class="chip ${R.tipo === "noite" ? "on" : ""}" data-act="rotTipo" data-v="noite">Rotina da noite</button></div>
+    <div class="routine">${R.blocks.map((b, k) => `<div class="rblock"><label class="sr-only" for="rb-t-${k}">Etapa</label><input id="rb-t-${k}" class="field" style="padding:6px 9px" data-input="rotT" data-k="${k}" value="${esc(b.t)}" maxlength="50"><label class="sr-only" for="rb-m-${k}">Minutos</label><input id="rb-m-${k}" class="field" style="padding:6px 9px" type="number" min="1" max="120" data-input="rotM" data-k="${k}" value="${b.m}"><span class="small muted">min</span><button class="mini" data-act="rotMove" data-k="${k}" aria-label="Subir">${icon("up", 14)}</button><button class="mini" data-act="rotDel" data-k="${k}" aria-label="Remover">${icon("x", 14)}</button></div>`).join("")}</div>
+    <div class="row"><button class="btn btn-ghost btn-sm" data-act="rotAdd">${icon("plus", 14)} Incluir etapa</button></div>
+    <div class="rtime" aria-hidden="true">${R.blocks.map((b) => `<i style="flex:${+b.m || 1}" title="${esc(b.t)}"></i>`).join("")}</div>
+    <div class="card soft row between"><div class="row" style="gap:8px"><label for="rot-saida" class="small" style="font-weight:700">${R.tipo === "manha" ? "Preciso sair às" : "Quero dormir às"}</label><input id="rot-saida" type="time" class="field" style="width:auto" data-input="rotSaida" value="${R.saida}"></div><p id="rot-res"><b>${tot} minutos</b> no total. Comece às <b>${iniTxt}</b>.</p></div>`; },
+  ajuda: () => { const H = TD().ajuda; const msg = ajudaMsg(); return `<div class="grid g2" style="align-items:start"><div class="stack"><div class="stack-sm"><span class="label">Para quem?</span><div class="chips">${M2.quem.map((q) => `<button class="chip ${H.quem === q ? "on" : ""}" data-act="ajQuem" data-v="${esc(q)}">${q}</button>`).join("")}</div></div>
+    <div class="stack-sm"><label class="label" for="aj-o">O que está difícil?</label><input id="aj-o" class="field" data-input="ajO" value="${esc(H.oque)}" placeholder="ex.: começar o trabalho de História" maxlength="100"></div>
+    <div class="stack-sm"><span class="label">Do que eu preciso?</span><div class="chips">${M2.precisa.map((q) => `<button class="chip acc ${H.precisa.includes(q) ? "on" : ""}" data-act="ajPrec" data-v="${esc(q)}">${q}</button>`).join("")}</div></div></div>
+    <div class="stack"><span class="label">Sua mensagem</span><div class="msgprev" id="aj-msg">${esc(msg)}</div><label class="sr-only" for="aj-copy">Texto da mensagem</label><textarea id="aj-copy" class="field" readonly style="min-height:0;height:1px;opacity:0;position:absolute;pointer-events:none">${esc(msg)}</textarea><div class="row"><button class="btn btn-pri btn-sm" data-act="ajCopy">${icon("copy", 14)} Copiar mensagem</button></div>
+    <p class="small muted">Pedidos claros funcionam melhor: dizem o que está difícil e o que exatamente ajudaria. E dá para pedir antes de virar emergência.</p></div></div>`; },
 };
-function inhNext() {
-  G.inh.t++; const stim = $("#inh-stim"); if (!stim) return;
-  if (G.inh.t >= G.inh.trials.length) { G.running = false;
-    if (G.inh.phase < INH_PHASES.length - 1) $("#inh-ctrl").innerHTML = `<p class="muted" style="margin-bottom:10px">Parte ${G.inh.phase + 1} concluída. Na próxima, a regra muda.</p><button class="btn btn-primary" data-act="inhPhase2">Próxima parte ${icon("arrowR", 16)}</button>`;
-    else finishGame("inibicao"); return; }
-  const tr = G.inh.trials[G.inh.t]; tr.clapped = false;
-  $("#inh-spot").classList.toggle("on", G.inh.phase === 0 ? tr.k === "mic" : !!tr.spot);
-  stim.className = "stim"; stim.innerHTML = tr.k === "mic" ? MIC_BIG() : SHH_SVG; $("#inh-flash").textContent = "";
-  gLater(() => { if (!$("#inh-stim")) return; stim.innerHTML = ""; $("#inh-spot").classList.remove("on"); gLater(inhNext, 550 + Math.random() * 300); }, 1050);
+function ajudaMsg() { const H = TD().ajuda; const q = H.quem ? (H.quem === "A psicóloga" ? "" : "") : ""; const nome = H.quem ? H.quem.replace(/^Minha |^Meu |^Uma |^A /, "").toLowerCase() : "___"; const p = H.precisa.length ? H.precisa.join(" e ") : "___"; return `Oi${H.quem ? ", " + nome : ""}! Tô com dificuldade para ${H.oque || "___"}. Você poderia ${p}? Ia me ajudar muito.`; }
+const tRef = () => { save(); toolRefresh(); };
+FORMS.agAdd = (f) => { const v = f.querySelector("input").value.trim(); if (!v) return; const a = TD().agenda; const i = f.dataset.i; (a[i] = a[i] || []).push(v); tried("agenda"); tRef(); const n = $("#ag-" + i); n && n.focus(); };
+A.agDel = (el) => { TD().agenda[el.dataset.i].splice(+el.dataset.k, 1); tRef(); };
+FORMS.lemAdd = () => { const t = $("#lem-t").value.trim(); if (!t) return; if (t.split(/\s+/).length < 3 || /^(lembrete|estudar|tarefa|coisas?|escola|li[cç][aã]o)$/i.test(t)) { $("#lem-tip").innerHTML = `<div class="note warm small">${icon("info", 16)}<span>Tente dizer exatamente a ação: em vez de “estudar”, algo como “abrir o livro de História na página 42”. Quanto mais claro, mais fácil agir quando o lembrete tocar.</span></div>`; return; } TD().lembretes.push({ t, d: $("#lem-d").value, h: $("#lem-h").value || "—" }); tried("lembretes"); tRef(); };
+A.lemDel = (el) => { TD().lembretes.splice(+el.dataset.k, 1); tRef(); };
+A.listaTpl = (el) => { const L = TD().lista; M2.listas[el.dataset.k].forEach((t) => { if (!L.some((x) => x.t === t)) L.push({ t, ok: false }); }); tried("lista"); tRef(); };
+FORMS.listaAdd = () => { const v = $("#lista-in").value.trim(); if (!v) return; TD().lista.push({ t: v, ok: false }); tried("lista"); tRef(); $("#lista-in").focus(); };
+A.listaTog = (el) => { TD().lista[+el.dataset.k].ok = el.checked; tried("lista"); tRef(); };
+A.listaDel = (el) => { TD().lista.splice(+el.dataset.k, 1); tRef(); };
+A.listaClear = () => { TD().lista.forEach((x) => (x.ok = false)); tRef(); };
+INPUTS.etGoal = (el) => { TD().etapas.goal = el.value; save(); };
+FORMS.etAdd = () => { const v = $("#et-in").value.trim(); if (!v) return; TD().etapas.steps.push({ t: v, ok: false }); tried("etapas"); tRef(); $("#et-in").focus(); };
+A.etTog = (el) => { TD().etapas.steps[+el.dataset.k].ok = el.checked; tRef(); };
+A.etDel = (el) => { TD().etapas.steps.splice(+el.dataset.k, 1); tRef(); };
+A.etMove = (el) => { const a = TD().etapas.steps; const i = +el.dataset.k; if (i < 1) return; [a[i - 1], a[i]] = [a[i], a[i - 1]]; tRef(); };
+A.etMini = (el) => { TD().etapas.mini = el.checked; tRef(); };
+FORMS.visAdd = () => { const v = $("#vis-in").value.trim(); if (!v) return; TD().visual.push({ id: uid(), t: v, c: 0 }); tried("visual"); tRef(); $("#vis-in").focus(); };
+A.visMove = (el) => { const x = TD().visual.find((y) => y.id === el.dataset.id); x.c = Math.max(0, Math.min(2, x.c + +el.dataset.d)); tRef(); };
+A.visDel = (el) => { const V = TD().visual; V.splice(V.findIndex((y) => y.id === el.dataset.id), 1); tRef(); };
+A.rotTipo = (el) => { const R = TD().rotina; R.tipo = el.dataset.v; R.blocks = M2.rotinas[R.tipo].map(([t, m]) => ({ t, m })); R.saida = R.tipo === "manha" ? "07:10" : "22:30"; tried("rotina"); tRef(); };
+INPUTS.rotT = (el) => { TD().rotina.blocks[+el.dataset.k].t = el.value; tried("rotina"); save(); };
+INPUTS.rotM = (el) => { TD().rotina.blocks[+el.dataset.k].m = Math.max(1, Math.min(120, +el.value || 1)); tried("rotina"); save(); clearTimeout(INPUTS._rt); INPUTS._rt = setTimeout(() => { const f = document.activeElement && document.activeElement.id; toolRefresh(); if (f && $("#" + f)) $("#" + f).focus(); }, 700); };
+INPUTS.rotSaida = (el) => { TD().rotina.saida = el.value || "07:10"; tried("rotina"); save(); clearTimeout(INPUTS._rs); INPUTS._rs = setTimeout(() => { toolRefresh(); }, 700); };
+A.rotMove = (el) => { const a = TD().rotina.blocks; const i = +el.dataset.k; if (i < 1) return; [a[i - 1], a[i]] = [a[i], a[i - 1]]; tried("rotina"); tRef(); };
+A.rotDel = (el) => { TD().rotina.blocks.splice(+el.dataset.k, 1); tRef(); };
+A.rotAdd = () => { TD().rotina.blocks.push({ t: "Nova etapa", m: 5 }); tried("rotina"); tRef(); };
+A.ajQuem = (el) => { const H = TD().ajuda; H.quem = H.quem === el.dataset.v ? "" : el.dataset.v; tried("ajuda"); tRef(); };
+A.ajPrec = (el) => { toggleIn(TD().ajuda.precisa, el.dataset.v); tried("ajuda"); tRef(); };
+INPUTS.ajO = (el) => { TD().ajuda.oque = el.value; tried("ajuda"); save(); const m = ajudaMsg(); $("#aj-msg").textContent = m; $("#aj-copy").value = m; };
+A.ajCopy = () => copyText(ajudaMsg(), $("#aj-copy"));
+function m2Pick() {
+  const d = D("acao"); d.pick = d.pick || []; const t = TD();
+  return `<div class="card stack"><span class="label">Uma ferramenta que posso levar para o meu dia</span><p class="small muted">Escolha uma ou mais. As que você experimentou estão marcadas.</p><div class="chips">${M2.tools.map((x) => `<button class="chip acc ${d.pick.includes(x.nome) ? "on" : ""}" data-act="chip" data-m="acao" data-k="pick" data-v="${esc(x.nome)}">${t.tried[x.id] ? icon("check", 13, 2.6) : ""} ${x.nome}</button>`).join("")}</div></div>`;
 }
-A.inhClap = () => {
-  if (!G.running || !G.inh || G.inh.t < 0) return; const tr = G.inh.trials[G.inh.t]; if (!tr || tr.clapped || !$("#inh-stim").innerHTML) return;
-  tr.clapped = true; const fl = $("#inh-flash");
-  if (tr.go) { tone(880, 0.1, "triangle", 0.1); tone(1175, 0.12, "triangle", 0.08, 0.06); fl.textContent = "No tempo certo"; } else { softNo(); fl.textContent = "Era o momento de segurar. Continue."; }
-};
-A.inhPhase2 = () => { G.inh.phase = 1; inhIntro(); };
 
-/* 4. Rumo ao show */
-function planStart(scId) { const sc = PLAN_SCENARIOS.find((s) => s.id === scId) || PLAN_SCENARIOS[0]; G.plan = { sc, bank: shuffle(sc.steps.map((s) => s.id)), plan: [], bad: [], fb: "" }; planRender(); }
-function planRender() {
-  const { sc, bank, plan, bad } = G.plan; const step = (id) => sc.steps.find((s) => s.id === id);
-  gameArea().innerHTML = `${gameHeader(GAMES[3])}
-  <div class="row" style="margin-bottom:12px">${PLAN_SCENARIOS.map((s) => `<button class="chip ${s.id === sc.id ? "on" : ""}" data-act="planSc" data-id="${s.id}">${icon(s.icon, 14)} ${s.nome}</button>`).join("")}</div>
-  <p>Objetivo: <b>${sc.nome}</b>. Toque nas etapas para montar o plano na ordem em que você faria. Use as setas para trocar de lugar.</p>
-  <div class="plan-cols" style="margin-top:12px"><div><h4 style="margin-bottom:8px">Etapas disponíveis</h4><div class="plan-list" style="background:var(--surface)">${bank.length ? bank.map((id) => `<button class="plan-item" data-act="planAdd" data-id="${id}">${icon("plus", 15)}<span class="grow">${step(id).t}</span></button>`).join("") : `<p class="muted small" style="text-align:center;padding:16px 0">Todas as etapas estão no plano.</p>`}</div></div>
-  <div><h4 style="margin-bottom:8px">Meu plano</h4><div class="plan-list">${plan.length ? plan.map((id, i) => `<div class="plan-item ${bad.includes(id) ? "warn" : ""}"><span class="pn">${i + 1}</span><span class="grow">${step(id).t}</span><button class="mini" data-act="planMove" data-i="${i}" data-d="-1" aria-label="Subir">${icon("up", 15)}</button><button class="mini" data-act="planMove" data-i="${i}" data-d="1" aria-label="Descer">${icon("down", 15)}</button><button class="mini" data-act="planDel" data-i="${i}" aria-label="Remover">${icon("x", 15)}</button></div>`).join("") : `<p class="muted small" style="text-align:center;padding:16px 0">Seu plano aparece aqui.</p>`}</div></div></div>
-  <div style="margin-top:14px" aria-live="polite">${G.plan.fb}</div>
-  <div class="row" style="margin-top:12px"><button class="btn btn-dark" data-act="planCheck" ${bank.length ? "disabled" : ""}>${icon("check", 16)} Conferir o plano</button><button class="btn btn-ghost" data-act="planSc" data-id="${sc.id}">${icon("refresh", 16)} Recomeçar</button></div>`;
-}
-A.planSc = (el) => planStart(el.dataset.id);
-A.planAdd = (el) => { G.plan.bank = G.plan.bank.filter((x) => x !== el.dataset.id); G.plan.plan.push(el.dataset.id); G.plan.bad = []; G.plan.fb = ""; tone(587, 0.08, "sine", 0.07); planRender(); };
-A.planDel = (el) => { G.plan.bank.push(G.plan.plan.splice(+el.dataset.i, 1)[0]); G.plan.bad = []; G.plan.fb = ""; planRender(); };
-A.planMove = (el) => { const i = +el.dataset.i, j = i + +el.dataset.d, p = G.plan.plan; if (j < 0 || j >= p.length) return; [p[i], p[j]] = [p[j], p[i]]; G.plan.bad = []; G.plan.fb = ""; planRender(); };
-A.planCheck = () => {
-  const { sc, plan } = G.plan; const pos = Object.fromEntries(plan.map((id, i) => [id, i])); const issues = [];
-  plan.forEach((id) => sc.steps.find((x) => x.id === id).dep.forEach((dd) => { if (pos[dd] > pos[id]) issues.push([id, dd]); }));
-  G.plan.bad = [...new Set(issues.map((x) => x[0]))]; const nm = (id) => sc.steps.find((x) => x.id === id).t;
-  if (!issues.length) { G.plan.fb = `<div class="note agua">${icon("check", 18)}<span><b>Seu plano funciona.</b> Cada etapa aparece depois das etapas de que depende. Algumas poderiam estar em outra ordem e o plano continuaria funcionando: quase sempre existe mais de um bom caminho.</span></div><div class="row" style="margin-top:10px"><button class="btn btn-primary" data-act="gameEnd">Registrar no diário ${icon("arrowR", 16)}</button></div>`; chime(); }
-  else { G.plan.fb = `<div class="note amarelo">${icon("bulb", 18)}<span>Algumas etapas dependem de outras que precisam vir antes:<ul style="margin:6px 0 0;padding-left:18px">${issues.map(([a, b]) => `<li>“${nm(a)}” depende de “${nm(b)}”.</li>`).join("")}</ul></span></div>`; softNo(); }
-  planRender();
-};
-
-/* 5. Troca de ritmo */
-const FLEX_TARGETS = [{ s: "star", c: "roxo", n: 1 }, { s: "note", c: "agua", n: 2 }, { s: "mic", c: "coral", n: 3 }];
-const FLEX_PHASES = [
-  { regra: "cor", n: 6, txt: "Separe cada carta pela <b>cor</b>: coloque na pilha que tem a mesma cor." },
-  { regra: "forma", n: 6, txt: "A regra mudou. Agora separe pela <b>forma</b>: coloque na pilha que tem o mesmo símbolo." },
-  { regra: "misto", n: 8, txt: "Regra final: observe a <b>borda</b> da carta. Borda <b>amarela contínua</b>: separe pela cor. Borda <b>roxa tracejada</b>: separe pela forma." },
-];
-function flexCard() { let s, c; do { s = Math.floor(Math.random() * 3); c = Math.floor(Math.random() * 3); } while (s === c); return { s: FLEX_TARGETS[s].s, si: s, c: FLEX_TARGETS[c].c, ci: c, n: 1 + Math.floor(Math.random() * 3), rule: Math.random() < 0.5 ? "cor" : "forma" }; }
-const fcardHTML = (card, big = false, cls = "") => `<div class="fcard ${big ? "big" : ""} ${cls}">${Array.from({ length: card.n }, () => sym(card.s, card.c)).join("")}</div>`;
-function flexStart() { G.flex = { phase: 0, k: 0 }; flexIntro(true); }
-function flexIntro(first) {
-  const P = FLEX_PHASES[G.flex.phase];
-  gameArea().innerHTML = `${gameHeader(GAMES[4])}<div class="stack" style="align-items:center;text-align:center"><span class="rule-banner ${first ? "" : "changed"}">${icon("shuffle", 16)} ${first ? "Primeira regra" : "A regra mudou"}</span><p class="prose">${P.txt}</p>
-  ${P.regra === "misto" ? `<div class="row" style="justify-content:center;gap:20px"><div class="stack" style="align-items:center;gap:6px">${fcardHTML({ s: "note", c: "coral", n: 1 }, false, "rule-cor")}<span class="tag amarelo">pela cor</span></div><div class="stack" style="align-items:center;gap:6px">${fcardHTML({ s: "note", c: "coral", n: 1 }, false, "rule-forma")}<span class="tag">pela forma</span></div></div>` : ""}
-  <button class="btn btn-primary" data-act="flexGo">${icon("play", 16)} ${first ? "Começar" : "Continuar"}</button></div>`;
-}
-A.flexGo = () => { G.flex.k = 0; flexDeal(); };
-function flexDeal() {
-  const P = FLEX_PHASES[G.flex.phase]; G.flex.card = flexCard(); const card = G.flex.card; const rule = P.regra === "misto" ? card.rule : P.regra;
-  gameArea().innerHTML = `${gameHeader(GAMES[4])}<div class="row between" style="margin-bottom:10px"><span class="rule-banner">${icon("shuffle", 16)} ${P.regra === "misto" ? "Observe a borda" : rule === "cor" ? "Regra: cor" : "Regra: forma"}</span><span class="gstatus">parte ${G.flex.phase + 1}/3 · carta ${G.flex.k + 1}/${P.n}</span></div>
-  <div style="display:grid;place-items:center;margin:8px 0">${fcardHTML(card, true, P.regra === "misto" ? (card.rule === "cor" ? "rule-cor" : "rule-forma") : "")}</div>
-  <div class="flex-table">${FLEX_TARGETS.map((t, i) => `<button class="bin" data-act="flexPick" data-i="${i}" aria-label="Pilha ${i + 1}: ${t.n} ${SHAPE_NOMES[t.s]} ${SYM_NOMES[t.c]}">${fcardHTML(t)}</button>`).join("")}</div>
-  <p id="flex-fb" class="gstatus" style="text-align:center;margin-top:12px;min-height:1.6em" aria-live="polite"></p>`;
-}
-A.flexPick = (el) => {
-  if (G.flex.lock) return; const P = FLEX_PHASES[G.flex.phase]; const card = G.flex.card; const rule = P.regra === "misto" ? card.rule : P.regra; const right = rule === "cor" ? card.ci : card.si; const i = +el.dataset.i; G.flex.lock = true;
-  if (i === right) { el.classList.add("good"); tone(698, 0.14, "sine", 0.1); $("#flex-fb").textContent = "Certo"; }
-  else { el.classList.add("bad"); $$(".bin")[right].classList.add("good"); softNo(); $("#flex-fb").textContent = `Pela regra atual (${rule}), ela vai na pilha destacada.`; }
-  gLater(() => { G.flex.lock = false; G.flex.k++; if (G.flex.k >= P.n) { if (G.flex.phase < FLEX_PHASES.length - 1) { G.flex.phase++; flexIntro(false); } else finishGame("flexibilidade"); } else flexDeal(); }, i === right ? 650 : 1500);
-};
-
-MREND.laboratorio = [() => `<div class="stack"><div class="note small">${icon("info", 18)}<span>Os experimentos não medem atenção, memória ou inteligência. Experimente quantos quiser; não é necessário fazer todos.</span></div><div class="lab-grid" id="lab-grid" style="scroll-margin-top:80px">${labGrid()}</div><section class="game-area" id="game-area" hidden style="scroll-margin-top:80px"></section></div>`];
-MMOUNT.laboratorio = { 1: () => { const d = LD(); if (d.cur && d.played[d.cur]) finishGame(d.cur); } };
-MSUM.laboratorio = () => { const d = LD(); const pl = GAMES.filter((g) => d.played[g.id]); return pl.length ? `<ul class="dots small">${pl.map((g) => { const j = d.j[g.id] || { p: [], e: [] }; return `<li><b>${g.nome}</b>${j.p.length ? " · " + j.p.join(", ") : ""}${j.e.length ? ` · <span style="color:var(--agua-ink)">${j.e.join(", ")}</span>` : ""}</li>`; }).join("")}</ul>` : `<p class="small muted">Nenhum experimento registrado ainda.</p>`; };

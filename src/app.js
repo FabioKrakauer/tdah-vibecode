@@ -1,435 +1,295 @@
 /* =========================================================
-   NÚCLEO — utilidades, estado, ícones, navegação, missões
+   NÚCLEO
    ========================================================= */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const uid = () => Math.random().toString(36).slice(2, 9);
-const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const pad2 = (n) => String(n).padStart(2, "0");
-const A = {};
-const FRAMED = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
-
-/* ---------- Estado (apenas nesta aba do navegador) ---------- */
-const STORE_KEY = "psicoed-tdah-v2";
-const DEFAULT_STATE = () => ({ title: TITULO_PADRAO, m: {}, sound: true, guiaTab: "bastidores", todo: [], plan: { goal: "", steps: [] }, board: [], persona: { icon: "mic", cor: "roxo" } });
+const toggleIn = (arr, v) => { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); return arr; };
+const A = {}, INPUTS = {}, FORMS = {};
+const KEY = "seu-mundo-v3", PKEY = "seu-mundo-prefs-v1";
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
+const DEF = () => ({ m: {}, fin: { q: {}, cards: {}, tools: [], goals: [{ t: "", passo: "" }, { t: "", passo: "" }, { t: "", passo: "" }], carta: { para: "daqui a um ano", texto: "" }, step: 0, seen: { 0: 1 }, done: false }, unlockAll: false });
+function load() { const r = lsGet(KEY); if (r) { try { const o = JSON.parse(r); const d = DEF(); return Object.assign(d, o, { fin: Object.assign(d.fin, o.fin || {}) }); } catch (e) {} } return DEF(); }
 let S = load();
-function load() { try { const r = sessionStorage.getItem(STORE_KEY); if (r) return Object.assign(DEFAULT_STATE(), JSON.parse(r)); } catch (e) {} return DEFAULT_STATE(); }
-function save() { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) {} }
-function M(id) { if (!S.m[id]) S.m[id] = { step: 0, seen: { 0: true }, done: false, at: null, nota: "", d: {} }; return S.m[id]; }
+const save = () => lsSet(KEY, JSON.stringify(S));
+let P = (() => { try { return JSON.parse(lsGet(PKEY)) || {}; } catch (e) { return {}; } })();
+const savePrefs = () => lsSet(PKEY, JSON.stringify(P));
+function applyPrefs() { const r = document.documentElement; r.dataset.palette = P.palette || "lavanda"; if (P.theme) r.dataset.theme = P.theme; }
+applyPrefs();
+const isDark = () => { const t = document.documentElement.dataset.theme; if (t) return t === "dark"; return !!(window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches); };
+
+function M(id) { if (!S.m[id]) S.m[id] = { step: 0, seen: { 0: 1 }, done: false, at: null, d: {} }; return S.m[id]; }
 const D = (id) => M(id).d;
-const missionOf = (id) => MISSIONS.find((x) => x.id === id);
-const MDATA = () => ({ bastidores: M1, grupo: M2, comigo: M3, laboratorio: M4, semana: M5, emocoes: M6, estrategias: M7, rider: M8 });
-const doneCount = () => MISSIONS.filter((x) => S.m[x.id] && S.m[x.id].done).length;
-const allDone = () => doneCount() === MISSIONS.length;
-const started = (id) => !!(S.m[id] && !S.m[id].done && Object.keys(S.m[id].seen || {}).length > 1);
+const mis = (id) => MISSIONS.find((x) => x.id === id);
+const ORDER = ["mente", "acao", "emocoes", "caminho"];
+const isDone = (id) => (id === "caminho" ? !!S.fin.done : !!(S.m[id] && S.m[id].done));
+const isLocked = (id) => { if (S.unlockAll) return false; const i = ORDER.indexOf(id); return i > 0 && !isDone(ORDER[i - 1]); };
+const started = (id) => { if (id === "caminho") return !S.fin.done && Object.keys(S.fin.seen || {}).length > 1; const m = S.m[id]; return !!(m && !m.done && Object.keys(m.seen || {}).length > 1); };
+const status = (id) => (isDone(id) ? "done" : isLocked(id) ? "locked" : started(id) ? "part" : "open");
+const STATUS_TXT = { done: "Concluída", locked: "Bloqueada", part: "Em andamento", open: "Disponível" };
+const doneCount = () => ORDER.filter(isDone).length;
 
 /* ---------- Ícones ---------- */
 const ICONS = {
-  brain: '<path d="M9.5 3.5a3 3 0 0 0-3 2.6A3 3 0 0 0 4 9.5a3 3 0 0 0 .6 4.6A3 3 0 0 0 7 18.5a2.8 2.8 0 0 0 5 1V5.2a2 2 0 0 0-2.5-1.7z"/><path d="M14.5 3.5a3 3 0 0 1 3 2.6A3 3 0 0 1 20 9.5a3 3 0 0 1-.6 4.6 3 3 0 0 1-2.4 4.4 2.8 2.8 0 0 1-5 1"/>',
-  search: '<circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.8-4.8"/>',
-  cards: '<rect x="3.5" y="6" width="11" height="15" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V18"/>',
-  spark: '<path d="M12 3c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7z"/>',
-  toolbox: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8.5 8V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V8M3 13h18"/>',
-  mic: '<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
-  star: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/>',
-  eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
-  trophy: '<path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0z"/><path d="M7.5 6h-3a3 3 0 0 0 3 4M16.5 6h3a3 3 0 0 1-3 4M12 13.5V17M9.5 17h5v3.5h-5z"/>',
-  note: '<path d="M9 18V5.5l11-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
-  home: '<path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z"/>',
-  heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/>',
-  clipboard: '<rect x="5" y="4.5" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM8.5 11h7M8.5 15h5"/>',
-  book: '<path d="M4 19V5.5A2.5 2.5 0 0 1 6.5 3H20v14H6.5A2.5 2.5 0 0 0 4 19.5 2.5 2.5 0 0 0 6.5 22H20v-5"/>',
-  bookopen: '<path d="M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5c-3.5-.5-6.5 0-8.5 1.5zM12 6.5V20"/>',
-  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/>',
-  chat: '<path d="M20.5 12a8 8 0 0 1-11.8 7l-4.2 1.2 1.2-4A8 8 0 1 1 20.5 12z"/>',
+  map: '<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>',
+  palette: '<path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.6 0-.9.7-1.5 1.6-1.5H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/>',
+  moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+  refresh: '<path d="M20 11.5A8 8 0 1 1 17.7 6M20 4v5h-5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5v.5"/>',
   spot: '<path d="M8 3h8l-1.5 5h-5z"/><path d="M9.5 8 4 21h16L14.5 8"/>',
-  list: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
   pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
-  shuffle: '<path d="M3 7h3.5c4.5 0 6.5 10 11 10H21M18 14l3 3-3 3M3 17h3.5c1.6 0 2.8-1.2 3.8-2.8M14 9.2C14.9 7.9 16 7 17.5 7H21M18 4l3 3-3 3"/>',
-  timer: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V10M9.5 2.5h5M12 2.5V6"/>',
-  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
-  sliders: '<path d="M6 3v6M6 13v8M12 3v10M12 17v4M18 3v3M18 10v11"/><circle cx="6" cy="11" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="18" cy="8" r="2"/>',
-  skate: '<path d="M5 3.5h5v8l6 .5a4 4 0 0 1 4 4V17H5z"/><circle cx="8" cy="20" r="1.8"/><circle cx="17" cy="20" r="1.8"/>',
-  stairs: '<path d="M3 20h5v-5h5v-5h5V5h3"/>',
-  bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/>',
-  desk: '<path d="M3 10h18M5 10v10M19 10v10M14 10v5h5M8 10V6h5v4"/>',
-  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
-  coffee: '<path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M8 3.5V6M12 3.5V6"/>',
-  bulb: '<path d="M9 17.5h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V17h5v-1.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
-  wind: '<path d="M3 8h10.5A2.5 2.5 0 1 0 11 5.5M3 12h15.5a2.5 2.5 0 1 1-2.5 2.5M3 16h8"/>',
-  route: '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H16a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h7.5"/>',
-  parking: '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M9.5 17V7H13a3 3 0 0 1 0 6H9.5"/>',
   play: '<path d="M7 4.5v15l12-7.5z"/>',
-  cloud: '<path d="M7 18.5a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 8.5a4.5 4.5 0 0 1-.5 10z"/>',
+  spark: '<path d="M12 3c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7z"/>',
+  note: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h4"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"/>',
+  stairs: '<path d="M3 20h5v-5h5v-5h5V5h3"/>',
+  list: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/>',
+  board: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/>',
+  route: '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H16a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h7.5"/>',
   hand: '<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5M14 10.5v-5a1.5 1.5 0 0 1 3 0V13M17 9.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-1.2a6 6 0 0 1-4.6-2.2L4 14.5a1.5 1.5 0 0 1 2.3-1.9L8 14.5"/>',
-  shield: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/>',
-  arrowR: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-  arrowL: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/>',
+  chat: '<path d="M20.5 12a8 8 0 0 1-11.8 7l-4.2 1.2 1.2-4A8 8 0 1 1 20.5 12z"/>',
+  wave: '<path d="M2 15c2.5 0 2.5-3 5-3s2.5 3 5 3 2.5-6 5-6 2.5 3 5 3"/><path d="M2 19c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2" opacity=".5"/>',
   check: '<path d="m4.5 12.5 5 5 10-11"/>',
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
-  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
-  refresh: '<path d="M20 11.5A8 8 0 1 1 17.7 6M20 4v5h-5"/>',
-  printer: '<path d="M7 8.5v-5h10v5M7 17H4.5v-7A1.5 1.5 0 0 1 6 8.5h12a1.5 1.5 0 0 1 1.5 1.5v7H17"/><rect x="7" y="14" width="10" height="7"/>',
-  share: '<path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 13v6a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6"/>',
   lock: '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5v.5"/>',
+  arrowR: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  arrowL: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  down: '<path d="m6 9 6 6 6-6"/>', up: '<path d="m6 15 6-6 6 6"/>', left: '<path d="m15 6-6 6 6 6"/>', right: '<path d="m9 6 6 6-6 6"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   trash: '<path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/>',
-  up: '<path d="m6 15 6-6 6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', left: '<path d="m15 6-6 6 6 6"/>', right: '<path d="m9 6 6 6-6 6"/>',
-  volume: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
-  mute: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="m16 9.5 5 5M21 9.5l-5 5"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+  grip: '<circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/>',
+  book: '<path d="M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5c-3.5-.5-6.5 0-8.5 1.5zM12 6.5V20"/>',
+  toolbox: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8.5 8V5.5A1.5 1.5 0 0 1 10 4h4a1.5 1.5 0 0 1 1.5 1.5V8M3 13h18"/>',
   flag: '<path d="M5 21V4M5 4.5h11l-2 4 2 4H5"/>',
-  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
-  ticket: '<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M15 6v12" stroke-dasharray="2 2"/>',
-  bag: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
-  file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+  eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  star: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/>',
+  mic: '<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
+  skate: '<path d="M5 3.5h5v8l6 .5a4 4 0 0 1 4 4V17H5z"/><circle cx="8" cy="20" r="1.8"/><circle cx="17" cy="20" r="1.8"/>',
 };
-function icon(name, size = 20, sw = 1.8) { return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`; }
-function starPts(cx, cy, R, r, n = 5, rot = -90) { const p = []; for (let i = 0; i < n * 2; i++) { const a = ((rot + (i * 180) / n) * Math.PI) / 180; const rad = i % 2 ? r : R; p.push((cx + rad * Math.cos(a)).toFixed(1) + "," + (cy + rad * Math.sin(a)).toFixed(1)); } return p.join(" "); }
-const sparkPath = (cx, cy, r) => { const k = r * 0.14; return `M${cx} ${cy - r}C${cx + k} ${cy - k} ${cx + k} ${cy - k} ${cx + r} ${cy}C${cx + k} ${cy + k} ${cx + k} ${cy + k} ${cx} ${cy + r}C${cx - k} ${cy + k} ${cx - k} ${cy + k} ${cx - r} ${cy}C${cx - k} ${cy - k} ${cx - k} ${cy - k} ${cx} ${cy - r}Z`; };
+const icon = (n, s = 20, sw = 1.8) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ""}</svg>`;
+function starPts(cx, cy, R, r, n = 5) { const p = []; for (let i = 0; i < n * 2; i++) { const a = ((-90 + (i * 180) / n) * Math.PI) / 180; const rad = i % 2 ? r : R; p.push((cx + rad * Math.cos(a)).toFixed(1) + "," + (cy + rad * Math.sin(a)).toFixed(1)); } return p.join(" "); }
+const sparkPath = (cx, cy, r) => { const k = r * 0.16; return `M${cx} ${cy - r}C${cx + k} ${cy - k} ${cx + k} ${cy - k} ${cx + r} ${cy}C${cx + k} ${cy + k} ${cx + k} ${cy + k} ${cx} ${cy + r}C${cx - k} ${cy + k} ${cx - k} ${cy + k} ${cx - r} ${cy}C${cx - k} ${cy - k} ${cx - k} ${cy - k} ${cx} ${cy - r}Z`; };
 
-/* Símbolos dos jogos (geométricos, sem enfeites) */
-const SYM_COLORS = { roxo: "#7656A8", lilas: "#B79BE0", agua: "#4FBFA8", coral: "#E3828F", amarelo: "#EDBF45", azul: "#78A9DA" };
-const SYM_NOMES = { roxo: "roxo", lilas: "lilás", agua: "verde-água", coral: "coral", amarelo: "amarelo", azul: "azul" };
-const SHAPE_NOMES = { star: "estrela", note: "nota musical", mic: "microfone", skate: "patins" };
-function sym(shape, color) {
-  const c = SYM_COLORS[color] || color; let b = "";
-  if (shape === "star") b = `<polygon points="${starPts(20, 21, 18, 8)}" fill="${c}"/>`;
-  else if (shape === "note") b = `<g fill="${c}"><ellipse cx="13.5" cy="29.5" rx="7" ry="5.2" transform="rotate(-22 13.5 29.5)"/><rect x="18.4" y="5" width="3.4" height="25" rx="1.7"/><path d="M20 5c4.5 1 10 3.5 10 10-2.4-3.3-5.6-4.5-10-4.5z"/></g>`;
-  else if (shape === "mic") b = `<path d="M14.5 21.5h11l-3 13a2.5 2.5 0 0 1-5 0z" fill="#211936"/><circle cx="20" cy="12.5" r="10" fill="${c}"/>`;
-  else if (shape === "skate") b = `<path d="M8 5h11v14l7.5 1.2a5 5 0 0 1 4.5 5V28H8z" fill="${c}"/><rect x="6" y="28" width="28" height="3.4" rx="1.7" fill="#211936"/><circle cx="12.5" cy="34.5" r="3.6" fill="#211936"/><circle cx="27.5" cy="34.5" r="3.6" fill="#211936"/>`;
-  return `<svg viewBox="0 0 40 40" aria-hidden="true">${b}</svg>`;
+/* Ilustrações (SVG inline) */
+const ART = {
+  mic: (c = "f-pri") => `<g><rect x="36" y="58" width="12" height="34" rx="5" class="f-gold" opacity=".8"/><path d="M28 54h28l-4 10H32z" class="f-gold"/><circle cx="42" cy="36" r="22" class="${c}"/><path d="M27 30h30M25 38h34M28 46h28" stroke="rgba(255,255,255,.35)" stroke-width="2" fill="none"/><path d="M30 100h24" stroke-width="5" stroke-linecap="round" class="s-line" fill="none"/></g>`,
+  skate: (c = "f-acc") => `<g><path d="M18 18h28v36l22 4c8 1.4 12 7 12 13v6H18z" class="${c}"/><path d="M18 30h28M18 42h28" stroke="rgba(255,255,255,.4)" stroke-width="2.5" fill="none"/><rect x="12" y="77" width="74" height="7" rx="3.5" class="f-gold" opacity=".8"/><circle cx="28" cy="92" r="8" class="f-gold"/><circle cx="70" cy="92" r="8" class="f-gold"/><circle cx="28" cy="92" r="3" class="f-surface"/><circle cx="70" cy="92" r="3" class="f-surface"/></g>`,
+  star: (c = "f-gold") => `<g><polygon points="${starPts(50, 52, 40, 17)}" class="${c}"/><path d="${sparkPath(86, 18, 9)}" class="f-pri twinkle"/><path d="${sparkPath(14, 86, 7)}" class="f-acc twinkle" style="animation-delay:-2s"/></g>`,
+  book: () => `<g><path d="M50 26C40 18 26 16 10 18v62c16-2 30 0 40 8 10-8 24-10 40-8V18c-16-2-30 0-40 8z" class="f-warm"/><path d="M50 26v62" stroke="rgba(255,255,255,.5)" stroke-width="2.5"/><path d="M20 34c8-1 15 0 21 3M20 46c8-1 15 0 21 3M59 37c6-3 13-4 21-3M59 49c6-3 13-4 21-3" stroke="rgba(255,255,255,.55)" stroke-width="2" fill="none" stroke-linecap="round"/><path d="${sparkPath(86, 12, 8)}" class="f-gold twinkle"/></g>`,
+};
+const artSVG = (name, cls = "", vb = "0 0 100 104") => `<svg class="${cls}" viewBox="${vb}" aria-hidden="true">${ART[name]()}</svg>`;
+function sky(n = 26, seed = 3, w = 1000, h = 400) { let s = ""; for (let i = 0; i < n; i++) { const x = (i * 97 + seed * 31) % w, y = (i * 53 + seed * 17) % h, r = 1 + ((i * 7) % 3); s += i % 5 === 0 ? `<path d="${sparkPath(x, y, r * 4)}" class="f-gold twinkle" style="animation-delay:${-(i * 0.37).toFixed(2)}s"/>` : `<circle cx="${x}" cy="${y}" r="${r * 0.8}" class="f-onhero twinkle" opacity=".7" style="animation-delay:${-(i * 0.29).toFixed(2)}s"/>`; } return s; }
+function heroArt() {
+  return `<svg viewBox="0 0 460 340" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ilustração com microfone, patins e estrelas">
+    ${sky(22, 2, 460, 340)}
+    <path d="M-10 290 C90 210 160 320 250 250 S390 150 480 200" fill="none" class="s-gold" stroke-width="1.6" stroke-dasharray="1 8" stroke-linecap="round"/>
+    <g transform="translate(250 60) rotate(-12) scale(1.35)"><g class="float">${ART.mic("f-pri")}</g></g>
+    <g transform="translate(110 170) rotate(8) scale(1.2)"><g class="float" style="animation-delay:-2s">${ART.skate("f-acc")}</g></g>
+    <g transform="translate(360 210) scale(.7)">${ART.star()}</g>
+    <path d="${sparkPath(70, 70, 14)}" class="f-gold twinkle"/>
+  </svg>`;
+}
+function badgeSVG(id, off) {
+  const m = mis(id) || FINAL; const a = m.art;
+  return `<svg class="badge ${off ? "off" : ""}" viewBox="0 0 160 160" role="img" aria-label="Selo ${esc(m.selo || m.titulo)}">
+    <polygon points="${starPts(80, 80, 76, 64, 12)}" class="f-gold"/><circle cx="80" cy="80" r="56" class="f-hero"/>
+    <g transform="translate(36 34) scale(.88)">${ART[a]()}</g>
+    <path d="${sparkPath(126, 30, 9)}" class="f-pri twinkle"/></svg>`;
 }
 
-/* ---------- Áudio ---------- */
-let AC = null;
-function tone(freq = 440, dur = 0.25, type = "sine", vol = 0.16, when = 0) {
-  if (!S.sound) return;
-  try {
-    AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume();
-    const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain();
-    o.type = type; o.frequency.value = freq; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur + 0.05);
-  } catch (e) {}
-}
-const chime = () => { tone(523, 0.3, "sine", 0.14); tone(659, 0.3, "sine", 0.14, 0.1); tone(784, 0.45, "sine", 0.14, 0.2); };
-const softNo = () => tone(220, 0.2, "triangle", 0.09);
-
-/* ---------- Modal / toast / impressão ---------- */
-let lastFocus = null;
-function openModal(html, opts = {}) {
-  const root = $("#modal-root"); lastFocus = document.activeElement;
-  root.innerHTML = `<div class="modal-bg" data-act="modalBg"><div class="modal ${opts.wide ? "wide" : ""}" role="dialog" aria-modal="true" aria-label="${esc(opts.label || "Janela")}"><button class="modal-close" data-act="closeModal" aria-label="Fechar">${icon("x")}</button>${html}</div></div>`;
-  setTimeout(() => { const f = root.querySelector(".modal .btn, .modal-close"); f && f.focus(); }, 30);
-}
-function closeModal() { $("#modal-root").innerHTML = ""; if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) {} }
+/* ---------- Modal, toast, cópia ---------- */
+function openModal(html) { $("#modal-root").innerHTML = `<div class="modal-bg" data-act="modalBg"><div class="modal" role="dialog" aria-modal="true"><button class="modal-close" data-act="closeModal" aria-label="Fechar">${icon("x")}</button>${html}</div></div>`; setTimeout(() => { const b = $(".modal .btn"); b && b.focus(); }, 30); }
+function closeModal() { $("#modal-root").innerHTML = ""; }
 A.closeModal = () => closeModal();
 A.modalBg = (el, e) => { if (e.target === el) closeModal(); };
 function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
-function printButtons(label = "Imprimir") {
-  if (FRAMED) return `<div class="note lav no-print">${icon("info")}<span>Para imprimir ou salvar em PDF, abra o arquivo <b>index.html</b> no navegador do computador. Esta janela de visualização não permite impressão.</span></div>`;
-  return `<button class="btn btn-dark" data-act="print">${icon("printer", 18)} ${label}</button><button class="btn btn-ghost" data-act="printPdf">${icon("share", 18)} Salvar em PDF</button>`;
-}
-A.print = () => window.print();
-A.printPdf = () => { toast("Na janela de impressão, escolha “Salvar como PDF” como destino."); setTimeout(() => window.print(), 600); };
-
-/* ---------- Componentes comuns ---------- */
-function talk(q, label = "Para conversar") { return `<div class="talk"><span class="ti">${icon("chat", 18)}</span><div><div class="label">${label}</div><div class="tq">${q}</div></div></div>`; }
-function secTitle(t, sub) { return `<div class="sec-title"><h2>${t}</h2><span class="ln"></span>${sub ? `<span class="label">${sub}</span>` : ""}</div>`; }
-function chipsHTML(list, sel, act, extra = "", cls = "") { return list.map((x) => `<button class="chip ${cls} ${sel.includes(x) ? "on" : ""}" data-act="${act}" data-v="${esc(x)}" ${extra} aria-pressed="${sel.includes(x)}">${esc(x)}</button>`).join(""); }
-function toggleIn(arr, v) { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); return arr; }
-function wave(color = "#91D8C9", seed = 1) {
-  let d = "M0 40"; for (let x = 0; x <= 1200; x += 12) { const y = 40 + Math.sin(x / (60 + seed * 7)) * 12 * Math.sin(x / 300 + seed) + Math.sin(x / 23) * 3; d += ` L${x} ${y.toFixed(1)}`; }
-  return `<svg class="wave" viewBox="0 0 1200 80" preserveAspectRatio="none" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+function copyText(txt, fallbackEl) {
+  const fb = () => { if (fallbackEl) { fallbackEl.focus(); fallbackEl.select && fallbackEl.select(); } toast("Não deu para copiar automaticamente. O texto foi selecionado: use Ctrl+C ou segure para copiar."); };
+  try { navigator.clipboard.writeText(txt).then(() => toast("Texto copiado."), fb); } catch (e) { fb(); }
 }
 
-/* ---------- Estrutura (menu) ---------- */
-function renderShell() {
-  document.getElementById("root").innerHTML = `
-  <div class="topbar no-print"><button class="btn btn-light btn-icon" data-act="openNav" aria-label="Abrir menu">${icon("menu")}</button><span class="brand-title" id="tb-title"></span><span class="segs" id="tb-segs" aria-hidden="true"></span></div>
-  <div class="scrim no-print" data-act="closeNav"></div>
-  <div class="app">
-    <aside class="sidebar no-print" id="sidebar" aria-label="Menu principal">
-      <a class="brand" href="#inicio"><span class="brand-mark">${icon("mic", 20, 2)}</span><span><span class="brand-title" id="side-title"></span><br><span class="brand-sub">Seu mundo, seu ritmo, sua mente</span></span></a>
-      <div class="prog" id="prog"></div>
-      <nav class="nav" id="nav"></nav>
-      <div class="side-foot">
-        <a href="#familia" data-nav="familia">${icon("users", 18)} Guia para a família</a>
-        <a href="#guia" data-nav="guia">${icon("clipboard", 18)} Guia da sessão</a>
-        <a href="#referencias" data-nav="referencias">${icon("bookopen", 18)} Referências</a>
-        <button data-act="askReset">${icon("refresh", 18)} Reiniciar</button>
-      </div>
-    </aside>
-    <main id="main"><div id="view"></div></main>
-  </div>
-  <div id="modal-root"></div>`;
-  updateNav();
+/* ---------- Componentes ---------- */
+const talk = (q) => `<div class="talk"><span class="ti">${icon("chat", 18)}</span><div><div class="label acc">Para conversar</div><div class="tq">${q}</div></div></div>`;
+const chips = (list, sel, mid, key, cls = "") => list.map((x) => `<button class="chip ${cls} ${sel.includes(x) ? "on" : ""}" data-act="chip" data-m="${mid}" data-k="${key}" data-v="${esc(x)}" aria-pressed="${sel.includes(x)}">${esc(x)}</button>`).join("");
+A.chip = (el) => { const d = D(el.dataset.m); const k = el.dataset.k; d[k] = toggleIn(d[k] || [], el.dataset.v); save(); const on = d[k].includes(el.dataset.v); el.classList.toggle("on", on); el.setAttribute("aria-pressed", on); if (el.dataset.re) rerender(); };
+function deepBlocks(mid, blocos) {
+  const d = D(mid); d.lidos = d.lidos || {};
+  const n = Object.keys(d.lidos).length;
+  return `<div class="stack-sm"><div class="row between"><span class="label">Toque para abrir cada bloco</span><span class="small muted count" id="lidos-${mid}">${n} de ${blocos.length} abertos</span></div>
+  <div class="deep-list">${blocos.map((b, i) => `<details class="deep ${d.lidos[i] ? "read" : ""}" data-m="${mid}" data-i="${i}"><summary><span class="dic">${icon(b.art, 22)}</span><span><b>${b.t}</b><span class="dsub">${b.resumo}</span></span><span class="chev">${icon("down", 20)}</span></summary>
+    <div class="deep-body"><div class="dsec pr"><span class="k">${b.kPratica || "Na prática fica assim"}</span><ul>${b.pratica.map((p) => `<li>${p}</li>`).join("")}</ul></div>
+    <div class="dsec"><span class="k">${b.kPorque || "Por que acontece"}</span><p>${b.porque}</p></div>
+    ${b.ajuda ? `<div class="dsec ac"><span class="k">O que ajuda e por quê</span><p>${b.ajuda}</p></div>` : ""}</div></details>`).join("")}</div></div>`;
 }
-function navState(id) { return S.m[id] && S.m[id].done ? "done" : started(id) ? "part" : ""; }
-function updateNav() {
-  const cur = (location.hash || "#inicio").slice(1); const nav = $("#nav"); if (!nav) return;
-  nav.innerHTML = `<a href="#inicio" class="${cur === "inicio" ? "active" : ""}"><span class="nn">${icon("home", 16)}</span>Início<span></span></a>
-    <div class="nav-label label light">Missões</div>
-    ${MISSIONS.map((m) => `<a href="#${m.id}" class="${cur === m.id ? "active" : ""}"><span class="nn">${pad2(m.n)}</span>${m.titulo}<span class="st ${navState(m.id)}">${navState(m.id) === "done" ? icon("check", 12, 3) : ""}</span></a>`).join("")}`;
-  const n = doneCount();
-  $("#prog").innerHTML = `<div class="row between"><span class="label light">Percurso</span><span style="font-family:var(--f-mono);font-size:.78rem;color:var(--on-night-2)">${n}/${MISSIONS.length}</span></div><div class="segs">${MISSIONS.map((m) => `<i class="${navState(m.id) === "done" ? "on" : navState(m.id) === "part" ? "part" : ""}" title="${m.titulo}"></i>`).join("")}</div>`;
-  $("#tb-segs").innerHTML = MISSIONS.map((m) => `<i class="${navState(m.id) === "done" ? "on" : ""}"></i>`).join("");
-  $$(".side-foot a").forEach((a) => a.classList.toggle("active", a.dataset.nav === cur || (a.dataset.nav === "familia" && cur === "familia-compartilhar")));
-  $("#side-title").textContent = S.title; $("#tb-title").textContent = S.title;
+document.addEventListener("toggle", (e) => { const t = e.target; if (!t.matches || !t.matches("details.deep") || !t.open) return; const d = D(t.dataset.m); d.lidos = d.lidos || {}; d.lidos[t.dataset.i] = 1; save(); t.classList.add("read"); const c = $("#lidos-" + t.dataset.m); if (c) c.textContent = `${Object.keys(d.lidos).length} de ${$$(`details.deep[data-m="${t.dataset.m}"]`).length} abertos`; }, true);
+
+/* ---------- Cabeçalho ---------- */
+const PALS = [
+  { id: "lavanda", nome: "Lavanda e sálvia", desc: "serena e delicada", sw: ["#6E5A9A", "#CFC4E6", "#7E9A7A", "#DCE6D6", "#B8924A"] },
+  { id: "quente", nome: "Pastel quente", desc: "aconchegante, tipo diário", sw: ["#C0705A", "#F6DCCF", "#C98A9A", "#E7C77B", "#3F6B73"] },
+  { id: "noite", nome: "Noite estrelada", desc: "céu, lilás e dourado", sw: ["#1B1F3A", "#5A4FA8", "#B9A6E8", "#A8C6E0", "#E6C77A"] },
+];
+function renderTop() {
+  $("#top").innerHTML = `<div class="top-in"><a class="brand" href="#inicio" aria-label="Seu mundo, seu ritmo: início"><span class="brand-mark"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="${sparkPath(12, 12, 9)}" class="f-gold"/></svg></span><span class="brand-t">Seu mundo, seu ritmo</span></a>
+    <nav class="top-act" aria-label="Atalhos"><a class="tbtn" href="#inicio">${icon("map", 18)}<span class="tlbl">Mapa</span></a><span class="prog-pill" id="pp" title="Etapas concluídas"></span>
+    <button class="tbtn" data-act="palToggle" aria-label="Trocar as cores" aria-expanded="false" id="palbtn">${icon("palette", 18)}<span class="tlbl">Cores</span></button>
+    <button class="tbtn" data-act="themeToggle" id="themebtn"></button>
+    <button class="tbtn" data-act="askReset" aria-label="Reiniciar tudo" title="Reiniciar tudo">${icon("refresh", 18)}</button></nav></div>
+    <div class="palpop" id="palpop" hidden><span class="label">Cores do site</span>${PALS.map((p) => `<button class="palopt" data-act="palSet" data-id="${p.id}"><span class="sw">${p.sw.map((c) => `<i style="background:${c}"></i>`).join("")}</span><span><b>${p.nome}</b><small>${p.desc}</small></span></button>`).join("")}<span class="small muted">O claro e o escuro ficam no botão ao lado.</span></div>`;
+  updateTop();
 }
-A.openNav = () => { $("#sidebar").classList.add("open"); $(".scrim").classList.add("open"); };
-A.closeNav = () => { const s = $("#sidebar"); if (s) { s.classList.remove("open"); $(".scrim").classList.remove("open"); } };
-A.askReset = () => openModal(`<div class="modal-head"><span class="ib i-coral">${icon("refresh", 22)}</span><div><h2>Reiniciar tudo?</h2><p class="muted" style="margin-top:6px">Todas as respostas, escolhas e ingressos desta sessão serão apagados deste navegador. Essa ação não pode ser desfeita.</p></div></div>
-  <div class="modal-body"><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-act="closeModal">Cancelar</button><button class="btn btn-dark" data-act="doReset">Reiniciar</button></div></div>`, { label: "Reiniciar" });
-A.doReset = () => { const t = S.title; stopAllGames(); stopTimer(true); S = DEFAULT_STATE(); S.title = t; save(); closeModal(); location.hash = "#inicio"; route(); toast("Tudo foi reiniciado."); };
+function updateTop() {
+  const pp = $("#pp"); if (pp) pp.textContent = `${doneCount()}/4`;
+  const tb = $("#themebtn"); if (tb) { const dk = isDark(); tb.innerHTML = icon(dk ? "sun" : "moon", 18); tb.setAttribute("aria-label", dk ? "Usar tema claro" : "Usar tema escuro"); tb.title = dk ? "Tema claro" : "Tema escuro"; }
+  $$(".palopt").forEach((b) => b.classList.toggle("on", b.dataset.id === (P.palette || "lavanda")));
+}
+A.palToggle = () => { const p = $("#palpop"); p.hidden = !p.hidden; $("#palbtn").setAttribute("aria-expanded", String(!p.hidden)); updateTop(); };
+A.palSet = (el) => { P.palette = el.dataset.id; savePrefs(); applyPrefs(); updateTop(); $("#palpop").hidden = true; toast("Cores: " + PALS.find((p) => p.id === P.palette).nome); };
+A.themeToggle = () => { P.theme = isDark() ? "light" : "dark"; savePrefs(); applyPrefs(); updateTop(); };
+document.addEventListener("click", (e) => { const p = $("#palpop"); if (p && !p.hidden && !e.target.closest("#palpop") && !e.target.closest("#palbtn")) { p.hidden = true; } }, true);
+A.askReset = () => openModal(`<h2>Reiniciar tudo?</h2><p class="muted">Todas as respostas, escolhas, registros e a carta guardados neste navegador serão apagados. Isso não pode ser desfeito. As cores escolhidas continuam.</p><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-act="closeModal">Cancelar</button><button class="btn btn-pri" data-act="doReset">Apagar e reiniciar</button></div>`);
+A.doReset = () => { S = DEF(); save(); closeModal(); location.hash = "#inicio"; route(); toast("Tudo foi reiniciado."); };
 
 /* ---------- Roteador ---------- */
-const VIEWS = {};
+const VIEWS = {}; let CUR = null;
+function cleanup() { if (BR.iv) { clearInterval(BR.iv); clearTimeout(BR.to); BR.iv = null; } }
 function route() {
   const h = (location.hash || "#inicio").slice(1); const key = VIEWS[h] ? h : "inicio";
-  document.body.classList.toggle("standalone", key === "familia-compartilhar");
-  stopAllGames(); CUR = null;
-  $("#view").innerHTML = `<div class="view" id="v-${key}">${VIEWS[key].render()}</div>`;
+  cleanup(); CUR = null; closeModal(); const pp = $("#palpop"); if (pp) pp.hidden = true;
+  $("#view").innerHTML = `<div class="view">${VIEWS[key].render()}</div>`;
   VIEWS[key].mount && VIEWS[key].mount();
-  updateNav(); A.closeNav(); window.scrollTo(0, 0);
+  updateTop(); window.scrollTo(0, 0);
   const h1 = $("#view h1"); if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus({ preventScroll: true }); }
 }
+function rerender() { if (CUR) { const y = window.scrollY; renderStep(); window.scrollTo(0, y); } }
 
 /* =========================================================
-   INÍCIO
+   INÍCIO — MAPA DA JORNADA
    ========================================================= */
-function heroArt() {
-  const bars = Array.from({ length: 22 }, (_, i) => { const h = 40 + ((i * 37) % 120); const x = 30 + i * 18; return `<rect class="eqbar" x="${x}" y="${300 - h}" width="9" height="${h}" rx="4.5" fill="${i % 5 === 2 ? "#91D8C9" : "#C6B2E8"}" opacity="${(0.35 + (i % 3) * 0.2).toFixed(2)}" style="animation-delay:${-(i * 0.17).toFixed(2)}s;animation-duration:${(2 + (i % 4) * 0.4).toFixed(1)}s"/>`; }).join("");
-  return `<svg viewBox="0 0 460 340" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Equalizador animado e uma linha de pista">
-    <path id="pista" d="M-10 250 C80 170 150 300 240 220 S380 120 470 170" fill="none" stroke="#91D8C9" stroke-width="1.5" stroke-dasharray="1 7" stroke-linecap="round"/>
-    ${bars}
-    <circle r="6" fill="#91D8C9"><animateMotion dur="9s" repeatCount="indefinite"><mpath href="#pista"/></animateMotion></circle>
-    <path class="spark" d="${sparkPath(380, 70, 16)}" fill="#F2D47E"/>
-    <path class="spark" d="${sparkPath(90, 80, 8)}" fill="#C6B2E8" style="animation-delay:-1.5s"/>
-    <path class="spark" d="${sparkPath(300, 40, 6)}" fill="#91D8C9" style="animation-delay:-2.6s"/>
-  </svg>`;
-}
-function statusPill(id) {
-  const m = S.m[id];
-  if (m && m.done) return `<span class="stp done">${icon("check", 13, 2.6)} Concluída${m.at ? " · " + m.at : ""}</span>`;
-  if (started(id)) return `<span class="stp part">Em andamento</span>`;
-  return `<span class="stp">Nova</span>`;
-}
-function ticketHTML(m, big = false) {
-  const st = S.m[m.id] || {}; const on = !!st.done;
-  const nota = st.nota ? "“" + esc(st.nota.length > 110 ? st.nota.slice(0, 110) + "…" : st.nota) + "”" : m.tema;
-  return `<div class="ticket ${on ? "" : "off"} ${big ? "big stamp" : ""}"><div class="tk-main"><span class="label ${on ? "light" : ""}">Missão ${pad2(m.n)} · ${on ? "Selo " + m.selo : "A conquistar"}</span><h4>${m.titulo}</h4><p>${on ? nota : m.tema}</p></div><div class="tk-stub"><span class="n">${pad2(m.n)}</span><small>${on ? st.at || "" : "—"}</small></div></div>`;
+function stationHTML(item, idx) {
+  const st = status(item.id); const href = st === "locked" ? "#" + item.id : "#" + item.id;
+  const node = st === "locked" ? icon("lock", 26) : st === "done" ? artSVG(item.art) : artSVG(item.art);
+  return `<a class="station ${st}" href="${href}" aria-label="${esc(item.titulo)}: ${STATUS_TXT[st]}"><span class="node">${node}</span><span class="st-body stack-sm" style="gap:4px"><span class="kicker">${idx < 3 ? "Missão 0" + (idx + 1) : "Capítulo final"}</span><h3>${item.titulo}</h3><p>${item.sub}</p></span><span class="st-pill ${st}">${st === "done" ? icon("check", 13, 2.6) : st === "locked" ? icon("lock", 13) : ""} ${STATUS_TXT[st]}</span></a>`;
 }
 VIEWS.inicio = {
   render() {
-    const n = doneCount(); const next = MISSIONS.find((m) => !(S.m[m.id] && S.m[m.id].done));
-    return `<section class="hero">
-      <div class="hero-text"><span class="title-slot" title="Título editável no Guia da sessão">${esc(S.title)}</span>
+    const items = [...MISSIONS, FINAL]; const next = items.find((x) => !isDone(x.id) && !isLocked(x.id)); const n = doneCount();
+    return `<section class="hero"><div class="hero-text"><span class="label on-hero">Uma jornada em quatro paradas</span>
         <h1>Seu mundo, seu ritmo, <em>sua mente.</em></h1>
-        <p class="sub">Cada pessoa tem seu próprio jeito de pensar, sentir, aprender e enxergar o mundo. Que tal descobrir um pouco mais sobre o seu?</p>
-        <div class="row" style="margin-top:6px"><a class="btn btn-primary" href="#${next ? next.id : "final"}">${icon("play", 16)} ${n === 0 ? "Começar minha jornada" : next ? "Continuar: " + next.titulo : "Ver encerramento"}</a><button class="btn btn-light" data-act="scrollTo" data-target="setlist">Ver as missões</button></div>
-      </div>
-      <div class="hero-art">${heroArt()}</div>
-    </section>
-    <section style="margin-top:30px" class="stack">
-      <span class="label">Como funciona</span>
-      <div class="how">
-        ${[["01", "Escolham a missão", "Uma missão por encontro, na ordem que fizer sentido."], ["02", "Joguem juntas", "Cada missão é um jogo diferente, com escolhas suas."], ["03", "Conversem", "As escolhas abrem conversas. Não existem respostas certas."], ["04", "Guarde o ingresso", "Ao concluir, a missão vira um ingresso no seu percurso."]].map(([k, t, p]) => `<div class="hs"><span class="label">${k}</span><b>${t}</b><p>${p}</p></div>`).join("")}
-      </div>
-    </section>
-    <section style="margin-top:38px;scroll-margin-top:70px" id="setlist">
-      ${secTitle("Setlist", n + " de " + MISSIONS.length + " concluídas")}
-      <div class="setlist">${MISSIONS.map((m) => `<a class="track-row ${S.m[m.id] && S.m[m.id].done ? "done" : ""}" href="#${m.id}"><span class="num">${pad2(m.n)}</span><span><h3>${m.titulo}</h3><span class="meta">${m.tema}</span></span><span class="dur">${m.dur}</span>${statusPill(m.id)}</a>`).join("")}</div>
-    </section>
-    <section style="margin-top:38px">
-      ${secTitle("Ingressos", "Seu percurso")}
-      <div class="tickets">${MISSIONS.map((m) => ticketHTML(m)).join("")}</div>
-      <p class="muted small" style="margin-top:12px">Os ingressos registram as missões vividas. Não há notas, acertos ou pontuações.</p>
-    </section>`;
+        <p class="sub">Cada pessoa tem um jeito próprio de pensar, sentir e fazer as coisas acontecerem. Este é um espaço para descobrir mais sobre o seu, no seu tempo.</p>
+        <div class="row">${next ? `<a class="btn btn-hero" href="#${next.id}">${icon("play", 16)} ${n === 0 ? "Começar a jornada" : "Continuar: " + next.titulo}</a>` : `<a class="btn btn-hero" href="#fim">${icon("star", 16)} Ver o fim da jornada</a>`}</div></div>
+      <div class="hero-art">${heroArt()}</div></section>
+    <section class="stack" style="margin-top:34px"><div class="sec-h"><h2>Mapa da jornada</h2><span class="ln"></span><span class="label">${n} de 4 concluídas</span></div>
+      <p class="muted prose">Cada parada se abre quando a anterior termina. Dá para voltar a qualquer parada já aberta sempre que quiser.</p>
+      <div class="trail"><svg class="trail-line" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true"><path d="M60 30 C200 -10 300 70 420 30 S640 -10 760 30 S900 60 960 30" fill="none" class="s-gold" stroke-width="2" stroke-dasharray="2 9" stroke-linecap="round"/></svg>${items.map(stationHTML).join("")}</div></section>
+    <section class="stack" style="margin-top:34px"><span class="label">Como cada missão funciona</span>
+      <div class="how">${STEPS.map(([t, s], i) => `<div class="hs"><span class="label acc">Etapa ${i + 1}</span><b>${t}</b><p>${["Blocos curtos para abrir e explorar, com exemplos do dia a dia.", "Um jogo para viver a ideia na prática. Sem placar.", "Ligar o que aprendeu com a sua vida e testar ferramentas.", "Uma reflexão opcional e um selo no mapa."][i]}</p></div>`).join("")}</div>
+      <p class="small muted">${icon("lock", 14)} Tudo o que você escreve fica só neste navegador. Nada é enviado para lugar nenhum.</p></section>`;
   },
 };
-A.scrollTo = (el) => { const t = document.getElementById(el.dataset.target); t && t.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
 /* =========================================================
    ESTRUTURA DAS MISSÕES
-   MREND[id]  = funções dos passos intermediários (sem briefing/fechamento)
-   MMOUNT[id] = { [índice do passo]: função } (opcional)
-   MSUM[id]   = resumo das escolhas, exibido no fechamento (opcional)
    ========================================================= */
-const MREND = {}, MMOUNT = {}, MSUM = {};
-let CUR = null;
+const MREND = {}, MMOUNT = {};
+function lockedHTML(item) {
+  const i = ORDER.indexOf(item.id); const prev = ORDER[i - 1]; const pt = prev === "caminho" ? FINAL.titulo : mis(prev).titulo;
+  return `<div class="card stack" style="max-width:620px;margin:30px auto;text-align:center;align-items:center;padding:34px"><span style="width:64px;height:64px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;color:var(--ink-2)">${icon("lock", 28)}</span><h1 style="font-size:1.8rem">${item.titulo}</h1><p class="muted">Esta parada se abre quando <b>${pt}</b> for concluída.</p><div class="row" style="justify-content:center"><a class="btn btn-pri" href="#${prev}">Ir para ${pt}</a><a class="btn btn-ghost" href="#inicio">Ver o mapa</a></div></div>`;
+}
 function missionView(id) {
   return {
     render() {
-      CUR = id; const m = missionOf(id); const st = M(id); save();
-      return `<header class="mhead"><span class="bignum" aria-hidden="true">${pad2(m.n)}</span>${wave("#91D8C9", m.n)}
-        <div class="tools no-print"><button class="btn btn-light btn-sm" data-act="mediacao">${icon("clipboard", 16)} Notas para a mediação</button></div>
-        <span class="label light">Missão ${pad2(m.n)} de ${pad2(MISSIONS.length)} · ${m.tema}</span>
-        <h1>${m.titulo}</h1><p class="hook">${m.hook}</p>
-        <div class="meta"><span>${m.dur}</span><span>Selo: ${m.selo}</span>${st.done ? `<span class="done">Concluída em ${st.at}</span>` : ""}</div>
-      </header>
-      <nav class="stepper no-print" id="stepper" aria-label="Etapas da missão"></nav>
-      <section id="mstep"></section>
-      <div class="stepnav no-print" id="stepnav"></div>`;
+      const m = mis(id); if (isLocked(id)) return lockedHTML(m);
+      CUR = id; const st = M(id); save();
+      return `<header class="mhead"><div><span class="label on-hero">Missão 0${m.n} de 03${st.done ? " · concluída" : ""}</span><h1>${m.titulo}</h1><p class="hook">${m.hook}</p></div>${artSVG(m.art, "art")}</header>
+        <nav class="stepper" id="stepper" aria-label="Etapas da missão"></nav><section id="mstep"></section><div class="stepnav" id="stepnav"></div>`;
     },
-    mount() { CUR = id; renderStep(); },
+    mount() { if (!isLocked(id)) renderStep(); },
   };
 }
 function renderStep() {
-  const id = CUR; const m = missionOf(id); const st = M(id); const last = m.steps.length - 1;
-  st.step = Math.max(0, Math.min(last, st.step || 0)); st.seen[st.step] = true; save();
-  $("#stepper").innerHTML = m.steps.map((s, i) => `<button class="${i === st.step ? "on" : ""} ${st.seen[i] ? "seen" : ""}" data-act="goStep" data-i="${i}" aria-current="${i === st.step}"><span class="sn">${pad2(i + 1)}</span><span class="sl">${s}</span></button>`).join("");
-  let html;
-  if (st.step === 0) html = briefHTML(m);
-  else if (st.step === last) html = closingHTML(m);
-  else html = MREND[id][st.step - 1]();
-  $("#mstep").innerHTML = `<div style="animation:viewIn .35s ease both">${html}</div>`;
+  const id = CUR; const st = M(id); st.step = Math.max(0, Math.min(3, st.step || 0)); st.seen[st.step] = 1; save();
+  $("#stepper").innerHTML = STEPS.map(([t, s], i) => `<button class="${i === st.step ? "on" : ""} ${st.seen[i] ? "seen" : ""}" data-act="goStep" data-i="${i}" aria-current="${i === st.step ? "step" : "false"}"><span class="sn">Etapa ${i + 1}</span><span class="sl">${t}</span><span class="sd">${s}</span></button>`).join("");
+  $("#mstep").innerHTML = `<div class="view">${MREND[id][st.step]()}</div>`;
   const mt = MMOUNT[id] && MMOUNT[id][st.step]; mt && mt();
-  $("#stepnav").innerHTML = `${st.step > 0 ? `<button class="btn btn-ghost" data-act="stepBy" data-d="-1">${icon("arrowL", 16)} ${m.steps[st.step - 1]}</button>` : `<a class="btn btn-ghost" href="#inicio">${icon("arrowL", 16)} Setlist</a>`}
-    ${st.step < last ? `<button class="btn btn-dark" data-act="stepBy" data-d="1">${m.steps[st.step + 1]} ${icon("arrowR", 16)}</button>` : ""}`;
-  updateNav();
+  const nx = nextOf(id);
+  $("#stepnav").innerHTML = `${st.step > 0 ? `<button class="btn btn-ghost" data-act="stepBy" data-d="-1">${icon("arrowL", 16)} Voltar: ${STEPS[st.step - 1][0]}</button>` : `<a class="btn btn-ghost" href="#inicio">${icon("arrowL", 16)} Mapa da jornada</a>`}
+    ${st.step < 3 ? `<button class="btn btn-pri" data-act="stepBy" data-d="1">Avançar: ${STEPS[st.step + 1][0]} ${icon("arrowR", 16)}</button>` : st.done && nx ? `<a class="btn btn-pri" href="#${nx.id}">Próxima parada ${icon("arrowR", 16)}</a>` : ""}`;
+  updateTop();
 }
-function rerender() { if (CUR) { const y = window.scrollY; renderStep(); window.scrollTo(0, y); } }
-A.goStep = (el) => { stopAllGames(); M(CUR).step = +el.dataset.i; renderStep(); };
-A.stepBy = (el) => { stopAllGames(); const st = M(CUR); st.step = st.step + +el.dataset.d; renderStep(); const s = $("#stepper"); s && window.scrollTo({ top: s.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" }); };
-function briefHTML(m) {
-  const X = MDATA()[m.id];
-  return `<div class="brief"><div class="stack"><span class="label">Briefing</span><p class="lead">${X.brief}</p>
-    <div class="row" style="margin-top:6px"><button class="btn btn-primary" data-act="stepBy" data-d="1">${icon("play", 16)} Começar a missão</button></div></div>
-    <div class="card goal"><span class="label">O que vamos fazer</span><ol class="flow-mini" style="padding:0;margin:0">${X.passos.map((p) => `<li>${p}</li>`).join("")}</ol>
-    <div class="note lav small">${icon("info", 18)}<span>Dá para pausar, voltar e pular etapas a qualquer momento. O ritmo é de vocês.</span></div></div></div>`;
+const nextOf = (id) => { const i = ORDER.indexOf(id); const n = ORDER[i + 1]; return n ? (n === "caminho" ? FINAL : mis(n)) : null; };
+A.goStep = (el) => { M(CUR).step = +el.dataset.i; renderStep(); scrollToStepper(); };
+A.stepBy = (el) => { const st = M(CUR); st.step += +el.dataset.d; renderStep(); scrollToStepper(); };
+function scrollToStepper() { cleanup(); const s = $("#stepper"); if (s) window.scrollTo({ top: s.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" }); }
+function introHTML(lead, side) { return `<div class="intro"><div class="stack"><span class="label">Para começar</span><p class="lead">${lead}</p></div>${side}</div>`; }
+
+/* Conquista genérica */
+function conquistaHTML(id, opts) {
+  const m = mis(id); const st = M(id); const d = st.d; const nx = nextOf(id);
+  return `<div class="stack-lg"><div class="badge-wrap">${badgeSVG(id, !st.done)}<div class="stack-sm"><span class="label">${st.done ? "Selo conquistado em " + st.at : "Selo desta missão"}</span><h2>${m.selo}</h2><p class="muted">${opts.sub}</p></div></div>
+    ${opts.top || ""}
+    <div class="card stack"><label class="label" for="refl-${id}">${opts.label}</label>${opts.help ? `<p class="small muted">${opts.help}</p>` : ""}<textarea id="refl-${id}" class="field" data-input="refl" data-m="${id}" maxlength="600" placeholder="${opts.ph}">${esc(d.refl || "")}</textarea><p class="small muted">Opcional. Fica guardado só neste navegador.</p></div>
+    ${opts.bottom || ""}
+    <div class="row">${st.done ? `${nx && !isLocked(nx.id) ? `<a class="btn btn-pri" href="#${nx.id}">Ir para ${nx.titulo} ${icon("arrowR", 16)}</a>` : ""}<a class="btn btn-ghost" href="#inicio">${icon("map", 16)} Ver o mapa</a>` : `<button class="btn btn-pri" data-act="finish" style="padding:14px 22px">${icon("star", 18)} Concluir a missão</button>`}<button class="btn btn-ghost btn-sm" data-act="askRestartMission">${icon("refresh", 14)} Recomeçar esta missão</button></div></div>`;
 }
-function closingHTML(m) {
-  const X = MDATA()[m.id]; const st = M(m.id); const nx = nextMission(m);
-  return `<div class="closing"><div class="stack"><span class="label">Fechamento</span><h2>O que fica desta missão</h2><p class="muted">${CLOSING_DEFAULT}</p>
-      ${X.fechamento.map((q) => talk(q)).join("")}
-      ${MSUM[m.id] ? `<div class="card tight stack"><span class="label">O que você explorou</span>${MSUM[m.id]()}</div>` : ""}</div>
-    <div class="stack"><div class="card stack"><label for="nota" class="label">Uma frase para levar (opcional)</label><textarea id="nota" class="field" data-input="nota" maxlength="300" placeholder="Algo que você percebeu, uma pergunta nova, algo para observar...">${esc(st.nota)}</textarea><p class="muted small">Essa frase aparece no seu ingresso.</p></div>
-      ${st.done ? `${ticketHTML(m)}<div class="row"><a class="btn btn-primary" href="#${nx ? nx.id : "final"}">${nx ? "Próxima missão" : "Ver encerramento"} ${icon("arrowR", 16)}</a><button class="btn btn-ghost" data-act="finish">Atualizar ingresso</button></div>`
-        : `<button class="btn btn-primary" data-act="finish" style="padding:15px 22px;font-size:1rem">${icon("ticket", 18)} Concluir missão e receber o ingresso</button>`}
-    </div></div>`;
-}
-function nextMission(m) { return MISSIONS.find((x) => x.n > m.n && !(S.m[x.id] && S.m[x.id].done)) || MISSIONS.find((x) => x.id !== m.id && !(S.m[x.id] && S.m[x.id].done)); }
+INPUTS.refl = (el) => { D(el.dataset.m).refl = el.value; save(); };
 A.finish = () => {
-  const m = missionOf(CUR); const st = M(CUR); const was = st.done;
-  st.done = true; st.at = st.at || new Date().toLocaleDateString("pt-BR"); save(); chime(); updateNav();
-  const nx = nextMission(m); const fim = allDone();
-  openModal(`<div class="modal-body" style="padding-top:30px"><span class="label">${was ? "Ingresso atualizado" : "Missão concluída"}</span><h2>${m.titulo}</h2>${ticketHTML(m, true)}
-    <p class="muted">${fim ? "Todas as missões do percurso foram concluídas." : `${doneCount()} de ${MISSIONS.length} missões concluídas. Vocês podem voltar a esta missão sempre que quiserem.`}</p>
-    <div class="row">${fim ? `<a class="btn btn-primary" href="#final" data-act="closeModal">Ver encerramento ${icon("arrowR", 16)}</a>` : nx ? `<a class="btn btn-primary" href="#${nx.id}" data-act="closeModal">Próxima: ${nx.titulo} ${icon("arrowR", 16)}</a>` : ""}<a class="btn btn-ghost" href="#inicio" data-act="closeModal">Ver o percurso</a></div></div>`, { label: "Missão concluída" });
+  const st = M(CUR); st.done = true; st.at = st.at || new Date().toLocaleDateString("pt-BR"); save(); const m = mis(CUR); const nx = nextOf(CUR);
+  openModal(`<div style="display:grid;place-items:center">${badgeSVG(CUR)}</div><span class="label" style="text-align:center">Missão concluída</span><h2 style="text-align:center">${m.selo}</h2><p class="muted" style="text-align:center">${nx ? `<b>${nx.titulo}</b> foi desbloqueada no mapa.` : ""} Você pode voltar a esta missão sempre que quiser.</p><div class="row" style="justify-content:center">${nx ? `<a class="btn btn-pri" href="#${nx.id}">Ir para a próxima parada ${icon("arrowR", 16)}</a>` : ""}<a class="btn btn-ghost" href="#inicio">Ver o mapa</a></div>`);
   renderStep();
 };
-A.mediacao = () => {
-  const g = GUIA[CUR]; const m = missionOf(CUR);
-  openModal(`<div class="modal-head"><span class="ib i-night">${icon("clipboard", 22)}</span><div><span class="label">Notas para a mediação</span><h2>${m.titulo}</h2></div></div>
-  <div class="modal-body"><div class="kv"><span class="k">Objetivo terapêutico</span><p>${g.obj}</p></div>
-  <div class="kv"><span class="k">Perguntas que podem ajudar</span><ul class="dots">${g.perguntas.map((p) => `<li>${p}</li>`).join("")}</ul></div>
-  <div class="kv"><span class="k">Cuidados</span><ul class="dots">${g.cuidados.map((p) => `<li>${p}</li>`).join("")}</ul></div>
-  <a class="btn btn-ghost btn-sm" href="#guia" data-act="closeModal" style="align-self:flex-start">Abrir o guia completo</a></div>`, { label: "Notas para a mediação", wide: true });
-};
-
-/* =========================================================
-   ENCERRAMENTO E REFERÊNCIAS
-   ========================================================= */
-VIEWS.final = {
-  render() {
-    const fim = allDone();
-    return `<section class="hero" style="grid-template-columns:1fr;min-height:0"><div class="hero-text" style="padding:44px">
-      <span class="label light">${fim ? "Percurso concluído" : "Encerramento"}</span>
-      <h1>${fim ? "Meu cérebro, minhas <em>descobertas.</em>" : "Ainda há <em>missões</em> pela frente"}</h1>
-      ${fim ? FINAL_TXT.map((p) => `<p class="sub" style="max-width:60ch">${p}</p>`).join("") : `<p class="sub">Você já concluiu ${doneCount()} de ${MISSIONS.length} missões. Quando todas estiverem concluídas, esta tela estará esperando por você.</p>`}
-      <div class="row"><a class="btn btn-primary" href="#rider">${icon("mic", 16)} Ver meu rider</a><a class="btn btn-light" href="#inicio">Voltar ao início</a></div></div></section>
-      <section style="margin-top:30px">${secTitle("Ingressos", doneCount() + "/" + MISSIONS.length)}<div class="tickets">${MISSIONS.map((m) => ticketHTML(m)).join("")}</div></section>`;
-  },
-};
-VIEWS.referencias = {
-  render() {
-    return `<header class="stack" style="margin-bottom:22px"><span class="label">Fundamentação científica</span><h1>Referências</h1><p class="muted prose">O conteúdo foi elaborado com base em manuais diagnósticos, diretrizes clínicas e literatura científica sobre TDAH, neurodesenvolvimento, funções executivas e intervenções psicossociais.</p></header>
-    <div class="stack"><div class="note lav">${icon("info")}<span>Este é um material de psicoeducação. Ele não substitui avaliação, diagnóstico ou tratamento realizados por profissionais habilitados. Recomenda-se conferir as edições mais recentes das diretrizes antes de citá-las.</span></div>
-    <div class="card"><ol class="ref-list">${REFERENCIAS.map((r) => `<li>${r}</li>`).join("")}</ol></div></div>`;
-  },
-};
+A.askRestartMission = () => openModal(`<h2>Recomeçar esta missão?</h2><p class="muted">As escolhas e textos desta missão serão apagados. As outras missões continuam como estão.</p><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-act="closeModal">Cancelar</button><button class="btn btn-pri" data-act="restartMission">Recomeçar</button></div>`);
+A.restartMission = () => { delete S.m[CUR]; save(); closeModal(); route(); };
 
 /* =========================================================
    GUIA PARA A FAMÍLIA
    ========================================================= */
-function familiaBody(standalone) {
-  const F = FAMILIA;
-  const toc = [...F.secoes.map((s) => [s.id, s.titulo]), ["f-poss", "Possibilidades no dia a dia"], ["f-com", "Comunicação"], ["f-ref", "Para refletir em família"]];
-  return `<div class="fam-layout"><nav class="toc no-print" aria-label="Sumário">${toc.map(([id, t]) => `<button type="button" data-act="scrollTo" data-target="${id}">${t}</button>`).join("")}</nav>
-  <div class="stack-lg">
-    ${F.secoes.map((s) => `<section class="fam-sec" id="${s.id}"><h2>${s.titulo}</h2><div class="prose">${s.html}</div></section>`).join("")}
-    <section class="fam-sec" id="f-poss"><h2>Possibilidades no dia a dia</h2><p class="muted prose">${F.possibilidades.intro}</p>
-      <div class="consider">${F.possibilidades.itens.map((p) => `<div class="card"><div class="row" style="gap:10px;margin-bottom:8px"><span class="ib sm i-lilas">${icon(p.icon, 18)}</span><h4>${p.t}</h4></div><p>${p.p}</p></div>`).join("")}</div></section>
-    <section class="fam-sec" id="f-com"><h2>Comunicação</h2><p class="muted prose">${F.comunicacao.intro}</p>
-      <div class="row small" style="gap:10px"><span class="tag coral">No calor do momento</span><span class="tag agua">Uma alternativa possível</span></div>
-      <div class="stack" style="gap:10px">${F.comunicacao.pares.map(([a, b, w]) => `<div class="swap"><div class="from">“${a}”</div><div class="to">“${b}”</div><div class="why">${w}</div></div>`).join("")}</div></section>
-    <section class="fam-sec" id="f-ref"><h2>Para refletir em família</h2><p class="muted prose">Perguntas para pensar individualmente ou levar para uma conversa com a psicóloga.</p>
-      <div class="grid g2">${F.reflexoes.map((q) => talk(q, "Reflexão")).join("")}</div></section>
-    <div class="note">${icon("info")}<span>${F.fecho}</span></div>
-    <p class="muted small">Material de psicoeducação baseado em evidências científicas (DSM-5-TR, CID-11, diretrizes clínicas e literatura sobre TDAH e funções executivas). ${standalone ? "" : `Veja as <a href="#referencias">referências</a>.`}</p>
-  </div></div>`;
-}
 VIEWS.familia = {
   render() {
-    return `<section class="fam-hero"><div class="stack"><span class="label">Área para a família</span><h1>Guia para a família</h1><p class="prose">${FAMILIA.intro}</p></div>
-      <div class="stack no-print"><a class="btn btn-dark" href="#familia-compartilhar">${icon("share", 16)} Versão para compartilhar</a><p class="muted small">Abre apenas este guia, sem o menu e sem nenhuma resposta da adolescente.</p></div></section>
-      <div style="margin-top:30px">${familiaBody(false)}</div>`;
-  },
-};
-VIEWS["familia-compartilhar"] = {
-  render() {
-    return `<div class="share-banner no-print"><span class="row" style="gap:10px">${icon("users")}<span>Guia para a família · versão para leitura e impressão</span></span><div class="row">${printButtons("Imprimir guia")}<a class="btn btn-ghost btn-sm" href="#familia">${icon("arrowL", 16)} Voltar</a></div></div>
-      <section class="fam-hero"><div class="stack"><span class="label">${esc(S.title)}</span><h1>Guia para a família</h1><p class="prose">${FAMILIA.intro}</p></div></section>
-      <div style="margin-top:30px">${familiaBody(true)}</div>`;
+    const F = FAMILIA;
+    return `<header class="card soft stack" style="padding:28px"><span class="label">Área para a família</span><h1>Guia para a família</h1><p class="prose">${F.intro}</p><p class="small muted">Esta página não mostra nenhuma resposta da adolescente.</p></header>
+    <div class="stack-lg" style="margin-top:28px">${F.secoes.map((s) => `<section class="stack-sm"><h2>${s.t}</h2>${s.p.map((p) => `<p class="prose">${p}</p>`).join("")}</section>`).join("")}
+      <section class="stack"><h2>Possibilidades no dia a dia</h2><p class="muted prose">Não são regras: funcionam melhor quando adaptadas à rotina de cada família e construídas junto com a adolescente.</p><div class="grid g3">${F.possibilidades.map(([t, p]) => `<div class="card stack-sm"><h4>${t}</h4><p class="small">${p}</p></div>`).join("")}</div></section>
+      <section class="stack"><h2>Comunicação</h2><p class="muted prose">Pequenas mudanças na forma de dizer deslocam a conversa da culpa para a solução.</p>${F.pares.map(([a, b]) => `<div class="grid g2" style="gap:8px"><div class="note warm"><span>“${a}”</span></div><div class="note acc"><span>“${b}”</span></div></div>`).join("")}</section>
+      <div class="note">${icon("info", 20)}<span>${F.fecho}</span></div></div>`;
   },
 };
 
 /* =========================================================
-   GUIA DA SESSÃO
+   PARA A PSICÓLOGA
    ========================================================= */
-function guiaBody() {
-  const g = GUIA[S.guiaTab]; const m = missionOf(S.guiaTab);
-  return `<div class="grid g2"><div class="card stack"><span class="label">Missão ${pad2(m.n)} · ${m.dur}</span><h3>${m.titulo}</h3><p>${g.obj}</p><a class="btn btn-ghost btn-sm" href="#${m.id}" style="align-self:flex-start">Abrir a missão ${icon("arrowR", 14)}</a></div>
-    <div class="card stack"><span class="label">Perguntas que podem ajudar</span><ul class="dots">${g.perguntas.map((p) => `<li>${p}</li>`).join("")}</ul><span class="label" style="margin-top:6px">Cuidados</span><ul class="dots">${g.cuidados.map((p) => `<li>${p}</li>`).join("")}</ul></div></div>`;
-}
-A.guiaTab = (el) => { S.guiaTab = el.dataset.id; save(); $("#guia-tabs").innerHTML = guiaTabs(); $("#guia-body").innerHTML = guiaBody(); };
-const guiaTabs = () => MISSIONS.map((m) => `<button class="chip ${S.guiaTab === m.id ? "on" : ""}" data-act="guiaTab" data-id="${m.id}">${pad2(m.n)} · ${m.titulo}</button>`).join("");
-A.saveTitle = () => { S.title = $("#title-in").value.trim() || TITULO_PADRAO; save(); updateNav(); toast("Título atualizado."); };
-A.toggleDone = (el) => { const st = M(el.dataset.id); st.done = !st.done; if (st.done && !st.at) st.at = new Date().toLocaleDateString("pt-BR"); save(); updateNav(); $("#guia-st").innerHTML = guiaStatus(); };
-const guiaStatus = () => MISSIONS.map((m) => `<div class="todo"><span style="flex:1"><b>${pad2(m.n)} · ${m.titulo}</b><br><span class="muted small">${S.m[m.id] && S.m[m.id].done ? "Concluída em " + S.m[m.id].at : started(m.id) ? "Em andamento" : "Não iniciada"}</span></span><button class="btn btn-ghost btn-sm" data-act="toggleDone" data-id="${m.id}">${S.m[m.id] && S.m[m.id].done ? "Desmarcar" : "Marcar como concluída"}</button></div>`).join("");
 VIEWS.guia = {
   render() {
-    return `<header class="stack" style="margin-bottom:24px"><span class="label">Uso profissional</span><h1>Guia da sessão</h1><p class="muted prose">Apoio para conduzir cada missão. As mesmas notas aparecem dentro de cada missão, no botão “Notas para a mediação”.</p></header>
-    <div class="stack-lg">
-      <section class="grid g2"><div class="card stack"><h3>Dinâmica sugerida</h3><ol class="flow-mini" style="padding:0;margin:0">${GUIA_GERAL.dinamica.map((p) => `<li>${p}</li>`).join("")}</ol></div>
-        <div class="card stack"><h3>Postura</h3><ul class="dots">${GUIA_GERAL.postura.map((p) => `<li>${p}</li>`).join("")}</ul></div></section>
-      <section>${secTitle("Por missão")}<div class="guide-tabs" id="guia-tabs">${guiaTabs()}</div><div id="guia-body">${guiaBody()}</div></section>
-      <section class="grid g2" style="align-items:start">
-        <div class="stack"><h3>Título do projeto</h3><p class="muted small">Aparece no menu, na tela inicial e no pôster. Para fixar, altere <code>TITULO_PADRAO</code> em <code>src/content.js</code>.</p><form class="add-row" onsubmit="event.preventDefault();A.saveTitle()"><label class="sr-only" for="title-in">Título</label><input id="title-in" value="${esc(S.title)}" maxlength="60"><button class="btn btn-dark" type="submit">Salvar</button></form>
-          <div class="note agua">${icon("lock")}<span>${GUIA_GERAL.privacidade}</span></div><button class="btn btn-ghost" data-act="askReset" style="align-self:flex-start">${icon("refresh", 16)} Reiniciar</button></div>
-        <div class="stack"><h3>Andamento das missões</h3><div class="stack" style="gap:8px" id="guia-st">${guiaStatus()}</div></div>
-      </section>
-    </div>`;
+    const items = [...MISSIONS, FINAL];
+    return `<header class="stack" style="margin-bottom:24px"><span class="label">Uso profissional</span><h1>Para a psicóloga</h1><p class="muted prose">Objetivos e cuidados de cada parada, controle de desbloqueio e informações de privacidade.</p></header>
+    <div class="stack-lg"><section class="grid g2">${items.map((m) => { const g = GUIA[m.id]; return `<div class="card stack-sm"><div class="row between"><h3>${m.titulo}</h3><span class="st-pill ${status(m.id)}" style="margin-top:0">${STATUS_TXT[status(m.id)]}</span></div><p>${g.obj}</p><ul style="margin:0;padding-left:18px" class="small">${g.cuidados.map((c) => `<li>${c}</li>`).join("")}</ul><a class="btn btn-ghost btn-sm" style="align-self:flex-start" href="#${m.id}">Abrir ${icon("arrowR", 14)}</a></div>`; }).join("")}</section>
+    <section class="grid g2" style="align-items:start"><div class="card stack"><h3>Desbloqueio</h3><p class="small muted">Por padrão, cada parada abre quando a anterior é concluída. Para pular ou revisitar fora de ordem numa sessão, libere todas.</p><label class="check-item" style="cursor:pointer"><input type="checkbox" data-act="unlockAll" ${S.unlockAll ? "checked" : ""}><span>Liberar todas as paradas</span></label></div>
+      <div class="card stack"><h3>Privacidade</h3><p class="small">Nada é enviado para servidores. Progresso, respostas e a carta ficam apenas no armazenamento deste navegador, neste aparelho, e continuam lá ao fechar a página. Em aparelhos compartilhados, reinicie ao final da sessão.</p><button class="btn btn-ghost btn-sm" style="align-self:flex-start" data-act="askReset">${icon("refresh", 14)} Reiniciar tudo</button></div></section>
+    <section class="stack"><h3>Referências</h3><p class="small muted">Conteúdo baseado no DSM-5-TR, na CID-11, em consensos internacionais e na literatura sobre funções executivas, regulação emocional e terapia cognitivo-comportamental.</p><ol class="ref-list">${REFERENCIAS.map((r) => `<li>${r}</li>`).join("")}</ol></section></div>`;
   },
 };
+A.unlockAll = (el) => { S.unlockAll = el.checked; save(); toast(S.unlockAll ? "Todas as paradas liberadas." : "Desbloqueio progressivo ativado."); };
 
 /* =========================================================
-   Eventos globais
+   EVENTOS
    ========================================================= */
-const INPUTS = {};
-document.addEventListener("click", (e) => {
-  const t = e.target.closest("[data-act]"); if (!t) return; const fn = A[t.dataset.act]; if (!fn) return;
-  if (t.tagName === "A" && t.dataset.act === "closeModal") { $("#modal-root").innerHTML = ""; return; }
-  fn(t, e);
+document.addEventListener("click", (e) => { const t = e.target.closest("[data-act]"); if (!t) return; const fn = A[t.dataset.act]; if (!fn) return; if (t.tagName === "A" && t.closest(".modal")) { closeModal(); return; } fn(t, e); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { closeModal(); const p = $("#palpop"); if (p) p.hidden = true; }
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches('[role="button"][data-act]:not(button)')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
 });
-document.addEventListener("input", (e) => {
-  const k = e.target.dataset && e.target.dataset.input; if (!k) return;
-  if (k === "nota") { M(CUR).nota = e.target.value; save(); }
-  else if (INPUTS[k]) INPUTS[k](e.target);
-});
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if ($("#modal-root") && $("#modal-root").innerHTML) closeModal(); else A.closeNav(); } });
+document.addEventListener("input", (e) => { const k = e.target.dataset && e.target.dataset.input; if (k && INPUTS[k]) INPUTS[k](e.target); });
+document.addEventListener("change", (e) => { const k = e.target.dataset && e.target.dataset.input; if (k && e.target.tagName === "SELECT" && INPUTS[k]) INPUTS[k](e.target); });
+document.addEventListener("submit", (e) => { e.preventDefault(); const f = e.target; const fn = FORMS[f.dataset.form]; if (fn) fn(f); });
 window.addEventListener("hashchange", route);
-function boot() { MISSIONS.forEach((m) => (VIEWS[m.id] = missionView(m.id))); renderShell(); route(); }
+if (window.matchMedia) { try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", updateTop); } catch (e) {} }
+function boot() { MISSIONS.forEach((m) => (VIEWS[m.id] = missionView(m.id))); renderTop(); route(); }

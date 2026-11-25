@@ -1,272 +1,159 @@
 /* =========================================================
-   MISSÕES 5 a 8
+   MISSÃO 3 — ENTRE PENSAMENTOS E EMOÇÕES
    ========================================================= */
-
-/* =================== MISSÃO 5 — SEMANA EM JOGO =================== */
-const WD = () => { const d = D("semana"); d.place = d.place || {}; return d; };
-const ensaioDay = () => (WD().twist ? M5.imprevisto.para : M5.imprevisto.de);
-function dayItems(i) {
-  const d = WD();
-  const fixed = M5.fixos.map((f) => ({ ...f, d: f.id === "x1" ? ensaioDay() : f.d })).filter((f) => f.d === i);
-  const tasks = M5.tarefas.filter((t) => d.place[t.id] === i);
-  return { fixed, tasks, load: fixed.reduce((a, b) => a + b.sz, 0) + tasks.reduce((a, b) => a + b.sz, 0) };
+function triSVG(sel) {
+  const V = { pens: [190, 48], emo: [62, 262], comp: [318, 262] };
+  const col = { pens: "f-pri", emo: "f-warm", comp: "f-acc" };
+  const arrow = (a, b) => { const [x1, y1] = V[a], [x2, y2] = V[b]; const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L; return `<line x1="${x1 + ux * 52}" y1="${y1 + uy * 52}" x2="${x2 - ux * 52}" y2="${y2 - uy * 52}" class="s-line" stroke-width="2.5" marker-end="url(#ah)" marker-start="url(#ah2)"/>`; };
+  return `<svg class="tri" viewBox="0 0 380 320" role="group" aria-label="Triângulo: pensamento, emoção e comportamento"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" class="f-ink" opacity=".5"/></marker><marker id="ah2" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 0 5 10 10z" class="f-ink" opacity=".5"/></marker></defs>
+    ${arrow("pens", "emo")}${arrow("emo", "comp")}${arrow("comp", "pens")}
+    ${Object.entries(V).map(([k, [x, y]]) => `<g class="vx ${sel === k ? "on" : ""}" data-act="triSel" data-k="${k}" tabindex="0" role="button" aria-label="${M3.tri[k].t}"><circle cx="${x}" cy="${y}" r="44" class="${col[k]}"/><text x="${x}" y="${y + 5}" text-anchor="middle" style="fill:var(--on-pri)">${M3.tri[k].t}</text></g>`).join("")}
+    <path d="${sparkPath(190, 180, 10)}" class="f-gold twinkle"/></svg>`;
 }
-function weekHTML() {
-  const d = WD(); const bank = M5.tarefas.filter((t) => d.place[t.id] === undefined);
-  const tok = (t, placed) => { const late = placed && t.ate !== null && d.place[t.id] > t.ate; return `<button class="tok ${d.sel === t.id ? "sel" : ""} ${late ? "late" : ""}" data-act="wkTok" data-id="${t.id}" aria-pressed="${d.sel === t.id}"><span><span>${t.t}</span><small>${t.rot}</small></span><span class="sz">${"■".repeat(t.sz)}</span></button>`; };
-  return `<div class="stack">
-    <div class="card tight stack"><div class="row between"><span class="label">Tarefas para encaixar</span><span class="label">${bank.length} restantes</span></div>
-      ${bank.length ? `<div class="tok-bank">${bank.map((t) => tok(t, false)).join("")}</div>` : `<p class="muted small">Todas as tarefas estão na agenda. Você ainda pode tocar em uma tarefa da semana para mudá-la de dia.</p>`}
-      <p class="small muted">${d.sel ? `<b style="color:var(--roxo-ink)">Tarefa selecionada.</b> Agora toque no dia em que quer fazê-la${d.place[d.sel] !== undefined ? `, ou <button class="btn btn-ghost btn-sm" data-act="wkUnplace">devolva para a lista</button>` : ""}.` : "Toque em uma tarefa para selecioná-la."} Cada ■ ocupa um bloco de energia.</p></div>
-    <div class="week-scroll"><div class="week">${M5.dias.map((n, i) => { const it = dayItems(i); const over = it.load > M5.cap; return `<div class="day ${d.sel ? "target" : ""} ${over ? "over" : ""}" data-act="wkDay" data-i="${i}" role="button" aria-label="${n}: ${it.load} de ${M5.cap} blocos"><h4>${n}<span class="energy">${Array.from({ length: Math.max(M5.cap, it.load) }, (_, k) => `<i class="${k < it.load ? (k >= M5.cap ? "ovr" : "on") : ""}"></i>`).join("")}</span></h4>
-      ${it.fixed.map((f) => `<div class="tok fixed"><span><span>${f.t}</span><small>Compromisso fixo</small></span><span class="sz">${"■".repeat(f.sz)}</span></div>`).join("")}${it.tasks.map((t) => tok(t, true)).join("")}${over ? `<span class="small" style="color:var(--coral-ink);font-weight:700">Dia acima da energia</span>` : ""}</div>`; }).join("")}</div></div>
-  </div>`;
-}
-const wkRefresh = () => { const y = window.scrollY; $("#week").innerHTML = weekHTML(); window.scrollTo(0, y); };
-A.wkTok = (el, e) => { e.stopPropagation(); const d = WD(); d.sel = d.sel === el.dataset.id ? null : el.dataset.id; save(); wkRefresh(); };
-A.wkDay = (el) => { const d = WD(); if (!d.sel) return; d.place[d.sel] = +el.dataset.i; d.sel = null; save(); tone(587, 0.08, "sine", 0.07); wkRefresh(); };
-A.wkUnplace = (el, e) => { e.stopPropagation(); const d = WD(); delete d.place[d.sel]; d.sel = null; save(); wkRefresh(); };
-function simulate() {
-  const d = WD(); const lines = []; const tally = { antes: 0, vespera: 0, depois: 0, fora: 0, pesados: 0 };
-  M5.dias.forEach((n, i) => {
-    const it = dayItems(i); const parts = []; let kind = "";
-    it.fixed.forEach((f) => parts.push(f.t + (f.id === "x1" && d.twist ? " (remarcado)" : "") + "."));
-    it.tasks.forEach((t) => {
-      if (t.tipo === "descanso") { parts.push("Teve um tempo para recarregar."); kind = kind || "good"; return; }
-      if (t.ate === null) { parts.push(t.t + ", sem pressa."); return; }
-      if (i > t.ate) { parts.push(`${t.t} ficou para depois do prazo (${t.rot.toLowerCase()}).`); tally.depois++; kind = "warn"; }
-      else if (i === t.ate) { parts.push(`${t.t} aconteceu no limite do prazo.`); tally.vespera++; }
-      else { parts.push(`${t.t} foi feito com folga.`); tally.antes++; }
-    });
-    if (it.load > M5.cap) { parts.push("Dia acima da energia: é provável chegar cansada ao fim, e algo pode sair pela metade."); tally.pesados++; kind = "warn"; }
-    if (i === 3) parts.push("Prova de Matemática de manhã.");
-    if (i === 4) parts.push("Entrega do trabalho de História.");
-    if (!parts.length) parts.push("Um dia mais livre.");
-    lines.push({ n, t: parts.join(" "), kind });
-  });
-  M5.tarefas.forEach((t) => { if (d.place[t.id] === undefined && t.tipo !== "livre") tally.fora++; });
-  const descanso = d.place.t7 !== undefined;
-  return { lines, tally, descanso, fora: M5.tarefas.filter((t) => d.place[t.id] === undefined) };
-}
-function storyHTML() {
-  const r = simulate();
-  return `<div class="stack"><p class="muted">Veja como a semana se desenrolou com as suas escolhas. Não é uma avaliação: é um jeito de enxergar as trocas.</p>
-    <div class="story">${r.lines.map((l, i) => `<div class="sd ${l.kind}" style="animation-delay:${i * 120}ms"><b>${l.n}</b><span>${l.t}</span></div>`).join("")}</div>
-    <div class="card tight stack"><span class="label">Resumo da semana</span><div class="row" style="gap:6px"><span class="tag agua">Com folga: ${r.tally.antes}</span><span class="tag amarelo">No limite: ${r.tally.vespera}</span><span class="tag coral">Depois do prazo: ${r.tally.depois}</span><span class="tag line">Fora da agenda: ${r.fora.length}</span><span class="tag line">Dias acima da energia: ${r.tally.pesados}</span><span class="tag ${r.descanso ? "agua" : "line"}">Descanso: ${r.descanso ? "sim" : "não"}</span></div>
-    ${r.fora.length ? `<p class="small muted">Ficaram fora da agenda: ${r.fora.map((t) => t.t.toLowerCase()).join(", ")}.</p>` : ""}</div>
-    <div class="note lav">${icon("route", 18)}<span>Toda agenda tem trocas: adiantar uma tarefa pode deixar outro dia cheio; incluir descanso pode empurrar algo para depois. Perceber essas trocas é o que o planejamento faz.</span></div>
-    <div class="grid g2">${talk("Se você pudesse refazer um dia dessa semana, qual seria? O que mudaria?")}${talk("Teve alguma escolha que você faria igual na vida real?")}</div>
-    <div class="row"><button class="btn btn-ghost btn-sm" data-act="goStep" data-i="1">${icon("calendar", 14)} Voltar e mudar a agenda</button><a class="btn btn-ghost btn-sm" href="#estrategias">Organizar a semana real (missão 7)</a></div></div>`;
-}
-MREND.semana = [
-  () => `<div id="week">${weekHTML()}</div>`,
-  () => { const d = WD(); if (!d.twist) { d.twist = true; save(); } return `<div class="stack"><div class="card" style="background:var(--night);color:var(--on-night);border-color:var(--night)"><span class="label light">Imprevisto</span><h3 style="color:#fff;margin:6px 0">${M5.imprevisto.t}</h3><p>${M5.imprevisto.txt}</p></div>
-      ${talk("O que você sente quando um plano muda assim, de repente?")}<p class="muted">A agenda abaixo já mostra o ensaio na quinta. Quer reorganizar alguma coisa? Se preferir, deixe como está.</p><div id="week">${weekHTML()}</div></div>`; },
-  () => storyHTML(),
+function triPanel(k) { if (!k) return `<div class="card stack-sm"><span class="label">Toque em cada parte</span><p class="muted">As três se influenciam o tempo todo, nos dois sentidos. Mudar uma delas costuma mexer nas outras.</p></div>`; const t = M3.tri[k]; return `<div class="card stack-sm" aria-live="polite"><span class="label">${t.t}</span><p>${t.txt}</p><div class="note small">${icon("chat", 16)}<span>Exemplo: ${t.ex}</span></div></div>`; }
+A.triSel = (el) => { const d = D("emocoes"); d.tri = el.dataset.k; save(); $("#tri").innerHTML = `${triSVG(d.tri)}`; $("#trip").innerHTML = triPanel(d.tri); };
+MREND.emocoes = [
+  () => { const d = D("emocoes"); return `<div class="stack-lg">${introHTML(M3.intro, `<div class="note">${icon("heart", 20)}<span>Nenhuma emoção é errada. A ideia aqui é entender o que acontece por dentro, para ter mais escolhas por fora.</span></div>`)}
+    <section class="tri-wrap"><div id="tri">${triSVG(d.tri)}</div><div id="trip">${triPanel(d.tri)}</div></section>${deepBlocks("emocoes", M3.blocos)}</div>`; },
+  () => `<div id="story">${storyHTML()}</div>`,
+  () => m3Conecte(),
+  () => conquistaHTML("emocoes", { sub: "Você explorou como pensamentos, emoções e reações se conectam, e montou estratégias para os momentos difíceis.", label: "O que essa frase quer dizer para você?", ph: "Escreva do seu jeito...", top: `<div class="phrase"><svg class="sky" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true">${sky(18, 5)}</svg><span class="label on-hero" style="position:relative">Para levar</span><p style="margin-top:8px">${M3.frase}</p></div>`, bottom: m3Quero() }),
 ];
-MSUM.semana = () => { if (!Object.keys(WD().place).length) return `<p class="small muted">A agenda ainda não foi montada.</p>`; const r = simulate(); return `<p class="small">Com folga: ${r.tally.antes} · No limite: ${r.tally.vespera} · Depois do prazo: ${r.tally.depois} · Dias acima da energia: ${r.tally.pesados} · Descanso: ${r.descanso ? "sim" : "não"}</p>`; };
+/* História interativa */
+function SD() { const d = D("emocoes"); d.st = d.st || { sit: "s1", th: null, re: null, stage: "pens", emo: [], int: 5, own: "", ownR: "", ownLogo: "", ownDepois: "", explored: {} }; return d.st; }
+function storyHTML() {
+  const h = SD(); const sit = M3.situacoes.find((s) => s.id === h.sit); const th = h.th === "own" ? { t: h.own, emo: [], reac: null } : h.th !== null ? sit.pens[h.th] : null;
+  if (!th && h.stage !== "pens") h.stage = "pens";
+  const total = M3.situacoes.reduce((a, s) => a + s.pens.reduce((b, p) => b + p.reac.length, 0), 0); const exp = Object.keys(h.explored).length;
+  const stages = [["pens", "Pensamento"], ["emo", "Emoção"], ["reac", "Reação"], ["cons", "Consequência"]]; const si = stages.findIndex((s) => s[0] === h.stage);
+  const bc = `<div class="trail-bc" aria-label="Caminho"><span class="done">Acontecimento</span>${stages.map(([k, l], i) => `<span class="${i < si ? "done" : i === si ? "cur" : ""}">${l}</span>`).join("")}</div>`;
+  let body = "";
+  if (h.stage === "pens") body = `<p><b>Que pensamento poderia aparecer na cabeça?</b> Escolha um. Depois dá para voltar e testar outros.</p><div class="stack-sm">${sit.pens.map((p, i) => { const n = p.reac.filter((_, r) => h.explored[`${sit.id}:${i}:${r}`]).length; return `<button class="choice" data-act="stTh" data-i="${i}"><span class="thought">“${p.t}”</span>${n ? `<span class="tag acc seen">${n}/${p.reac.length} caminhos</span>` : ""}</button>`; }).join("")}</div>
+    <form class="add-row" data-form="stOwn"><label class="sr-only" for="st-own">Outro pensamento</label><input id="st-own" class="field" placeholder="Ou escreva outro pensamento possível..." maxlength="120" autocomplete="off"><button class="btn btn-ghost" type="submit">Usar este</button></form>`;
+  else if (h.stage === "emo") body = `<div class="card soft"><span class="thought">“${esc(th.t)}”</span></div><p><b>Com esse pensamento, que emoções poderiam aparecer?</b> Marque quantas quiser.</p>${th.emo.length ? `<p class="small muted">As tracejadas costumam aparecer com esse pensamento, mas cada pessoa sente de um jeito.</p>` : ""}
+    <div class="chips">${[...new Set([...th.emo, ...M3.emocoesTodas])].map((e) => `<button class="chip warm ${th.emo.includes(e) ? "sug" : ""} ${h.emo.includes(e) ? "on" : ""}" data-act="stEmo" data-v="${esc(e)}">${e}</button>`).join("")}</div>
+    <div class="stack-sm"><label for="st-int" class="label">Intensidade: <span id="st-intv" class="count">${h.int}</span> de 10</label><input id="st-int" type="range" min="0" max="10" value="${h.int}" data-input="stInt"><div class="row between small muted"><span>fraquinha</span><span>no limite</span></div></div>
+    <div class="row"><button class="btn btn-pri" data-act="stGo" data-s="reac">Avançar: Reação ${icon("arrowR", 16)}</button></div>`;
+  else if (h.stage === "reac") body = `<div class="card soft stack-sm"><span class="thought">“${esc(th.t)}”</span>${h.emo.length ? `<span class="small">Emoções: ${esc(h.emo.join(", "))} · intensidade ${h.int}</span>` : ""}</div><p><b>E o que você poderia fazer?</b></p>
+    ${th.reac ? `<div class="stack-sm">${th.reac.map((r, i) => `<button class="choice" data-act="stRe" data-i="${i}">${icon("arrowR", 18)}<span>${r.t}</span>${h.explored[`${sit.id}:${h.th}:${i}`] ? `<span class="tag acc seen">${icon("check", 12, 3)} explorado</span>` : ""}</button>`).join("")}</div>`
+      : `<form class="stack-sm" data-form="stOwnR"><label class="sr-only" for="st-ownr">Sua reação</label><input id="st-ownr" class="field" value="${esc(h.ownR)}" placeholder="Escreva uma reação possível..." maxlength="120"><button class="btn btn-pri" type="submit" style="align-self:flex-start">Ver as consequências</button></form>`}`;
+  else if (h.stage === "cons") { const r = th.reac ? th.reac[h.re] : null;
+    body = `<div class="card soft stack-sm"><span class="thought">“${esc(th.t)}”</span><span class="small">${h.emo.length ? "Emoções: " + esc(h.emo.join(", ")) + " · " : ""}reação: <b>${esc(r ? r.t : h.ownR)}</b></span></div>
+    ${r ? `<div class="conseq"><div class="cq1"><b>Logo depois</b>${r.logo}</div><div class="cq2"><b>Mais tarde</b>${r.depois}</div></div>`
+      : `<div class="grid g2"><div class="stack-sm"><label class="label" for="st-ol">O que poderia acontecer logo depois?</label><textarea id="st-ol" class="field" data-input="stOL" style="min-height:70px">${esc(h.ownLogo)}</textarea></div><div class="stack-sm"><label class="label" for="st-od">E mais tarde?</label><textarea id="st-od" class="field" data-input="stOD" style="min-height:70px">${esc(h.ownDepois)}</textarea></div></div>`}
+    <div class="note acc">${icon("route", 20)}<span>Nenhum caminho é o certo. Cada um mostra uma conexão diferente entre o que se pensa, o que se sente e o que acontece depois. Toda reação tenta resolver alguma coisa: se proteger, ser ouvida, aliviar a dor.</span></div>
+    ${talk(r ? "Esse caminho parece com algo que você já viveu? O que aconteceu?" : "O que você aprendeu imaginando esse caminho?")}
+    <div class="row">${th.reac ? `<button class="btn btn-ghost" data-act="stGo" data-s="reac">${icon("refresh", 16)} Testar outra reação</button>` : ""}<button class="btn btn-ghost" data-act="stGo" data-s="pens">${icon("chat", 16)} Testar outro pensamento</button><button class="btn btn-pri" data-act="stNextSit">Outra situação ${icon("arrowR", 16)}</button></div>`; }
+  return `<div class="stack"><div class="row between"><div><span class="label">História interativa</span><h2 style="margin-top:4px">O que acontece depois?</h2></div><span class="small muted count">${exp} de ${total} caminhos explorados</span></div>
+    <div class="chips">${M3.situacoes.map((s) => `<button class="chip ${h.sit === s.id ? "on" : ""}" data-act="stSit" data-id="${s.id}">${s.titulo}</button>`).join("")}</div>
+    <div class="scene"><div class="sc-top"><span style="color:var(--pri-ink)">${icon("spark", 22)}</span><p style="font-weight:650;font-size:1.06rem">${sit.cena}</p></div><div class="sc-body">${bc}${body}</div></div></div>`;
+}
+const stRefresh = () => { const y = window.scrollY; $("#story").innerHTML = storyHTML(); window.scrollTo(0, y); };
+A.stSit = (el) => { const h = SD(); h.sit = el.dataset.id; h.th = null; h.re = null; h.stage = "pens"; h.emo = []; h.int = 5; save(); stRefresh(); };
+A.stTh = (el) => { const h = SD(); h.th = +el.dataset.i; h.stage = "emo"; h.emo = []; h.int = 5; save(); stRefresh(); };
+FORMS.stOwn = () => { const v = $("#st-own").value.trim(); if (!v) return; const h = SD(); h.own = v; h.th = "own"; h.stage = "emo"; h.emo = []; h.ownR = ""; h.ownLogo = ""; h.ownDepois = ""; save(); stRefresh(); };
+A.stEmo = (el) => { toggleIn(SD().emo, el.dataset.v); save(); el.classList.toggle("on"); };
+INPUTS.stInt = (el) => { SD().int = +el.value; save(); $("#st-intv").textContent = el.value; };
+A.stGo = (el) => { const h = SD(); h.stage = el.dataset.s; if (h.stage === "pens") { h.th = null; h.emo = []; } save(); stRefresh(); };
+A.stRe = (el) => { const h = SD(); h.re = +el.dataset.i; h.stage = "cons"; h.explored[`${h.sit}:${h.th}:${h.re}`] = 1; save(); stRefresh(); };
+FORMS.stOwnR = () => { const v = $("#st-ownr").value.trim(); if (!v) return; const h = SD(); h.ownR = v; h.stage = "cons"; save(); stRefresh(); };
+INPUTS.stOL = (el) => { SD().ownLogo = el.value; save(); };
+INPUTS.stOD = (el) => { SD().ownDepois = el.value; save(); };
+A.stNextSit = () => { const h = SD(); const i = M3.situacoes.findIndex((s) => s.id === h.sit); A.stSit({ dataset: { id: M3.situacoes[(i + 1) % M3.situacoes.length].id } }); $("#story").scrollIntoView({ behavior: "smooth", block: "start" }); };
+/* Conecte: emoções e estratégias */
+const BR = { iv: null, to: null, n: 0 };
+function m3Conecte() {
+  const d = D("emocoes"); d.quero = d.quero || []; d.det = d.det || {}; const e = M3.emocoes.find((x) => x.n === d.emoSel);
+  return `<div class="stack-lg"><section class="stack"><h2>Reconhecer o que sinto</h2><p class="muted prose">Toque em uma emoção para ver o aviso que ela costuma trazer e onde ela aparece no corpo.</p>
+    <div class="emo-grid">${M3.emocoes.map((x) => `<button class="emo-btn ${d.emoSel === x.n ? "on" : ""}" data-act="emoSel" data-v="${x.n}">${x.n}</button>`).join("")}</div>
+    <div id="emo-panel">${e ? emoPanel(e) : ""}</div></section>
+    <section class="stack"><h2>Para os momentos difíceis</h2><p class="muted prose">Estratégias diferentes servem para momentos diferentes. Experimente algumas agora e marque as que quer testar na vida real.</p>
+    <div class="strat-grid">${M3.estrategias.map((s) => { const w = d.quero.includes(s.n); return `<div class="strat ${w ? "want" : ""}"><h3>${s.n}</h3><p><b style="color:var(--acc-ink)">Por que funciona:</b> ${s.pq}</p>${s.how ? `<p class="small muted">Como: ${s.how}</p>` : ""}
+      <div class="row" style="margin-top:auto">${s.tryit ? `<button class="btn btn-soft btn-sm" data-act="tryIt" data-k="${s.tryit}">${icon("play", 14)} Experimentar agora</button>` : ""}<button class="btn ${w ? "btn-acc" : "btn-ghost"} btn-sm" data-act="chip" data-m="emocoes" data-k="quero" data-v="${esc(s.n)}" data-re="1">${w ? icon("check", 14, 2.6) + " Quero testar" : icon("plus", 14) + " Quero testar"}</button></div></div>`; }).join("")}</div>
+    <div id="tryit" style="scroll-margin-top:90px"></div>
+    <div class="note warm">${icon("heart", 20)}<span>Se uma emoção difícil fica muito pesada ou dura muitos dias, conversar com a psicóloga ou com um adulto de confiança também é uma estratégia, e uma das mais importantes.</span></div></section></div>`;
+}
+const emoPanel = (e) => `<div class="grid g2" style="animation:pop .3s ease both"><div class="card soft stack-sm"><span class="label">O que a ${e.n.toLowerCase()} costuma avisar</span><p>${e.avisa}</p></div><div class="card acc stack-sm"><span class="label acc">Sinais no corpo</span><p>${e.corpo}</p></div></div>`;
+A.emoSel = (el) => { const d = D("emocoes"); d.emoSel = el.dataset.v; save(); $$(".emo-btn").forEach((b) => b.classList.toggle("on", b.dataset.v === d.emoSel)); $("#emo-panel").innerHTML = emoPanel(M3.emocoes.find((x) => x.n === d.emoSel)); };
+A.tryIt = (el) => { cleanup(); const k = el.dataset.k; const box = $("#tryit"); const d = D("emocoes");
+  if (k === "breath") box.innerHTML = `<div class="card stack" style="align-items:center;text-align:center"><span class="label">Respiração lenta</span><p class="muted">Puxe o ar enquanto o círculo cresce (4 segundos) e solte devagar enquanto ele diminui (6 segundos). Seis ciclos bastam.</p><div class="breath"><div class="orb" id="orb"></div><span class="bl" id="bl">Pronta?</span></div><div class="row"><button class="btn btn-pri" data-act="brStart">${icon("play", 16)} Começar</button><button class="btn btn-ghost" data-act="brStop">Parar</button></div></div>`;
+  else if (k === "ground") { d.gi = 0; save(); box.innerHTML = groundHTML(); }
+  else box.innerHTML = detHTML();
+  box.scrollIntoView({ behavior: "smooth", block: "start" }); };
+A.brStart = () => { cleanup(); const orb = $("#orb"), bl = $("#bl"); BR.n = 0; const cycle = () => { if (!$("#orb")) return cleanup(); BR.n++; if (BR.n > 6) { cleanup(); orb.className = "orb"; bl.textContent = "Pronto. Como o corpo está agora?"; return; } orb.className = "orb in"; bl.textContent = `Puxe o ar... (${BR.n} de 6)`; BR.to = setTimeout(() => { orb.className = "orb out"; bl.textContent = `Solte devagar... (${BR.n} de 6)`; }, 4000); }; cycle(); BR.iv = setInterval(cycle, 10000); };
+A.brStop = () => { cleanup(); const o = $("#orb"); if (o) o.className = "orb"; const b = $("#bl"); if (b) b.textContent = "Pausado."; };
+const GROUND = [["5", "coisas que você consegue ver"], ["4", "coisas que você pode tocar"], ["3", "sons que você ouve"], ["2", "cheiros que percebe (ou de que gosta)"], ["1", "coisa boa sobre este momento"]];
+function groundHTML() { const i = D("emocoes").gi || 0; if (i >= GROUND.length) return `<div class="card stack" style="text-align:center;align-items:center"><span class="label">5 · 4 · 3 · 2 · 1</span><h3>Você voltou para o agora.</h3><p class="muted">Repare se a cabeça está um pouco mais calma do que antes.</p><button class="btn btn-ghost btn-sm" data-act="tryIt" data-k="ground">${icon("refresh", 14)} Fazer de novo</button></div>`; const [n, t] = GROUND[i]; return `<div class="card stack" style="text-align:center;align-items:center"><span class="label">5 · 4 · 3 · 2 · 1</span><span style="font-family:var(--f-display);font-size:4rem;font-weight:800;line-height:1;color:var(--pri)">${n}</span><p style="font-size:1.15rem;font-weight:700">Encontre ${n} ${t}.</p><p class="small muted">Sem pressa. Pode falar em voz alta ou só pensar.</p><button class="btn btn-pri" data-act="gNext">${i < 4 ? "Próximo" : "Terminar"} ${icon("arrowR", 16)}</button></div>`; }
+A.gNext = () => { const d = D("emocoes"); d.gi = (d.gi || 0) + 1; save(); $("#tryit").innerHTML = groundHTML(); };
+const DETQ = [["pens", "Qual é o pensamento?", "ex.: todo mundo riu de mim"], ["fato", "Isso é um fato ou uma interpretação? Que provas eu tenho?", ""], ["outra", "Que outra explicação poderia existir?", ""], ["amiga", "O que eu diria para uma amiga que pensasse isso?", ""], ["justo", "Um pensamento mais justo seria...", ""]];
+function detHTML() { const det = D("emocoes").det || {}; return `<div class="card stack"><span class="label">Detetive do pensamento</span><p class="muted small">Pense numa situação real ou em uma das histórias. Responda só o que fizer sentido.</p>${DETQ.map(([k, q, ph]) => `<div class="stack-sm"><label for="det-${k}" style="font-weight:700">${q}</label><textarea id="det-${k}" class="field" style="min-height:60px" data-input="det" data-k="${k}" placeholder="${ph}" maxlength="300">${esc(det[k] || "")}</textarea></div>`).join("")}</div>`; }
+INPUTS.det = (el) => { const d = D("emocoes"); d.det = d.det || {}; d.det[el.dataset.k] = el.value; save(); };
+function m3Quero() { const q = D("emocoes").quero || []; return q.length ? `<div class="card acc stack-sm"><span class="label acc">Estratégias que você quer testar</span><div class="chips">${q.map((x) => `<span class="tag acc">${esc(x)}</span>`).join("")}</div></div>` : ""; }
 
-/* =================== MISSÃO 6 — VOLUME DAS EMOÇÕES =================== */
-const ED = () => { const d = D("emocoes"); d.s = d.s || {}; d.sit = d.sit || M6.situacoes[0].id; return d; };
-const ES = (id) => { const d = ED(); if (!d.s[id]) d.s[id] = { temp: 5, emo: [], corpo: [], seen: [], path: null, quero: [] }; return d.s[id]; };
-function emoHTML() {
-  const d = ED(); const sit = M6.situacoes.find((x) => x.id === d.sit); const s = ES(sit.id); const p = s.path !== null ? sit.paths[s.path] : null;
-  return `<div class="stack"><div class="sit-tabs">${M6.situacoes.map((x) => `<button class="chip ${d.sit === x.id ? "on" : ""}" data-act="emoSit" data-id="${x.id}">${d.s[x.id] && d.s[x.id].seen.length ? icon("check", 12, 3) : ""}${x.t}</button>`).join("")}</div>
-    <div class="scene"><div class="sc-top"><span class="sc-time">${sit.t}</span><p style="font-weight:650;font-size:1.08rem">${sit.s}</p></div>
-    <div class="sc-body">
-      <div class="grid g2" style="align-items:start"><div class="thermo"><span class="label">Intensidade, de 0 a 10</span><div class="row" style="gap:14px;flex-wrap:nowrap"><span class="tv" id="tv">${s.temp}</span><input type="range" min="0" max="10" value="${s.temp}" data-input="temp" aria-label="Intensidade da emoção"></div><div class="row between small muted"><span>calma</span><span>no limite</span></div></div>
-      <div class="stack" style="gap:8px"><span class="label">O que você sentiria?</span><div class="row" style="gap:6px">${chipsHTML(M6.emocoes, s.emo, "emoE", "", "coral")}</div></div></div>
-      <div class="stack" style="gap:8px"><span class="label">Onde isso aparece no corpo?</span><div class="row" style="gap:6px">${chipsHTML(M6.corpo, s.corpo, "emoC")}</div></div>
-    </div></div>
-    <div class="stack"><span class="label">E agora? Explore os caminhos. Vale abrir mais de um.</span>
-      <div class="paths">${sit.paths.map((x, i) => `<button class="path ${s.path === i ? "on" : ""} ${s.seen.includes(i) ? "seen" : ""}" data-act="emoPath" data-i="${i}">${s.seen.includes(i) ? `<span class="seenmark">explorado</span>` : ""}${x.l}</button>`).join("")}</div>
-      ${p ? `<div class="conseq"><div class="cq a"><b>Logo depois</b>${p.logo}</div><div class="cq b"><b>Mais tarde</b>${p.depois}</div><div class="cq c"><b>O que essa reação tenta resolver</b>${p.tenta}</div></div>` : ""}
-    </div>
-    ${s.seen.length ? `<div class="note lav">${icon("sliders", 18)}<span>${M6.explica}</span></div>
-      <div class="stack" style="gap:8px"><span class="label">Nessa situação, o que você gostaria de tentar?</span><div class="row" style="gap:6px">${chipsHTML(M6.ajuda, s.quero, "emoQ", "", "agua")}</div></div>
-      ${talk(s.seen.length > 1 ? "Comparando os caminhos que você abriu, qual parece mais com o que você costuma fazer?" : "Esse caminho parece com algo que você já fez? O que aconteceu?")}` : ""}
-  </div>`;
+/* =========================================================
+   CAPÍTULO FINAL — MEU CAMINHO DAQUI PRA FRENTE
+   ========================================================= */
+const F = () => S.fin;
+function finSugTools() {
+  const s = []; const a = S.m.acao && S.m.acao.d; const e = S.m.emocoes && S.m.emocoes.d;
+  ((a && a.pick) || []).forEach((x) => s.push(x)); ((e && e.quero) || []).forEach((x) => s.push(x));
+  if (a && a.t) M2.tools.forEach((x) => { if (a.t.tried[x.id]) s.push(x.nome); });
+  return [...new Set(s)].filter((x) => !F().tools.some((t) => t.t === x));
 }
-const emoRefresh = () => { const y = window.scrollY; $("#emo").innerHTML = emoHTML(); window.scrollTo(0, y); };
-A.emoSit = (el) => { ED().sit = el.dataset.id; save(); emoRefresh(); };
-A.emoE = (el) => { toggleIn(ES(ED().sit).emo, el.dataset.v); save(); el.classList.toggle("on"); };
-A.emoC = (el) => { toggleIn(ES(ED().sit).corpo, el.dataset.v); save(); el.classList.toggle("on"); };
-A.emoQ = (el) => { toggleIn(ES(ED().sit).quero, el.dataset.v); save(); el.classList.toggle("on"); };
-A.emoPath = (el) => { const s = ES(ED().sit); const i = +el.dataset.i; s.path = i; if (!s.seen.includes(i)) s.seen.push(i); save(); tone(523, 0.1, "sine", 0.07); emoRefresh(); };
-INPUTS.temp = (el) => { ES(ED().sit).temp = +el.value; save(); $("#tv").textContent = el.value; };
-function regraHTML() {
-  const d = ED(); d.regra = d.regra || { sinal: "", nivel: 6, acao: "" };
-  const corpo = [...new Set(Object.values(d.s).flatMap((x) => x.corpo))]; const quero = [...new Set(Object.values(d.s).flatMap((x) => x.quero))];
-  return `<div class="grid g2" style="align-items:start"><div class="card stack"><p class="muted">Uma frase curta para lembrar quando a emoção subir. Use as sugestões ou escreva do seu jeito.</p>
-      <label class="label" for="rg-s">Quando eu perceber...</label><input id="rg-s" class="field" data-input="regra" data-k="sinal" value="${esc(d.regra.sinal)}" placeholder="ex.: meu rosto esquentando" maxlength="80">
-      ${corpo.length ? `<div class="sugs">${corpo.map((c) => `<button data-act="rgSug" data-k="sinal" data-v="${esc(c.toLowerCase())}">+ ${esc(c)}</button>`).join("")}</div>` : ""}
-      <label class="label" for="rg-n">...e o termômetro estiver perto de</label><div class="row" style="flex-wrap:nowrap;gap:12px"><span class="tv" style="font-family:var(--f-display);font-weight:750;font-size:1.8rem" id="rg-nv">${d.regra.nivel}</span><input id="rg-n" type="range" min="1" max="10" value="${d.regra.nivel}" data-input="regra" data-k="nivel"></div>
-      <label class="label" for="rg-a">...eu posso</label><input id="rg-a" class="field" data-input="regra" data-k="acao" value="${esc(d.regra.acao)}" placeholder="ex.: sair um pouco e respirar antes de responder" maxlength="100">
-      <div class="sugs">${(quero.length ? quero : M6.ajuda).map((c) => `<button data-act="rgSug" data-k="acao" data-v="${esc(c.toLowerCase())}">+ ${esc(c)}</button>`).join("")}</div></div>
-    <div class="stack"><span class="label">Sua regra de bolso</span><div id="rg-card">${regraCard()}</div>${talk("Em que situação real essa regra poderia ser útil nesta semana?")}</div></div>`;
-}
-function regraCard() { const r = ED().regra; return `<div class="ticket big"><div class="tk-main"><span class="label light">Regra de bolso</span><h4 style="font-size:1.15rem;line-height:1.35">Quando eu perceber ${esc(r.sinal || "...")} e o termômetro estiver perto de ${r.nivel}, eu posso ${esc(r.acao || "...")}.</h4></div><div class="tk-stub"><span class="n">${r.nivel}</span><small>de 10</small></div></div>`; }
-INPUTS.regra = (el) => { const r = ED().regra; r[el.dataset.k] = el.dataset.k === "nivel" ? +el.value : el.value; save(); if (el.dataset.k === "nivel") $("#rg-nv").textContent = el.value; $("#rg-card").innerHTML = regraCard(); };
-A.rgSug = (el) => { const r = ED().regra; const k = el.dataset.k; r[k] = r[k] ? r[k].replace(/[.,;]?\s*$/, "") + (k === "sinal" ? " ou " : " e ") + el.dataset.v : el.dataset.v; save(); $("#rg-" + (k === "sinal" ? "s" : "a")).value = r[k]; $("#rg-card").innerHTML = regraCard(); };
-MREND.emocoes = [() => `<div id="emo">${emoHTML()}</div>`, () => regraHTML()];
-MSUM.emocoes = () => { const d = ED(); const ex = M6.situacoes.filter((x) => d.s[x.id] && d.s[x.id].seen.length); return (ex.length ? `<ul class="dots small">${ex.map((x) => { const s = d.s[x.id]; return `<li><b>${x.t}</b> · intensidade ${s.temp}${s.emo.length ? " · " + s.emo.join(", ") : ""} · ${s.seen.length} caminho(s)${s.quero.length ? ` · <span style="color:var(--agua-ink)">quero tentar: ${s.quero.join(", ")}</span>` : ""}</li>`; }).join("")}</ul>` : `<p class="small muted">Nenhuma situação explorada ainda.</p>`) + (d.regra && d.regra.acao ? regraCard() : ""); };
-
-/* =================== MISSÃO 7 — ESTRATÉGIAS =================== */
-const TD = () => { const d = D("estrategias"); d.bag = d.bag || []; d.exps = d.exps || []; d.draft = d.draft || {}; return d; };
-const chalName = () => { const d = TD(); return d.chal === "own" ? d.chalOwn || "Desafio próprio" : (SITUACOES.find((s) => s.id === d.chal) || {}).nome; };
-function chalHTML() {
-  const d = TD();
-  return `<div class="stack"><p class="muted">Escolha um desafio que aparece na sua vida agora. Pode ser pequeno.</p>
-    <div class="chal-grid">${SITUACOES.map((s) => `<button class="chal ${d.chal === s.id ? "on" : ""}" data-act="chal" data-id="${s.id}">${s.nome}</button>`).join("")}<button class="chal ${d.chal === "own" ? "on" : ""}" data-act="chal" data-id="own">Outro desafio...</button></div>
-    ${d.chal === "own" ? `<input class="field" data-input="chalOwn" value="${esc(d.chalOwn || "")}" placeholder="Descreva o desafio com suas palavras" maxlength="100" aria-label="Desafio próprio">` : ""}
-    ${d.chal ? `<div class="grid g2">${talk("Quando isso aconteceu pela última vez? Como foi?")}${talk("O que já ajudou, mesmo que um pouco?")}</div><div><button class="btn btn-primary" data-act="stepBy" data-d="1">Ver ferramentas ${icon("arrowR", 16)}</button></div>` : ""}</div>`;
-}
-A.chal = (el) => { TD().chal = el.dataset.id; save(); $("#chal").innerHTML = chalHTML(); };
-INPUTS.chalOwn = (el) => { TD().chalOwn = el.value; save(); };
-function toolsHTML() {
-  const d = TD(); const list = d.all || !d.chal || d.chal === "own" ? TOOLS : TOOLS.filter((t) => t.sit.includes(d.chal));
-  return `<div class="stack"><div class="bag">${icon("bag", 18)}<b>Mochila</b>${d.bag.length ? d.bag.map((id) => `<span class="tag">${TOOLS.find((t) => t.id === id).nome}</span>`).join("") : `<span class="small" style="opacity:.75">vazia: escolha até três ferramentas</span>`}<span class="label light" style="margin-left:auto">${d.bag.length}/3</span></div>
-    <div class="row between"><span class="label">${d.chal ? "Desafio: " + esc(chalName()) : "Todas as ferramentas"}</span>${d.chal && d.chal !== "own" ? `<button class="btn btn-ghost btn-sm" data-act="toolsAll">${d.all ? "Ver só as do desafio" : "Ver todas"}</button>` : ""}</div>
-    <div class="tool-grid">${list.map((t) => { const inb = d.bag.includes(t.id); return `<div class="tool ${inb ? "inbag" : ""}"><div class="row" style="gap:10px"><span class="ib sm i-lilas">${icon(t.icon, 18)}</span><h4>${t.nome}</h4></div><p>${t.como}</p>
-      <details><summary>Como usar e exemplo</summary><ol>${t.usar.map((u) => `<li>${u}</li>`).join("")}</ol><p class="small muted" style="margin-top:8px">Exemplo: ${t.ex}</p></details>
-      <div class="row" style="margin-top:auto"><button class="btn ${inb ? "btn-dark" : "btn-soft"} btn-sm" data-act="bagT" data-id="${t.id}" ${!inb && d.bag.length >= 3 ? "disabled" : ""}>${inb ? icon("check", 14, 2.6) + " Na mochila" : icon("plus", 14) + " Colocar na mochila"}</button>${t.res ? `<button class="btn btn-ghost btn-sm" data-act="tryRes" data-tab="${t.res}">Testar agora</button>` : ""}</div></div>`; }).join("")}</div></div>`;
-}
-const toolsRefresh = () => { const y = window.scrollY; $("#tools").innerHTML = toolsHTML(); window.scrollTo(0, y); };
-A.toolsAll = () => { TD().all = !TD().all; save(); toolsRefresh(); };
-A.bagT = (el) => { const d = TD(); const id = el.dataset.id; if (d.bag.includes(id)) d.bag = d.bag.filter((x) => x !== id); else if (d.bag.length < 3) d.bag.push(id); save(); toolsRefresh(); };
-A.tryRes = (el) => { S.resTab = el.dataset.tab; save(); M("estrategias").step = 4; renderStep(); };
-function expHTML() {
-  const d = TD(); const f = d.draft; const opts = (d.bag.length ? d.bag : TOOLS.map((t) => t.id));
-  const field = (k, l, ph) => `<label class="label" for="ex-${k}">${l}</label><input id="ex-${k}" class="field" data-input="draft" data-k="${k}" value="${esc(f[k] || "")}" placeholder="${ph}" maxlength="140">`;
-  return `<div class="grid g2" style="align-items:start"><div class="card stack"><span class="label">Novo experimento</span><p class="small muted">Desafio: <b>${esc(chalName() || "escolha na etapa anterior")}</b></p>
-      <label class="label" for="ex-tool">Ferramenta que vou testar</label><select id="ex-tool" class="field" data-input="draft" data-k="tool"><option value="">Escolha...</option>${opts.map((id) => { const t = TOOLS.find((x) => x.id === id); return `<option value="${id}" ${f.tool === id ? "selected" : ""}>${t.nome}</option>`; }).join("")}</select>
-      ${field("quando", "Quando vou testar", "ex.: terça e quinta, ao chegar da escola")}${field("como", "Como vou fazer", "ex.: timer de 15 minutos antes de abrir o celular")}${field("sinal", "Como vou saber se ajudou", "ex.: se eu começar a tarefa antes das 16h")}${field("obst", "O que pode atrapalhar, e o plano B", "ex.: se esquecer, colocar um alarme com nome")}
-      <button class="btn btn-primary" data-act="expSave" ${f.tool ? "" : "disabled"} id="exsave">${icon("flag", 16)} Salvar experimento</button></div>
-    <div class="stack"><span class="label">Meus experimentos</span>${d.exps.length ? d.exps.map((x, i) => `<div class="expcard"><div class="row between"><span class="label">Experimento ${pad2(i + 1)}</span><button class="btn btn-ghost btn-sm" data-act="expDel" data-i="${i}" aria-label="Apagar experimento">${icon("trash", 14)}</button></div>
-        <dl><dt>Desafio</dt><dd>${esc(x.chal)}</dd><dt>Ferramenta</dt><dd>${esc(TOOLS.find((t) => t.id === x.tool).nome)}</dd>${x.quando ? `<dt>Quando</dt><dd>${esc(x.quando)}</dd>` : ""}${x.como ? `<dt>Como</dt><dd>${esc(x.como)}</dd>` : ""}${x.sinal ? `<dt>Sinal de que ajudou</dt><dd>${esc(x.sinal)}</dd>` : ""}${x.obst ? `<dt>Plano B</dt><dd>${esc(x.obst)}</dd>` : ""}</dl>
-        <span class="label">Na próxima sessão: como foi?</span><div class="row" style="gap:6px">${M7.resultados.map((r) => `<button class="chip agua ${x.res === r ? "on" : ""}" data-act="expRes" data-i="${i}" data-v="${r}">${r}</button>`).join("")}</div>
-        <textarea class="field" data-input="expNote" data-i="${i}" placeholder="O que você percebeu?" style="min-height:60px">${esc(x.notas || "")}</textarea></div>`).join("") : `<div class="empty">Seu primeiro experimento aparece aqui.</div>`}</div></div>`;
-}
-INPUTS.draft = (el) => { TD().draft[el.dataset.k] = el.value; save(); const b = $("#exsave"); if (b) b.disabled = !TD().draft.tool; };
-A.expSave = () => { const d = TD(); d.exps.push({ ...d.draft, chal: chalName() || "Sem desafio definido", res: null, notas: "" }); d.draft = {}; save(); chime(); $("#exp").innerHTML = expHTML(); };
-A.expDel = (el) => { TD().exps.splice(+el.dataset.i, 1); save(); $("#exp").innerHTML = expHTML(); };
-A.expRes = (el) => { const x = TD().exps[+el.dataset.i]; x.res = x.res === el.dataset.v ? null : el.dataset.v; save(); $("#exp").innerHTML = expHTML(); };
-INPUTS.expNote = (el) => { TD().exps[+el.dataset.i].notas = el.value; save(); };
-
-/* ---------- Recursos interativos ---------- */
-const RES_TABS = [{ id: "todo", nome: "Lista de tarefas", icon: "list" }, { id: "timer", nome: "Temporizador", icon: "timer" }, { id: "steps", nome: "Pequenas etapas", icon: "stairs" }, { id: "board", nome: "Quadro da semana", icon: "calendar" }];
-function resHTML() { S.resTab = S.resTab || "todo"; return `<div class="res-tabs" id="res-tabs"></div><div class="res-box" id="res-box"></div><p class="muted small" style="margin-top:10px">${icon("lock", 14)} O que você escreve aqui fica apenas neste navegador, durante esta sessão.</p>`; }
-function renderRes() {
-  if (!$("#res-box")) return;
-  $("#res-tabs").innerHTML = RES_TABS.map((t) => `<button class="chip ${S.resTab === t.id ? "on" : ""}" data-act="resTab" data-id="${t.id}">${icon(t.icon, 15)} ${t.nome}</button>`).join("");
-  $("#res-box").innerHTML = ({ todo: todoHTML, timer: timerHTML, steps: stepsHTML, board: boardHTML })[S.resTab]();
-  if (S.resTab === "timer") timerPaint(); if (S.resTab === "board") boardDnD();
-}
-A.resTab = (el) => { S.resTab = el.dataset.id; save(); renderRes(); };
-function todoHTML() {
-  return `<div class="row between" style="margin-bottom:10px"><div><h3>Lista de tarefas</h3><p class="muted small">Registre aqui o que precisa fazer e marque quando terminar.</p></div>${S.todo.some((t) => t.done) ? `<button class="btn btn-ghost btn-sm" data-act="todoClear">${icon("trash", 14)} Limpar concluídas</button>` : ""}</div>
-  <form class="add-row" onsubmit="event.preventDefault();A.todoAdd()"><label class="sr-only" for="todo-in">Nova tarefa</label><input id="todo-in" placeholder="ex.: separar o material de inglês" maxlength="120" autocomplete="off"><button class="btn btn-dark" type="submit">${icon("plus", 16)} Adicionar</button></form>
-  <div class="todo-list">${S.todo.length ? S.todo.map((t) => `<div class="todo ${t.done ? "done" : ""}"><label><input type="checkbox" data-act="todoToggle" data-id="${t.id}" ${t.done ? "checked" : ""}><span>${esc(t.t)}</span></label><button class="mini" data-act="todoDel" data-id="${t.id}" aria-label="Remover tarefa">${icon("x", 14)}</button></div>`).join("") : `<div class="empty">Nenhuma tarefa ainda. Que tal começar por algo pequeno para hoje?</div>`}</div>`;
-}
-A.todoAdd = () => { const v = $("#todo-in").value.trim(); if (!v) return; S.todo.push({ id: uid(), t: v, done: false }); save(); renderRes(); $("#todo-in").focus(); };
-A.todoToggle = (el) => { const t = S.todo.find((x) => x.id === el.dataset.id); t.done = el.checked; save(); if (t.done) tone(784, 0.15, "sine", 0.08); renderRes(); };
-A.todoDel = (el) => { S.todo = S.todo.filter((x) => x.id !== el.dataset.id); save(); renderRes(); };
-A.todoClear = () => { S.todo = S.todo.filter((x) => !x.done); save(); renderRes(); };
-const TM = { total: 15 * 60, left: 15 * 60, running: false, iv: null, label: "Foco", ended: false };
-const fmt = (s) => `${pad2(Math.floor(s / 60))}:${pad2(s % 60)}`;
-function timerHTML() {
-  return `<div class="timer-wrap"><div class="vinyl ${TM.running ? "spin" : ""}" id="vinyl"><svg viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="114" fill="none" stroke="#EFE9F9" stroke-width="8"/><circle id="tm-ring" cx="120" cy="120" r="114" fill="none" stroke="#91D8C9" stroke-width="8" stroke-linecap="round" transform="rotate(-90 120 120)" stroke-dasharray="716.3" stroke-dashoffset="0"/>
-    <g class="disc"><circle cx="120" cy="120" r="100" fill="#211936"/><circle cx="120" cy="120" r="86" fill="none" stroke="#fff" stroke-opacity=".07" stroke-width="2"/><circle cx="120" cy="120" r="72" fill="none" stroke="#fff" stroke-opacity=".07" stroke-width="2"/><path d="M62 82a70 70 0 0 1 38-26" stroke="#fff" stroke-opacity=".2" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="120" cy="120" r="38" fill="#C6B2E8"/><path d="${sparkPath(120, 100, 8)}" fill="#211936"/><circle cx="120" cy="120" r="4" fill="#211936"/></g></svg><div class="time"><span id="tm-time">${fmt(TM.left)}</span></div></div>
-    <div class="stack"><div><h3>Temporizador</h3><p class="muted small">Escolha uma duração viável. O disco gira enquanto o tempo passa, e o anel mostra quanto falta.</p></div>
-      <div class="row" style="gap:6px">${[5, 10, 15, 25].map((m) => `<button class="chip ${TM.total === m * 60 && TM.label === "Foco" ? "on" : ""}" data-act="tmSet" data-m="${m}">${m} min</button>`).join("")}<button class="chip agua ${TM.label === "Pausa" ? "on" : ""}" data-act="tmPause">Pausa de 5 min</button></div>
-      <div class="row" style="gap:6px"><button class="btn btn-soft btn-sm" data-act="tmAdj" data-d="-1" ${TM.running ? "disabled" : ""}>− 1 min</button><button class="btn btn-soft btn-sm" data-act="tmAdj" data-d="1" ${TM.running ? "disabled" : ""}>+ 1 min</button><span class="tag ${TM.label === "Pausa" ? "agua" : ""}">${TM.label === "Pausa" ? "Modo pausa" : "Modo foco"}</span></div>
-      <div class="row"><button class="btn ${TM.running ? "btn-ghost" : "btn-primary"}" data-act="tmToggle">${TM.running ? icon("pause", 16) + " Pausar" : icon("play", 16) + (TM.left < TM.total && TM.left > 0 ? " Continuar" : " Iniciar")}</button><button class="btn btn-ghost" data-act="tmReset">${icon("refresh", 16)} Zerar</button></div>
-      <div aria-live="polite">${TM.ended ? `<div class="note agua">${icon("check", 18)}<span>${TM.label === "Pausa" ? "Fim da pausa. Retome a tarefa com calma." : "Tempo concluído. Faça uma pausa curta antes do próximo ciclo."}</span></div>` : ""}</div></div></div>`;
-}
-function timerPaint() { const t = $("#tm-time"); if (t) t.textContent = fmt(TM.left); const r = $("#tm-ring"); if (r) r.setAttribute("stroke-dashoffset", (716.3 * (1 - TM.left / TM.total)).toFixed(1)); }
-function stopTimer(reset) { clearInterval(TM.iv); TM.iv = null; TM.running = false; if (reset) { TM.left = TM.total; TM.ended = false; } }
-A.tmSet = (el) => { stopTimer(); TM.total = TM.left = +el.dataset.m * 60; TM.label = "Foco"; TM.ended = false; renderRes(); };
-A.tmPause = () => { stopTimer(); TM.total = TM.left = 300; TM.label = "Pausa"; TM.ended = false; renderRes(); };
-A.tmAdj = (el) => { const m = Math.max(1, Math.min(90, Math.round(TM.total / 60) + +el.dataset.d)); TM.total = TM.left = m * 60; TM.ended = false; renderRes(); };
-A.tmReset = () => { stopTimer(true); renderRes(); };
-A.tmToggle = () => {
-  if (TM.running) { stopTimer(); renderRes(); return; }
-  if (TM.left <= 0) TM.left = TM.total; TM.ended = false; TM.running = true; tone(523, 0.1, "sine", 0.07);
-  TM.iv = setInterval(() => { TM.left--; timerPaint(); if (TM.left <= 0) { stopTimer(); TM.left = 0; TM.ended = true; chime(); setTimeout(chime, 900); if ($("#vinyl")) renderRes(); else toast(TM.label === "Pausa" ? "Fim da pausa." : "Tempo concluído."); } }, 1000);
-  renderRes();
+const FIN_R = [
+  () => { const prev = MISSIONS.map((m) => [m, S.m[m.id] && S.m[m.id].d.refl]).filter(([, r]) => r && r.trim());
+    return `<h2>Olhando o caminho</h2><p class="hand">Antes de pensar no que vem, vale olhar para trás com calma.</p>
+    ${prev.length ? `<div class="card stack-sm" style="background:var(--surface)"><span class="label">O que você deixou pelo caminho</span>${prev.map(([m, r]) => `<p><b>${m.titulo}:</b> <span style="font-family:var(--f-hand);font-size:1.3rem">${esc(r)}</span></p>`).join("")}</div>` : ""}
+    <div class="note gold small">${icon("info", 18)}<span>Pode responder “não sei”, pode deixar em branco. Todas as respostas cabem aqui, inclusive as que não são tão boas.</span></div>
+    ${FIM.perguntas.map((q) => `<div class="stack-sm"><label for="fq-${q.id}" style="font-weight:700">${q.t}</label><textarea id="fq-${q.id}" class="field" data-input="finQ" data-k="${q.id}" maxlength="800">${esc(F().q[q.id] || "")}</textarea></div>`).join("")}`; },
+  () => `<h2>Três cartões</h2><p class="hand">Três lugares para guardar o que ficou de mais importante.</p><div class="trio">${FIM.cartoes.map((c) => `<div class="tcardx ${c.cls}"><h3>${c.t}</h3><label for="fc-${c.id}" class="small">${c.q}</label><textarea id="fc-${c.id}" class="field" data-input="finC" data-k="${c.id}" maxlength="400" style="min-height:130px">${esc(F().cards[c.id] || "")}</textarea></div>`).join("")}</div>`,
+  () => { const sug = finSugTools(); return `<h2>Minha caixa de ferramentas</h2><p class="hand">O que eu levo comigo para os dias difíceis e para os dias comuns.</p>
+    ${sug.length ? `<div class="stack-sm"><span class="label">Sugestões das suas missões</span><div class="chips">${sug.map((x) => `<button class="chip sug" data-act="finToolAdd" data-v="${esc(x)}">${icon("plus", 13)} ${esc(x)}</button>`).join("")}</div></div>` : ""}
+    <form class="add-row" data-form="finTool"><label class="sr-only" for="ft-in">Nova ferramenta</label><input id="ft-in" class="field" placeholder="Outra ferramenta, pessoa, música, lugar..." maxlength="80" autocomplete="off"><button class="btn btn-pri" type="submit">${icon("plus", 16)} Guardar</button></form>
+    <div class="tbx"><div class="row" style="gap:10px"><span style="color:var(--gold)">${icon("toolbox", 24)}</span><b style="font-family:var(--f-display);font-size:1.1rem">Minha caixa</b></div>${F().tools.length ? F().tools.map((t, k) => `<div class="tbx-item"><b>${esc(t.t)}</b><button class="mini" data-act="finToolDel" data-k="${k}" aria-label="Tirar da caixa">${icon("x", 14)}</button><label class="sr-only" for="ftq-${k}">Quando usar</label><input id="ftq-${k}" data-input="finToolQ" data-k="${k}" value="${esc(t.q || "")}" placeholder="Quando eu uso: ..." maxlength="100"></div>`).join("") : `<p style="color:var(--on-hero-2)">A caixa está vazia. Guarde aqui o que te ajuda.</p>`}</div>`; },
+  () => `<h2>Mural de objetivos</h2><p class="hand">Até três coisas que eu gostaria de cuidar daqui pra frente.</p><div class="note small">${icon("heart", 18)}<span>Não é obrigação. Pode deixar um, dois ou nenhum, e objetivos podem mudar com o tempo.</span></div>
+    <div class="postits">${F().goals.map((g, k) => `<div class="postit"><label class="label" for="fg-${k}">Objetivo ${k + 1}</label><textarea id="fg-${k}" rows="3" data-input="finG" data-k="${k}" data-f="t" maxlength="140" placeholder="Eu quero...">${esc(g.t)}</textarea><label class="small muted" for="fgp-${k}">Um primeiro passo (opcional)</label><input id="fgp-${k}" data-input="finG" data-k="${k}" data-f="passo" value="${esc(g.passo)}" maxlength="100" placeholder="ex.: falar com..."></div>`).join("")}</div>`,
+  () => { const c = F().carta; return `<h2>Carta para o meu eu do futuro</h2><div class="row" style="gap:8px"><label for="fl-para" class="hand">Para mim, </label><select id="fl-para" class="field" style="width:auto" data-input="finPara">${["daqui a seis meses", "daqui a um ano", "quando eu precisar lembrar"].map((o) => `<option ${c.para === o ? "selected" : ""}>${o}</option>`).join("")}</select></div>
+    <label for="fl-txt" class="sr-only">Texto da carta</label><textarea id="fl-txt" class="field hand-in" data-input="finTxt" maxlength="4000" placeholder="Querida eu do futuro, ...">${esc(c.texto)}</textarea>
+    <div class="row"><button class="btn btn-pri btn-sm" data-act="finCopy">${icon("copy", 14)} Copiar a carta</button><span class="small muted">${icon("lock", 13)} A carta fica salva automaticamente neste navegador.</span></div>
+    <p class="small muted">Para guardar em outro lugar, copie e cole num documento, num e-mail para você mesma ou num caderno de notas. Também dá para imprimir a partir desse documento.</p>`; },
+];
+VIEWS.caminho = {
+  render() {
+    if (isLocked("caminho")) return lockedHTML(FINAL);
+    const f = F(); f.step = Math.max(0, Math.min(4, f.step || 0)); f.seen = f.seen || {}; f.seen[f.step] = 1; save();
+    return `<div class="diary"><header class="stack-sm" style="text-align:center;align-items:center;margin-bottom:8px">${artSVG("book", "", "0 0 100 104").replace("<svg", '<svg style="width:84px;height:84px"')}<span class="label">Capítulo final</span><h1>${FINAL.titulo}</h1><p class="muted prose">Um espaço só seu, sem jogo, sem pontos e sem pressa. Escreva o que quiser, do jeito que quiser.</p></header>
+      <nav class="moments" aria-label="Momentos do capítulo">${FIM.momentos.map((m, i) => `<button class="${i === f.step ? "on" : ""} ${f.seen[i] ? "seen" : ""}" data-act="finGo" data-i="${i}" aria-label="Momento ${i + 1}: ${m}" title="${m}">${i + 1}</button>`).join("")}</nav>
+      <p class="small muted" style="text-align:center;margin-bottom:12px">Momento ${f.step + 1} de 5 · ${FIM.momentos[f.step]}</p>
+      <article class="paper stack" id="paper">${FIN_R[f.step]()}</article>
+      <div class="stepnav">${f.step > 0 ? `<button class="btn btn-ghost" data-act="finBy" data-d="-1">${icon("arrowL", 16)} ${FIM.momentos[f.step - 1]}</button>` : `<a class="btn btn-ghost" href="#inicio">${icon("arrowL", 16)} Mapa da jornada</a>`}
+      ${f.step < 4 ? `<button class="btn btn-pri" data-act="finBy" data-d="1">${FIM.momentos[f.step + 1]} ${icon("arrowR", 16)}</button>` : `<button class="btn btn-pri" data-act="finEnd">${icon("star", 16)} Fechar o diário</button>`}</div></div>`;
+  },
 };
-function stepsHTML() {
-  const P = S.plan; const done = P.steps.filter((s) => s.done).length;
-  return `<div class="stack"><div><h3>Pequenas etapas</h3><p class="muted small">Escreva uma tarefa grande e divida-a em passos pequenos e concretos.</p></div>
-    <div><label for="goal-in" class="label" style="display:block;margin-bottom:6px">Minha tarefa grande</label><input id="goal-in" class="field" placeholder="ex.: apresentação de Ciências na sexta" value="${esc(P.goal)}" maxlength="120" data-input="goal"></div>
-    <form class="add-row" onsubmit="event.preventDefault();A.stepAdd()"><label class="sr-only" for="step-in">Novo passo</label><input id="step-in" placeholder="Próximo passo pequeno (ex.: escolher o tema)" maxlength="120" autocomplete="off"><button class="btn btn-dark" type="submit">${icon("plus", 16)} Passo</button></form>
-    ${P.steps.length ? `<div style="height:8px;border-radius:4px;background:var(--line);overflow:hidden"><div style="height:100%;width:${(done / P.steps.length) * 100}%;background:var(--agua);transition:width .4s"></div></div><span class="label">${done} de ${P.steps.length} passos</span>` : ""}
-    <div class="stack" style="gap:8px">${P.steps.length ? P.steps.map((s, i) => `<div class="plan-item" style="${s.done ? "background:var(--agua-soft)" : ""}"><span class="pn">${i + 1}</span><label class="grow" style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" data-act="stepToggle" data-id="${s.id}" ${s.done ? "checked" : ""} style="width:20px;height:20px;accent-color:var(--agua-ink)"><span style="${s.done ? "text-decoration:line-through;color:var(--ink-2)" : ""}">${esc(s.t)}</span></label><button class="mini" data-act="stepMove" data-i="${i}" data-d="-1" aria-label="Subir">${icon("up", 15)}</button><button class="mini" data-act="stepMove" data-i="${i}" data-d="1" aria-label="Descer">${icon("down", 15)}</button><button class="mini" data-act="stepDel" data-id="${s.id}" aria-label="Remover">${icon("x", 15)}</button></div>`).join("") : `<div class="empty">Dica: o primeiro passo deve ser tão pequeno que dê para fazer em poucos minutos.</div>`}</div>
-    ${P.steps.length || P.goal ? `<div><button class="btn btn-ghost btn-sm" data-act="stepClear">${icon("trash", 14)} Começar um plano novo</button></div>` : ""}</div>`;
-}
-INPUTS.goal = (el) => { S.plan.goal = el.value; save(); };
-A.stepAdd = () => { const v = $("#step-in").value.trim(); if (!v) return; S.plan.steps.push({ id: uid(), t: v, done: false }); save(); renderRes(); $("#step-in").focus(); };
-A.stepToggle = (el) => { const s = S.plan.steps.find((x) => x.id === el.dataset.id); s.done = el.checked; save(); if (s.done) tone(784, 0.15, "sine", 0.08); renderRes(); };
-A.stepDel = (el) => { S.plan.steps = S.plan.steps.filter((x) => x.id !== el.dataset.id); save(); renderRes(); };
-A.stepMove = (el) => { const i = +el.dataset.i, j = i + +el.dataset.d, a = S.plan.steps; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; save(); renderRes(); };
-A.stepClear = () => { S.plan = { goal: "", steps: [] }; save(); renderRes(); };
-const COLS = ["A fazer", "Em andamento", "Concluído"]; const BCOLORS = ["lilas", "agua", "coral", "amarelo", "azul"]; let boardColor = "lilas";
-function boardHTML() {
-  return `<div class="stack"><div><h3>Quadro da semana</h3><p class="muted small">Adicione tarefas e mova-as conforme avança. Use cores para separar por assunto.</p></div>
-  <form class="add-row" onsubmit="event.preventDefault();A.boardAdd()" style="flex-wrap:wrap"><label class="sr-only" for="board-in">Nova tarefa</label><input id="board-in" placeholder="ex.: estudar para a prova de História" maxlength="100" autocomplete="off" style="flex:1 1 220px"><div class="swatches" role="group" aria-label="Cor da tarefa">${BCOLORS.map((c) => `<button type="button" class="${boardColor === c ? "on" : ""}" data-act="boardColor" data-c="${c}" style="background:var(--${c})" aria-label="Cor ${SYM_NOMES[c]}"></button>`).join("")}</div><button class="btn btn-dark" type="submit">${icon("plus", 16)} Adicionar</button></form>
-  <div class="kanban">${COLS.map((name, ci) => { const items = S.board.filter((b) => b.col === ci); return `<div class="kcol" data-col="${ci}"><h4>${name}<span class="tag">${items.length}</span></h4>${items.map((b) => `<div class="kitem" draggable="true" data-id="${b.id}" style="border-left:5px solid var(--${b.cor})"><span>${esc(b.t)}</span><div class="kact">${ci > 0 ? `<button class="mini" data-act="boardMove" data-id="${b.id}" data-d="-1" aria-label="Mover para ${COLS[ci - 1]}">${icon("left", 15)}</button>` : ""}${ci < 2 ? `<button class="mini" data-act="boardMove" data-id="${b.id}" data-d="1" aria-label="Mover para ${COLS[ci + 1]}">${icon("right", 15)}</button>` : ""}<button class="mini" data-act="boardDel" data-id="${b.id}" aria-label="Remover">${icon("x", 15)}</button></div></div>`).join("") || `<p class="muted small" style="text-align:center;padding:12px 0">${ci === 0 ? "Adicione uma tarefa" : "Arraste ou use as setas"}</p>`}</div>`; }).join("")}</div></div>`;
-}
-A.boardColor = (el) => { boardColor = el.dataset.c; const v = $("#board-in").value; renderRes(); $("#board-in").value = v; };
-A.boardAdd = () => { const v = $("#board-in").value.trim(); if (!v) return; S.board.push({ id: uid(), t: v, col: 0, cor: boardColor }); save(); renderRes(); $("#board-in").focus(); };
-A.boardMove = (el) => { const b = S.board.find((x) => x.id === el.dataset.id); b.col = Math.max(0, Math.min(2, b.col + +el.dataset.d)); save(); renderRes(); };
-A.boardDel = (el) => { S.board = S.board.filter((x) => x.id !== el.dataset.id); save(); renderRes(); };
-function boardDnD() {
-  $$(".kitem").forEach((it) => { it.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", it.dataset.id); it.classList.add("dragging"); }); it.addEventListener("dragend", () => it.classList.remove("dragging")); });
-  $$(".kcol").forEach((col) => { col.addEventListener("dragover", (e) => { e.preventDefault(); col.classList.add("over"); }); col.addEventListener("dragleave", () => col.classList.remove("over")); col.addEventListener("drop", (e) => { e.preventDefault(); const b = S.board.find((x) => x.id === e.dataTransfer.getData("text/plain")); if (b) { b.col = +col.dataset.col; save(); renderRes(); } }); });
-}
-MREND.estrategias = [() => `<div id="chal">${chalHTML()}</div>`, () => `<div id="tools">${toolsHTML()}</div>`, () => `<div id="exp">${expHTML()}</div>`, () => resHTML()];
-MMOUNT.estrategias = { 4: renderRes };
-MSUM.estrategias = () => { const d = TD(); return `<p class="small">Desafio: <b>${esc(chalName() || "não definido")}</b></p>${d.bag.length ? `<div class="row" style="gap:6px">${d.bag.map((id) => `<span class="tag agua">${TOOLS.find((t) => t.id === id).nome}</span>`).join("")}</div>` : ""}<p class="small muted">${d.exps.length} experimento(s) planejado(s).</p>`; };
+const finRefresh = () => { const y = window.scrollY; $("#paper").innerHTML = FIN_R[F().step](); window.scrollTo(0, y); };
+A.finGo = (el) => { F().step = +el.dataset.i; save(); route(); };
+A.finBy = (el) => { F().step += +el.dataset.d; save(); route(); };
+A.finEnd = () => { F().done = true; F().at = new Date().toLocaleDateString("pt-BR"); save(); location.hash = "#fim"; };
+INPUTS.finQ = (el) => { F().q[el.dataset.k] = el.value; save(); };
+INPUTS.finC = (el) => { F().cards[el.dataset.k] = el.value; save(); };
+A.finToolAdd = (el) => { F().tools.push({ t: el.dataset.v, q: "" }); save(); finRefresh(); };
+FORMS.finTool = () => { const v = $("#ft-in").value.trim(); if (!v) return; F().tools.push({ t: v, q: "" }); save(); finRefresh(); $("#ft-in").focus(); };
+A.finToolDel = (el) => { F().tools.splice(+el.dataset.k, 1); save(); finRefresh(); };
+INPUTS.finToolQ = (el) => { F().tools[+el.dataset.k].q = el.value; save(); };
+INPUTS.finG = (el) => { F().goals[+el.dataset.k][el.dataset.f] = el.value; save(); };
+INPUTS.finPara = (el) => { F().carta.para = el.value; save(); };
+INPUTS.finTxt = (el) => { F().carta.texto = el.value; save(); };
+A.finCopy = () => { const c = F().carta; copyText(`Para mim, ${c.para}\n\n${c.texto}`, $("#fl-txt")); };
 
-/* =================== MISSÃO 8 — RIDER =================== */
-const PERSONA_COLORS = { roxo: "#7656A8", agua: "#3E9F8B", coral: "#C86A78", azul: "#5487BC" };
-const RD = () => { const d = D("rider"); d.r = d.r || {}; return d; };
-function riderSugs(fonte) {
-  const c3 = S.m.comigo ? S.m.comigo.d : {}; const sorted = c3.sorted || {};
-  switch (fonte) {
-    case "cerebro": { const team = (S.m.bastidores && S.m.bastidores.d.team) || {}; const fortes = M1.equipe.filter((c) => (team[c.id] ?? 0) >= 7).map((c) => "Minha equipe forte: " + c.apelido.toLowerCase()); return M8.cerebro.concat(fortes); }
-    case "dificeis": return M3.cartas.filter((c) => c.cat !== "forte" && sorted[c.id] === "muito").map((c) => c.t);
-    case "fortes": return M3.cartas.filter((c) => c.cat === "forte" && (sorted[c.id] === "muito" || sorted[c.id] === "asvezes")).map((c) => c.t);
-    case "habil": return M8.habil;
-    case "ajuda": { const lab = S.m.laboratorio ? Object.values(S.m.laboratorio.d.j || {}).flatMap((j) => j.e).filter((x) => x !== "Não usei estratégia") : []; const emo = S.m.emocoes ? Object.values(S.m.emocoes.d.s || {}).flatMap((s) => s.quero) : []; const bag = S.m.estrategias ? (S.m.estrategias.d.bag || []).map((id) => TOOLS.find((t) => t.id === id).nome) : []; return [...new Set([...bag, ...emo, ...lab])]; }
-    case "exp": { const e = S.m.estrategias ? S.m.estrategias.d : {}; return [...new Set([...(e.exps || []).map((x) => TOOLS.find((t) => t.id === x.tool).nome + (x.quando ? ", " + x.quando : "")), ...(e.bag || []).map((id) => TOOLS.find((t) => t.id === id).nome)])]; }
-    case "pedir": return M8.pedir;
-    default: return [];
-  }
-}
-function riderHTML() {
-  const d = RD();
-  return `<div class="stack"><div class="card tight row between"><div class="row" style="gap:14px"><span class="label">Símbolo</span><div class="persona">${["mic", "skate", "star", "note"].map((s) => `<button class="${S.persona.icon === s ? "on" : ""}" data-act="persona" data-k="icon" data-v="${s}" aria-label="${SHAPE_NOMES[s]}">${sym(s, "roxo")}</button>`).join("")}</div></div>
-      <div class="row" style="gap:14px"><span class="label">Cor</span><div class="swatches">${Object.entries(PERSONA_COLORS).map(([k, v]) => `<button class="${S.persona.cor === k ? "on" : ""}" data-act="persona" data-k="cor" data-v="${k}" style="background:${v}" aria-label="Cor ${SYM_NOMES[k]}"></button>`).join("")}</div></div></div>
-    <div class="rider-grid">${M8.perguntas.map((q, i) => { const sugs = riderSugs(q.fonte); return `<div class="card rq"><label for="rq-${q.id}"><span class="qn">${pad2(i + 1)}</span>${q.q}</label><textarea id="rq-${q.id}" class="field" data-input="rider" data-id="${q.id}" placeholder="Escreva com as suas palavras..." maxlength="900">${esc(d.r[q.id] || "")}</textarea>${sugs.length ? `<div class="sugs"><span class="small muted" style="align-self:center">Das suas missões:</span>${sugs.slice(0, 8).map((s) => `<button type="button" data-act="rSug" data-id="${q.id}" data-v="${esc(s)}">+ ${esc(s)}</button>`).join("")}</div>` : ""}</div>`; }).join("")}</div>
-    <div class="row between"><button class="btn btn-ghost" data-act="riderAskClear">${icon("trash", 16)} Apagar respostas</button><button class="btn btn-primary" data-act="stepBy" data-d="1">Ver meu pôster ${icon("arrowR", 16)}</button></div></div>`;
-}
-INPUTS.rider = (el) => { RD().r[el.dataset.id] = el.value; save(); };
-A.rSug = (el) => { const d = RD(); const id = el.dataset.id; const ta = $("#rq-" + id); const cur = ta.value.trim(); ta.value = cur ? cur.replace(/[.,;]?$/, "") + "; " + el.dataset.v.charAt(0).toLowerCase() + el.dataset.v.slice(1) : el.dataset.v; d.r[id] = ta.value; save(); ta.focus(); };
-A.persona = (el) => { S.persona[el.dataset.k] = el.dataset.v; save(); rerender(); };
-A.riderAskClear = () => openModal(`<div class="modal-head"><span class="ib i-coral">${icon("trash", 22)}</span><div><h2>Apagar as respostas do rider?</h2><p class="muted" style="margin-top:6px">Os textos das nove perguntas serão apagados. Os ingressos continuam.</p></div></div><div class="modal-body"><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-act="closeModal">Cancelar</button><button class="btn btn-dark" data-act="riderClear">Apagar</button></div></div>`);
-A.riderClear = () => { RD().r = {}; save(); closeModal(); rerender(); toast("Respostas apagadas."); };
-function posterHTML() {
-  const d = RD(); const c = PERSONA_COLORS[S.persona.cor] || PERSONA_COLORS.roxo; const hoje = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-  const earned = MISSIONS.filter((m) => S.m[m.id] && S.m[m.id].done); const full = ["r1", "r8"];
-  const symInner = sym(S.persona.icon, "#ffffff").replace(/<\/?svg[^>]*>/g, "").replace(/#211936/g, "rgba(255,255,255,.55)");
-  return `<div class="row no-print" style="justify-content:space-between;margin-bottom:16px"><button class="btn btn-ghost" data-act="goStep" data-i="1">${icon("edit", 16)} Editar respostas</button><div class="row">${printButtons("Imprimir pôster")}</div></div>
-  <article class="poster"><header class="poster-head" style="background:linear-gradient(120deg,#211936 30%,${c})">
-    <svg class="deco" viewBox="0 0 300 220" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"><g transform="translate(150 30) scale(3.4)" opacity=".35">${symInner}</g><path d="${sparkPath(250, 46, 16)}" fill="#F2D47E"/><path d="${sparkPath(120, 170, 7)}" fill="#91D8C9"/><path d="M0 190 C70 140 130 220 200 170 S290 120 320 150" fill="none" stroke="#91D8C9" stroke-width="1.5" stroke-dasharray="1 7" stroke-linecap="round"/></svg>
-    <div style="position:relative;max-width:560px" class="stack"><span class="k">Meu rider · ${esc(S.title)}</span><h1>Meu cérebro, minhas descobertas.</h1><span class="k">${hoje}</span></div></header>
-    <div class="poster-body">${M8.perguntas.map((q) => { const v = (d.r[q.id] || "").trim(); return `<div class="pitem ${full.includes(q.id) ? "full" : ""}"><span class="k">${q.q}</span>${v ? `<p>${esc(v)}</p>` : `<p class="blank">Ainda não respondido.</p>`}</div>`; }).join("")}
-      ${earned.length ? `<div class="pitem full" style="background:#fff"><span class="k">Missões vividas</span><div class="row" style="gap:6px">${earned.map((m) => `<span class="tag">${pad2(m.n)} · ${m.titulo}</span>`).join("")}</div></div>` : ""}</div>
-    <footer class="poster-foot"><span>Este documento reúne as palavras de quem o escreveu. Não é um laudo, uma avaliação ou um diagnóstico.</span><span>Seu mundo, seu ritmo, sua mente.</span></footer></article>`;
-}
-MREND.rider = [() => riderHTML(), () => posterHTML()];
-MSUM.rider = () => { const n = M8.perguntas.filter((q) => (RD().r[q.id] || "").trim()).length; return `<p class="small">${n} de ${M8.perguntas.length} perguntas respondidas. <button class="btn btn-ghost btn-sm" data-act="goStep" data-i="2">Ver pôster</button></p>`; };
+VIEWS.fim = {
+  render() {
+    const f = F(); const cards = FIM.cartoes.filter((c) => (f.cards[c.id] || "").trim()); const goals = f.goals.filter((g) => g.t.trim());
+    return `<section class="ending"><svg class="sky" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sky(40, 7)}</svg>
+      <div style="position:relative;display:grid;place-items:center;margin-bottom:12px"><svg viewBox="0 0 120 60" style="width:180px;height:auto" aria-hidden="true"><g transform="translate(2 0) scale(.5)">${ART.mic("f-pri")}</g><g transform="translate(64 6) scale(.5)">${ART.skate("f-acc")}</g></svg></div>
+      <h1>Toda jornada deixa descobertas.</h1><p>Você olhou para a sua mente, para as suas atitudes e para as suas emoções com curiosidade. O que você descobriu continua com você, e pode crescer, mudar e ganhar novas páginas.</p>
+      <div class="row" style="justify-content:center;margin-top:22px;position:relative"><a class="btn btn-hero" href="#inicio">${icon("map", 16)} Voltar ao mapa</a><a class="btn btn-hero-ghost" href="#caminho">${icon("book", 16)} Reler o meu diário</a></div></section>
+      ${cards.length || goals.length ? `<section class="stack" style="margin-top:30px">${cards.length ? `<div class="trio">${cards.map((c) => `<div class="tcardx ${c.cls}"><h3>${c.t}</h3><p style="font-family:var(--f-hand);font-size:1.35rem;line-height:1.25;overflow-wrap:anywhere">${esc(f.cards[c.id])}</p></div>`).join("")}</div>` : ""}
+      ${goals.length ? `<div class="postits">${goals.map((g) => `<div class="postit"><span class="label">Objetivo</span><p style="font-family:var(--f-hand);font-size:1.35rem;line-height:1.2;overflow-wrap:anywhere">${esc(g.t)}</p>${g.passo ? `<p class="small">Primeiro passo: ${esc(g.passo)}</p>` : ""}</div>`).join("")}</div>` : ""}</section>` : ""}`;
+  },
+};
+
